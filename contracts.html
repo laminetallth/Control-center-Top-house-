@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contratti - Top House GESTIONALE</title>
+    <title>Contratti - Top House Gestionale</title>
 
     <link rel="stylesheet" href="css/style.css">
 </head>
@@ -25,17 +25,51 @@
         </div>
 
         <ul class="menu">
-            <li onclick="window.location.href='index.html'">🏠 Dashboard</li>
-            <li class="active">📄 Contratti</li>
-            <li>👥 Venditori</li>
-            <li>🤝 Partner</li>
-            <li>💰 Provvigioni</li>
-            <li>📈 Investimenti</li>
-            <li>🏦 Cash Flow</li>
-            <li>📊 KPI</li>
-            <li>📑 Report</li>
-            <li>📁 Documenti</li>
-            <li>⚙️ Impostazioni</li>
+
+            <li>
+                <a href="index.html">🏠 Dashboard</a>
+            </li>
+
+            <li class="active">
+                <a href="contracts.html">📄 Contratti</a>
+            </li>
+
+            <li>
+                <a href="vendors.html">👥 Venditori</a>
+            </li>
+
+            <li>
+                <a href="partners.html">🤝 Partner</a>
+            </li>
+
+            <li>
+                <a href="#">💰 Provvigioni</a>
+            </li>
+
+            <li>
+                <a href="investments.html">📈 Investimenti</a>
+            </li>
+
+            <li>
+                <a href="cashflow.html">🏦 Cash Flow</a>
+            </li>
+
+            <li>
+                <a href="#">📊 KPI</a>
+            </li>
+
+            <li>
+                <a href="reports.html">📑 Report</a>
+            </li>
+
+            <li>
+                <a href="#">📁 Documenti</a>
+            </li>
+
+            <li>
+                <a href="#">⚙️ Impostazioni</a>
+            </li>
+
         </ul>
 
     </aside>
@@ -84,35 +118,165 @@
             <div class="section-title">
                 <div>
                     <h3>➕ Nuovo Contratto</h3>
-                    <p>Inserisci la pratica caricata dal venditore</p>
+                    <p>Inserisci qui la pratica caricata dal venditore.</p>
                 </div>
             </div>
 
-            <form class="contract-form" id="contractForm">
+            <form class="contract-form contract-form-clean" id="contractForm">
 
-                <input type="date" id="dataInserimento" required>
+                <div class="form-field">
+                    <label>Data inserimento</label>
+                    <input type="date" id="dataInserimento" required>
+                </div>
 
-                <input type="text" id="nome" placeholder="Nome cliente" required>
+                <div class="form-field">
+                    <label>Data esito</label>
+                    <input type="date" id="dataEsito">
+                </div>
 
-                <input type="text" id="cognome" placeholder="Cognome cliente" required>
+                <div class="form-field">
+                    <label>Nome cliente</label>
+                    <input type="text" id="nome" placeholder="Es. Mario" required>
+                </div>
 
-                <input type="text" id="venditore" placeholder="Venditore" required>
+                <div class="form-field">
+                    <label>Cognome cliente</label>
+                    <input type="text" id="cognome" placeholder="Es. Rossi" required>
+                </div>
 
-                <input type="text" id="partner" placeholder="Partner" required>
+                <div class="form-field">
+                    <label>Venditore</label>
+                    <input type="text" id="venditore" placeholder="Es. Studio Cian" required>
+                </div>
 
-                <input type="text" id="gestore" placeholder="Gestore" required>
+                <div class="form-field">
+                    <label>Partner</label>
+                    <input type="text" id="partner" placeholder="Es. Partner Energia" required>
+                </div>
 
-                <select id="servizio" required>
-                    <option value="">Servizio</option>
-                    <option value="Luce">Luce</option>
-                    <option value="Gas">Gas</option>
-                    <option value="Luce + Gas">Luce + Gas</option>
-                    <option value="Fotovoltaico">Fotovoltaico</option>
-                    <option value="Infissi">Infissi</option>
-                    <option value="Climatizzatore">Climatizzatore</option>
-                    <option value="Caldaia">Caldaia</option>
-                    <option value="Altro">Altro</option>
-                </select>
+                <div class="form-field">
+                    <label>Gestore</label>
+                    <input type="text" id="gestore" placeholder="Es. Enel, Engie, A2A" required>
+                </div>
 
-                <select id="stato" required>
-                    <option value="Inserito">Inser
+                <div class="form-field">
+                    <label>Servizio</label>
+                    <select id="servizio" required>
+                        <option value="">Seleziona servizio</option>
+                        <option value="Luce">Luce</option>
+                        <option value="Gas">Gas</option>
+                        <option value="Luce + Gas">Luce + Gas</option>
+                        <option value="Fotovoltaico">Fotovoltaico</option>
+                        <option value="Infissi">Infissi</option>
+                        <option value="Climatizzatore">Climatizzatore</option>
+                        <option value="Caldaia">Caldaia</option>
+                        <option value="Altro">Altro</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Stato pratica</label>
+                    <select id="stato" required>
+                        <option value="Inserito">Inserito</option>
+                        <option value="In lavorazione">In lavorazione</option>
+                        <option value="OK">OK</option>
+                        <option value="KO">KO</option>
+                        <option value="Storno">Storno</option>
+                        <option value="Pagato">Pagato</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Gettone partner €</label>
+                    <input type="number" id="gettonePartner" placeholder="Es. 120" min="0">
+                </div>
+
+                <div class="form-field">
+                    <label>Gettone venditore €</label>
+                    <input type="number" id="gettoneVenditore" placeholder="Es. 80" min="0">
+                </div>
+
+                <div class="form-field">
+                    <label>Pagamento partner</label>
+                    <select id="pagamentoPartner">
+                        <option value="Da incassare">Da incassare</option>
+                        <option value="Incassato">Incassato</option>
+                        <option value="Non dovuto">Non dovuto</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Pagamento venditore</label>
+                    <select id="pagamentoVenditore">
+                        <option value="Da pagare">Da pagare</option>
+                        <option value="Pagato">Pagato</option>
+                        <option value="Non dovuto">Non dovuto</option>
+                    </select>
+                </div>
+
+                <div class="form-field form-field-wide">
+                    <label>Note</label>
+                    <input type="text" id="note" placeholder="Es. Documento mancante, cliente da richiamare...">
+                </div>
+
+                <button type="submit" class="save-btn">Salva Contratto</button>
+
+            </form>
+
+        </section>
+
+        <section class="box full-box">
+
+            <div class="section-title">
+                <div>
+                    <h3>📋 Registro Contratti</h3>
+                    <p>Tabella stile Excel per controllo mensile, pagamenti, KO e storni.</p>
+                </div>
+
+                <div class="table-actions">
+                    <input type="text" id="searchInput" placeholder="Cerca cliente, venditore, gestore...">
+                    <button onclick="exportCSV()">Esporta CSV</button>
+                    <button class="danger" onclick="resetContratti()">Svuota Demo</button>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+
+                <table class="contracts-table">
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Data Inserimento</th>
+                            <th>Data Esito</th>
+                            <th>Nome</th>
+                            <th>Cognome</th>
+                            <th>Venditore</th>
+                            <th>Partner</th>
+                            <th>Gestore</th>
+                            <th>Servizio</th>
+                            <th>Stato</th>
+                            <th>Gettone Partner</th>
+                            <th>Gettone Venditore</th>
+                            <th>Pagamento Partner</th>
+                            <th>Pagamento Venditore</th>
+                            <th>Note</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="contractsBody">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="js/contracts.js"></script>
+
+</body>
+
+</html>
