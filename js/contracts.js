@@ -5,7 +5,7 @@ let contratti = JSON.parse(localStorage.getItem("contrattiTopHouse")) || [
         dataEsito: "2026-06-10",
         nome: "Mario",
         cognome: "Rossi",
-        venditore: "Marco Rossi",
+        venditore: "Fabio Magnago",
         partner: "Partner Energia",
         gestore: "Enel",
         servizio: "Luce",
@@ -22,7 +22,7 @@ let contratti = JSON.parse(localStorage.getItem("contrattiTopHouse")) || [
         dataEsito: "2026-06-12",
         nome: "Giulia",
         cognome: "Bianchi",
-        venditore: "Luca Verdi",
+        venditore: "Studio Cian",
         partner: "Partner Casa",
         gestore: "Engie",
         servizio: "Gas",
@@ -39,7 +39,7 @@ let contratti = JSON.parse(localStorage.getItem("contrattiTopHouse")) || [
         dataEsito: "2026-06-15",
         nome: "Paolo",
         cognome: "Neri",
-        venditore: "Marco Rossi",
+        venditore: "Antonio Attardi",
         partner: "Partner Energia",
         gestore: "A2A",
         servizio: "Luce + Gas",
@@ -55,6 +55,9 @@ let contratti = JSON.parse(localStorage.getItem("contrattiTopHouse")) || [
 const form = document.getElementById("contractForm");
 const tbody = document.getElementById("contractsBody");
 const searchInput = document.getElementById("searchInput");
+const saveButton = document.getElementById("saveButton");
+const formTitle = document.getElementById("formTitle");
+const cancelEditButton = document.getElementById("cancelEditButton");
 
 function salvaStorage(){
     localStorage.setItem("contrattiTopHouse", JSON.stringify(contratti));
@@ -101,6 +104,12 @@ function renderContratti(lista = contratti){
         const row = document.createElement("tr");
 
         row.innerHTML = `
+            <td>
+                <div class="action-buttons">
+                    <button class="edit-btn" onclick="modificaContratto(${contratto.id})">Modifica</button>
+                    <button class="delete-btn" onclick="eliminaContratto(${contratto.id})">Elimina</button>
+                </div>
+            </td>
             <td>${contratto.id}</td>
             <td>${contratto.dataInserimento || ""}</td>
             <td>${contratto.dataEsito || ""}</td>
@@ -134,7 +143,7 @@ function aggiornaStatistiche(){
     const koStorni = contratti.filter(c => c.stato === "KO" || c.stato === "Storno").length;
 
     const daPagareVenditori = contratti
-        .filter(c => 
+        .filter(c =>
             (c.stato === "OK" || c.stato === "Pagato") &&
             c.pagamentoVenditore === "Da pagare"
         )
@@ -150,8 +159,10 @@ form.addEventListener("submit", function(e){
 
     e.preventDefault();
 
-    const nuovoContratto = {
-        id: contratti.length + 1,
+    const editId = document.getElementById("editId").value;
+
+    const datiContratto = {
+        id: editId ? Number(editId) : generaNuovoId(),
         dataInserimento: document.getElementById("dataInserimento").value,
         dataEsito: document.getElementById("dataEsito").value,
         nome: document.getElementById("nome").value,
@@ -168,15 +179,98 @@ form.addEventListener("submit", function(e){
         note: document.getElementById("note").value
     };
 
-    contratti.push(nuovoContratto);
+    if(editId){
+        contratti = contratti.map(c => c.id === Number(editId) ? datiContratto : c);
+    }else{
+        contratti.push(datiContratto);
+    }
 
     salvaStorage();
 
     renderContratti();
 
-    form.reset();
+    resetForm();
 
 });
+
+function generaNuovoId(){
+    if(contratti.length === 0){
+        return 1;
+    }
+
+    return Math.max(...contratti.map(c => c.id)) + 1;
+}
+
+function modificaContratto(id){
+
+    const contratto = contratti.find(c => c.id === id);
+
+    if(!contratto){
+        return;
+    }
+
+    document.getElementById("editId").value = contratto.id;
+    document.getElementById("dataInserimento").value = contratto.dataInserimento || "";
+    document.getElementById("dataEsito").value = contratto.dataEsito || "";
+    document.getElementById("nome").value = contratto.nome || "";
+    document.getElementById("cognome").value = contratto.cognome || "";
+    document.getElementById("venditore").value = contratto.venditore || "";
+    document.getElementById("partner").value = contratto.partner || "";
+    document.getElementById("gestore").value = contratto.gestore || "";
+    document.getElementById("servizio").value = contratto.servizio || "";
+    document.getElementById("stato").value = contratto.stato || "Inserito";
+    document.getElementById("gettonePartner").value = contratto.gettonePartner || 0;
+    document.getElementById("gettoneVenditore").value = contratto.gettoneVenditore || 0;
+    document.getElementById("pagamentoPartner").value = contratto.pagamentoPartner || "Da incassare";
+    document.getElementById("pagamentoVenditore").value = contratto.pagamentoVenditore || "Da pagare";
+    document.getElementById("note").value = contratto.note || "";
+
+    saveButton.innerText = "Aggiorna Contratto";
+    formTitle.innerText = "✏️ Modifica Contratto";
+    cancelEditButton.style.display = "block";
+
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+    });
+
+}
+
+function eliminaContratto(id){
+
+    const conferma = confirm("Vuoi davvero eliminare questo contratto?");
+
+    if(!conferma){
+        return;
+    }
+
+    contratti = contratti.filter(c => c.id !== id);
+
+    salvaStorage();
+
+    renderContratti();
+
+    resetForm();
+
+}
+
+function annullaModifica(){
+    resetForm();
+}
+
+function resetForm(){
+
+    form.reset();
+
+    document.getElementById("editId").value = "";
+
+    saveButton.innerText = "Salva Contratto";
+
+    formTitle.innerText = "➕ Nuovo Contratto";
+
+    cancelEditButton.style.display = "none";
+
+}
 
 searchInput.addEventListener("input", function(){
 
@@ -221,7 +315,7 @@ function exportCSV(){
 
 function resetContratti(){
 
-    if(confirm("Vuoi davvero svuotare i dati demo?")){
+    if(confirm("Vuoi davvero svuotare tutti i contratti?")){
 
         contratti = [];
 
@@ -229,8 +323,12 @@ function resetContratti(){
 
         renderContratti();
 
+        resetForm();
+
     }
 
 }
+
+cancelEditButton.style.display = "none";
 
 renderContratti();
