@@ -103,7 +103,9 @@ function numero(valore){
 
 function abbinaDaLista(valore, lista){
     const valorePulito = testo(valore).toLowerCase();
+
     const trovato = lista.find(elemento => elemento.toLowerCase() === valorePulito);
+
     return trovato || testo(valore);
 }
 
@@ -502,26 +504,274 @@ managerFilter.addEventListener("change", renderContratti);
 statusFilter.addEventListener("change", renderContratti);
 paymentVendorFilter.addEventListener("change", renderContratti);
 
-function exportCSV(){
+async function exportReport(){
 
     const lista = getListaFiltrata();
 
-    let csv = "ID,Data Inserimento,Data Esito,Nome,Cognome,Venditore,Partner,Gestore,Servizio,Stato,Gettone Partner,Gettone Venditore,Margine Top House,Pagamento Partner,Pagamento Venditore,Note\n";
+    const meseSelezionato = monthFilter.options[monthFilter.selectedIndex].text;
+    const dataExport = new Date().toLocaleDateString("it-IT");
 
-    lista.forEach(c => {
+    const totale = lista.length;
 
-        const margine = calcolaMargine(c);
+    const ok = lista.filter(c => c.stato === "OK" || c.stato === "Pagato").length;
 
-        csv += `${c.id},${c.dataInserimento},${c.dataEsito},${c.nome},${c.cognome},${c.venditore},${c.partner},${c.gestore},${c.servizio},${c.stato},${c.gettonePartner},${c.gettoneVenditore},${margine},${c.pagamentoPartner},${c.pagamentoVenditore},${c.note}\n`;
+    const koStorni = lista.filter(c => c.stato === "KO" || c.stato === "Storno").length;
+
+    const daPagareVenditori = lista
+        .filter(c =>
+            (c.stato === "OK" || c.stato === "Pagato") &&
+            c.pagamentoVenditore === "Da pagare"
+        )
+        .reduce((totale, c) => totale + Number(c.gettoneVenditore || 0), 0);
+
+    const daIncassarePartner = lista
+        .filter(c =>
+            (c.stato === "OK" || c.stato === "Pagato") &&
+            c.pagamentoPartner === "Da incassare"
+        )
+        .reduce((totale, c) => totale + Number(c.gettonePartner || 0), 0);
+
+    const margineTopHouse = lista
+        .filter(c => c.stato === "OK" || c.stato === "Pagato")
+        .reduce((totale, c) => totale + calcolaMargine(c), 0);
+
+    let logoBase64 = "";
+
+    try{
+        const response = await fetch("assets/logo-tophouse.png");
+        const blob = await response.blob();
+
+        logoBase64 = await new Promise(resolve => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result);
+            reader.readAsDataURL(blob);
+        });
+    }catch(error){
+        logoBase64 = "";
+    }
+
+    let righeContratti = "";
+
+    if(lista.length === 0){
+
+        righeContratti = `
+            <tr>
+                <td colspan="16" class="empty">
+                    Nessun contratto trovato per i filtri selezionati.
+                </td>
+            </tr>
+        `;
+
+    }else{
+
+        lista.forEach(c => {
+
+            const margine = calcolaMargine(c);
+
+            righeContratti += `
+                <tr>
+                    <td>${c.id}</td>
+                    <td>${c.dataInserimento}</td>
+                    <td>${c.dataEsito}</td>
+                    <td>${c.nome}</td>
+                    <td>${c.cognome}</td>
+                    <td>${c.venditore}</td>
+                    <td>${c.partner}</td>
+                    <td>${c.gestore}</td>
+                    <td>${c.servizio}</td>
+                    <td>${c.stato}</td>
+                    <td>${c.gettonePartner}€</td>
+                    <td>${c.gettoneVenditore}€</td>
+                    <td>${margine}€</td>
+                    <td>${c.pagamentoPartner}</td>
+                    <td>${c.pagamentoVenditore}</td>
+                    <td>${c.note}</td>
+                </tr>
+            `;
+
+        });
+
+    }
+
+    const reportHtml = `
+        <html>
+        <head>
+            <meta charset="UTF-8">
+
+            <style>
+
+                body{
+                    font-family: Arial, Helvetica, sans-serif;
+                    background:#ffffff;
+                    color:#081120;
+                }
+
+                .header-report{
+                    background:linear-gradient(90deg,#d90429,#ff7b00);
+                    color:white;
+                    padding:24px;
+                    border-radius:18px;
+                    margin-bottom:24px;
+                }
+
+                .logo{
+                    max-height:80px;
+                    margin-bottom:12px;
+                    background:white;
+                    padding:10px;
+                    border-radius:12px;
+                }
+
+                .title{
+                    font-size:30px;
+                    font-weight:800;
+                    margin-bottom:6px;
+                }
+
+                .subtitle{
+                    font-size:16px;
+                    opacity:.95;
+                }
+
+                .summary{
+                    width:100%;
+                    border-collapse:collapse;
+                    margin-bottom:24px;
+                }
+
+                .summary td{
+                    background:#f8fafc;
+                    border:1px solid #e5e7eb;
+                    padding:16px;
+                    font-size:15px;
+                    font-weight:bold;
+                    vertical-align:top;
+                }
+
+                .summary .value{
+                    color:#ff7b00;
+                    font-size:22px;
+                    font-weight:800;
+                }
+
+                table{
+                    width:100%;
+                    border-collapse:collapse;
+                }
+
+                th{
+                    background:#081120;
+                    color:white;
+                    padding:12px;
+                    border:1px solid #d1d5db;
+                    font-size:13px;
+                    text-align:left;
+                }
+
+                td{
+                    padding:10px;
+                    border:1px solid #e5e7eb;
+                    font-size:13px;
+                }
+
+                tr:nth-child(even) td{
+                    background:#f9fafb;
+                }
+
+                .section-title{
+                    color:#081120;
+                    font-size:22px;
+                    font-weight:800;
+                    margin:24px 0 12px 0;
+                }
+
+                .empty{
+                    text-align:center;
+                    padding:28px;
+                    color:#6b7280;
+                    font-weight:bold;
+                }
+
+                .footer{
+                    margin-top:30px;
+                    font-size:12px;
+                    color:#6b7280;
+                }
+
+            </style>
+        </head>
+
+        <body>
+
+            <div class="header-report">
+
+                ${logoBase64 ? `<img src="${logoBase64}" class="logo">` : ""}
+
+                <div class="title">TOP HOUSE - Report Contratti</div>
+                <div class="subtitle">
+                    Mensilità: ${meseSelezionato} | Esportato il: ${dataExport}
+                </div>
+
+            </div>
+
+            <table class="summary">
+                <tr>
+                    <td>Totale Contratti<br><span class="value">${totale}</span></td>
+                    <td>Contratti OK<br><span class="value">${ok}</span></td>
+                    <td>KO / Storni<br><span class="value">${koStorni}</span></td>
+                    <td>Da Incassare Partner<br><span class="value">${daIncassarePartner}€</span></td>
+                    <td>Da Pagare Venditori<br><span class="value">${daPagareVenditori}€</span></td>
+                    <td>Margine Top House<br><span class="value">${margineTopHouse}€</span></td>
+                </tr>
+            </table>
+
+            <div class="section-title">Dettaglio Contratti</div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Data Inserimento</th>
+                        <th>Data Esito</th>
+                        <th>Nome</th>
+                        <th>Cognome</th>
+                        <th>Venditore</th>
+                        <th>Partner</th>
+                        <th>Gestore</th>
+                        <th>Servizio</th>
+                        <th>Stato</th>
+                        <th>Gettone Partner</th>
+                        <th>Gettone Venditore</th>
+                        <th>Margine Top House</th>
+                        <th>Pagamento Partner</th>
+                        <th>Pagamento Venditore</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    ${righeContratti}
+                </tbody>
+            </table>
+
+            <div class="footer">
+                Report generato automaticamente dal Gestionale TOP HOUSE.
+            </div>
+
+        </body>
+        </html>
+    `;
+
+    const blob = new Blob([reportHtml], {
+        type: "application/vnd.ms-excel;charset=utf-8;"
     });
-
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
 
     const link = document.createElement("a");
 
-    link.href = URL.createObjectURL(blob);
+    const meseFile = monthFilter.value || "tutte-mensilita";
 
-    link.download = "contratti-top-house-filtrati.csv";
+    link.href = URL.createObjectURL(blob);
+    link.download = `report-contratti-top-house-${meseFile}.xls`;
 
     link.click();
 }
