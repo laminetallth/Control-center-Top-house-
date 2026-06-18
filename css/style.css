@@ -52,15 +52,15 @@ body{
 }
 
 .logo-mark{
-    width:95px;
-    height:90px;
+    width:115px;
+    height:95px;
     margin:0 auto 18px auto;
     overflow:hidden;
     position:relative;
 }
 
 .logo-mark img{
-    height:90px;
+    height:95px;
     width:auto;
     max-width:none;
     display:block;
@@ -93,11 +93,15 @@ body{
     cursor:pointer;
     transition:.3s;
     font-size:17px;
+    padding:0;
 }
 
-.menu li a{
-    color:white;
-    text-decoration:none;
+.menu li a,
+.menu li a:visited,
+.menu li a:hover,
+.menu li a:active{
+    color:white !important;
+    text-decoration:none !important;
     width:100%;
     display:flex;
     align-items:center;
@@ -122,6 +126,11 @@ body{
         #ff7b00
     );
     box-shadow:0 10px 25px rgba(249,115,22,.35);
+}
+
+.menu li:hover a,
+.menu li.active a{
+    color:white !important;
 }
 
 /* MAIN */
