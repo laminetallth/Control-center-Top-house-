@@ -6,7 +6,7 @@ let contratti = JSON.parse(localStorage.getItem("contrattiTopHouse")) || [
         nome: "Mario",
         cognome: "Rossi",
         venditore: "Fabio Magnago",
-        partner: "Partner Energia",
+        partner: "S4",
         gestore: "Enel",
         servizio: "Luce",
         stato: "OK",
@@ -23,7 +23,7 @@ let contratti = JSON.parse(localStorage.getItem("contrattiTopHouse")) || [
         nome: "Giulia",
         cognome: "Bianchi",
         venditore: "Studio Cian",
-        partner: "Partner Casa",
+        partner: "Onova",
         gestore: "Engie",
         servizio: "Gas",
         stato: "KO",
@@ -40,7 +40,7 @@ let contratti = JSON.parse(localStorage.getItem("contrattiTopHouse")) || [
         nome: "Paolo",
         cognome: "Neri",
         venditore: "Antonio Attardi",
-        partner: "Partner Energia",
+        partner: "EKO",
         gestore: "A2A",
         servizio: "Luce + Gas",
         stato: "Storno",
@@ -61,6 +61,7 @@ const cancelEditButton = document.getElementById("cancelEditButton");
 
 const monthFilter = document.getElementById("monthFilter");
 const vendorFilter = document.getElementById("vendorFilter");
+const partnerFilter = document.getElementById("partnerFilter");
 const managerFilter = document.getElementById("managerFilter");
 const statusFilter = document.getElementById("statusFilter");
 const paymentVendorFilter = document.getElementById("paymentVendorFilter");
@@ -70,6 +71,7 @@ function salvaStorage(){
 }
 
 function statoBadge(stato){
+
     if(stato === "OK"){
         return `<span class="badge ok">OK</span>`;
     }
@@ -90,6 +92,7 @@ function statoBadge(stato){
 }
 
 function pagamentoBadge(pagamento){
+
     if(pagamento === "Incassato" || pagamento === "Pagato"){
         return `<span class="badge ok">${pagamento}</span>`;
     }
@@ -106,6 +109,7 @@ function getListaFiltrata(){
     const ricerca = searchInput.value.toLowerCase();
     const mese = monthFilter.value;
     const venditore = vendorFilter.value;
+    const partner = partnerFilter.value;
     const gestore = managerFilter.value;
     const stato = statusFilter.value;
     const pagamentoVenditore = paymentVendorFilter.value;
@@ -124,13 +128,37 @@ function getListaFiltrata(){
             c.pagamentoPartner.toLowerCase().includes(ricerca) ||
             c.pagamentoVenditore.toLowerCase().includes(ricerca);
 
-        const matchMese = mese === "" || (c.dataInserimento && c.dataInserimento.startsWith(mese));
-        const matchVenditore = venditore === "" || c.venditore === venditore;
-        const matchGestore = gestore === "" || c.gestore === gestore;
-        const matchStato = stato === "" || c.stato === stato;
-        const matchPagamentoVenditore = pagamentoVenditore === "" || c.pagamentoVenditore === pagamentoVenditore;
+        const matchMese =
+            mese === "" ||
+            (c.dataInserimento && c.dataInserimento.startsWith(mese));
 
-        return matchRicerca && matchMese && matchVenditore && matchGestore && matchStato && matchPagamentoVenditore;
+        const matchVenditore =
+            venditore === "" ||
+            c.venditore === venditore;
+
+        const matchPartner =
+            partner === "" ||
+            c.partner === partner;
+
+        const matchGestore =
+            gestore === "" ||
+            c.gestore === gestore;
+
+        const matchStato =
+            stato === "" ||
+            c.stato === stato;
+
+        const matchPagamentoVenditore =
+            pagamentoVenditore === "" ||
+            c.pagamentoVenditore === pagamentoVenditore;
+
+        return matchRicerca &&
+               matchMese &&
+               matchVenditore &&
+               matchPartner &&
+               matchGestore &&
+               matchStato &&
+               matchPagamentoVenditore;
 
     });
 
@@ -180,7 +208,9 @@ function renderContratti(lista = getListaFiltrata()){
 function aggiornaStatistiche(lista){
 
     const totale = lista.length;
+
     const ok = lista.filter(c => c.stato === "OK" || c.stato === "Pagato").length;
+
     const koStorni = lista.filter(c => c.stato === "KO" || c.stato === "Storno").length;
 
     const daPagareVenditori = lista
@@ -200,16 +230,23 @@ function aggiornaStatistiche(lista){
 function aggiornaFiltri(){
 
     const venditoreCorrente = vendorFilter.value;
+    const partnerCorrente = partnerFilter.value;
     const gestoreCorrente = managerFilter.value;
 
     const venditori = [...new Set(contratti.map(c => c.venditore).filter(Boolean))].sort();
+    const partners = [...new Set(contratti.map(c => c.partner).filter(Boolean))].sort();
     const gestori = [...new Set(contratti.map(c => c.gestore).filter(Boolean))].sort();
 
     vendorFilter.innerHTML = `<option value="">Tutti i venditori</option>`;
+    partnerFilter.innerHTML = `<option value="">Tutti i partner</option>`;
     managerFilter.innerHTML = `<option value="">Tutti i gestori</option>`;
 
     venditori.forEach(v => {
         vendorFilter.innerHTML += `<option value="${v}">${v}</option>`;
+    });
+
+    partners.forEach(p => {
+        partnerFilter.innerHTML += `<option value="${p}">${p}</option>`;
     });
 
     gestori.forEach(g => {
@@ -217,6 +254,7 @@ function aggiornaFiltri(){
     });
 
     vendorFilter.value = venditoreCorrente;
+    partnerFilter.value = partnerCorrente;
     managerFilter.value = gestoreCorrente;
 
 }
@@ -252,17 +290,21 @@ form.addEventListener("submit", function(e){
     }
 
     salvaStorage();
+
     renderContratti();
+
     resetForm();
 
 });
 
 function generaNuovoId(){
+
     if(contratti.length === 0){
         return 1;
     }
 
     return Math.max(...contratti.map(c => c.id)) + 1;
+
 }
 
 function modificaContratto(id){
@@ -311,7 +353,9 @@ function eliminaContratto(id){
     contratti = contratti.filter(c => c.id !== id);
 
     salvaStorage();
+
     renderContratti();
+
     resetForm();
 
 }
@@ -339,6 +383,7 @@ function resetFiltri(){
     searchInput.value = "";
     monthFilter.value = "";
     vendorFilter.value = "";
+    partnerFilter.value = "";
     managerFilter.value = "";
     statusFilter.value = "";
     paymentVendorFilter.value = "";
@@ -350,6 +395,7 @@ function resetFiltri(){
 searchInput.addEventListener("input", renderContratti);
 monthFilter.addEventListener("change", renderContratti);
 vendorFilter.addEventListener("change", renderContratti);
+partnerFilter.addEventListener("change", renderContratti);
 managerFilter.addEventListener("change", renderContratti);
 statusFilter.addEventListener("change", renderContratti);
 paymentVendorFilter.addEventListener("change", renderContratti);
