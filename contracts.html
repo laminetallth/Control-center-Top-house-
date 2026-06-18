@@ -83,9 +83,21 @@
                 <span>Registro pratiche, esiti, gettoni e pagamenti</span>
             </div>
 
-            <div class="month-box">
-                Giugno 2026
-            </div>
+            <select class="month-select" id="monthFilter">
+                <option value="">Tutte le mensilità</option>
+                <option value="2026-01">Gennaio 2026</option>
+                <option value="2026-02">Febbraio 2026</option>
+                <option value="2026-03">Marzo 2026</option>
+                <option value="2026-04">Aprile 2026</option>
+                <option value="2026-05">Maggio 2026</option>
+                <option value="2026-06" selected>Giugno 2026</option>
+                <option value="2026-07">Luglio 2026</option>
+                <option value="2026-08">Agosto 2026</option>
+                <option value="2026-09">Settembre 2026</option>
+                <option value="2026-10">Ottobre 2026</option>
+                <option value="2026-11">Novembre 2026</option>
+                <option value="2026-12">Dicembre 2026</option>
+            </select>
 
         </div>
 
@@ -122,7 +134,7 @@
                 </div>
             </div>
 
-            <form class="contract-form contract-form-clean" id="contractForm">
+            <form class="contract-form" id="contractForm">
 
                 <input type="hidden" id="editId">
 
@@ -233,14 +245,43 @@
             <div class="section-title">
                 <div>
                     <h3>📋 Registro Contratti</h3>
-                    <p>Tabella stile Excel per controllo mensile, pagamenti, KO e storni.</p>
+                    <p>Filtra per mese, venditore, gestore, stato e pagamento.</p>
                 </div>
+            </div>
 
-                <div class="table-actions">
-                    <input type="text" id="searchInput" placeholder="Cerca cliente, venditore, gestore...">
-                    <button onclick="exportCSV()">Esporta CSV</button>
-                    <button class="danger" onclick="resetContratti()">Svuota Demo</button>
-                </div>
+            <div class="table-actions filters-area">
+
+                <input type="text" id="searchInput" placeholder="Cerca cliente, venditore, gestore...">
+
+                <select id="vendorFilter">
+                    <option value="">Tutti i venditori</option>
+                </select>
+
+                <select id="managerFilter">
+                    <option value="">Tutti i gestori</option>
+                </select>
+
+                <select id="statusFilter">
+                    <option value="">Tutti gli stati</option>
+                    <option value="Inserito">Inserito</option>
+                    <option value="In lavorazione">In lavorazione</option>
+                    <option value="OK">OK</option>
+                    <option value="KO">KO</option>
+                    <option value="Storno">Storno</option>
+                    <option value="Pagato">Pagato</option>
+                </select>
+
+                <select id="paymentVendorFilter">
+                    <option value="">Pagamento venditore</option>
+                    <option value="Da pagare">Da pagare</option>
+                    <option value="Pagato">Pagato</option>
+                    <option value="Non dovuto">Non dovuto</option>
+                </select>
+
+                <button onclick="exportCSV()">Esporta CSV</button>
+                <button onclick="resetFiltri()">Reset Filtri</button>
+                <button class="danger" onclick="resetContratti()">Svuota Tutto</button>
+
             </div>
 
             <div class="table-wrapper">
