@@ -160,12 +160,31 @@
 
                 <div class="form-field">
                     <label>Venditore</label>
-                    <input type="text" id="venditore" placeholder="Es. Studio Cian" required>
+                    <select id="venditore" required>
+                        <option value="">Seleziona venditore</option>
+                        <option value="Antonio Attardi">Antonio Attardi</option>
+                        <option value="Davide Marino">Davide Marino</option>
+                        <option value="Fabio Magnago">Fabio Magnago</option>
+                        <option value="Gabriele Straniero">Gabriele Straniero</option>
+                        <option value="Giuseppe Maresca">Giuseppe Maresca</option>
+                        <option value="Lamine Tall">Lamine Tall</option>
+                        <option value="Morena Caccavo">Morena Caccavo</option>
+                        <option value="Studio Cian">Studio Cian</option>
+                    </select>
                 </div>
 
                 <div class="form-field">
                     <label>Partner</label>
-                    <input type="text" id="partner" placeholder="Es. Partner Energia" required>
+                    <select id="partner" required>
+                        <option value="">Seleziona partner</option>
+                        <option value="EKO">EKO</option>
+                        <option value="Greenword">Greenword</option>
+                        <option value="New costruction">New costruction</option>
+                        <option value="Onova">Onova</option>
+                        <option value="S4">S4</option>
+                        <option value="Union">Union</option>
+                        <option value="WLD Impianti">WLD Impianti</option>
+                    </select>
                 </div>
 
                 <div class="form-field">
@@ -184,6 +203,8 @@
                         <option value="Infissi">Infissi</option>
                         <option value="Climatizzatore">Climatizzatore</option>
                         <option value="Caldaia">Caldaia</option>
+                        <option value="Pompa di calore">Pompa di calore</option>
+                        <option value="Wall box">Wall box</option>
                         <option value="Altro">Altro</option>
                     </select>
                 </div>
@@ -251,10 +272,14 @@
 
             <div class="table-actions filters-area">
 
-                <input type="text" id="searchInput" placeholder="Cerca cliente, venditore, gestore...">
+                <input type="text" id="searchInput" placeholder="Cerca cliente, venditore, partner, gestore...">
 
                 <select id="vendorFilter">
                     <option value="">Tutti i venditori</option>
+                </select>
+
+                <select id="partnerFilter">
+                    <option value="">Tutti i partner</option>
                 </select>
 
                 <select id="managerFilter">
