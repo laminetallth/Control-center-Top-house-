@@ -103,9 +103,7 @@ function numero(valore){
 
 function abbinaDaLista(valore, lista){
     const valorePulito = testo(valore).toLowerCase();
-
     const trovato = lista.find(elemento => elemento.toLowerCase() === valorePulito);
-
     return trovato || testo(valore);
 }
 
@@ -188,6 +186,7 @@ function pagamentoBadge(pagamento){
 }
 
 function calcolaMargine(contratto){
+
     if(contratto.stato !== "OK" && contratto.stato !== "Pagato"){
         return 0;
     }
@@ -198,12 +197,12 @@ function calcolaMargine(contratto){
 function getListaFiltrata(){
 
     const ricerca = testo(searchInput.value).toLowerCase();
-    const mese = monthFilter.value;
-    const venditore = vendorFilter.value;
-    const partner = partnerFilter.value;
-    const gestore = managerFilter.value;
-    const stato = statusFilter.value;
-    const pagamentoVenditore = paymentVendorFilter.value;
+    const meseSelezionato = testo(monthFilter.value);
+    const venditoreSelezionato = testo(vendorFilter.value);
+    const partnerSelezionato = testo(partnerFilter.value);
+    const gestoreSelezionato = testo(managerFilter.value);
+    const statoSelezionato = testo(statusFilter.value);
+    const pagamentoVenditoreSelezionato = testo(paymentVendorFilter.value);
 
     return contratti.filter(c => {
 
@@ -221,31 +220,33 @@ function getListaFiltrata(){
             ${c.note}
         `.toLowerCase();
 
+        const meseContratto = testo(c.dataInserimento).slice(0, 7);
+
         const matchRicerca = contenuto.includes(ricerca);
 
         const matchMese =
-            mese === "" ||
-            testo(c.dataInserimento).startsWith(mese);
+            meseSelezionato === "" ||
+            meseContratto === meseSelezionato;
 
         const matchVenditore =
-            venditore === "" ||
-            c.venditore === venditore;
+            venditoreSelezionato === "" ||
+            c.venditore === venditoreSelezionato;
 
         const matchPartner =
-            partner === "" ||
-            c.partner === partner;
+            partnerSelezionato === "" ||
+            c.partner === partnerSelezionato;
 
         const matchGestore =
-            gestore === "" ||
-            c.gestore === gestore;
+            gestoreSelezionato === "" ||
+            c.gestore === gestoreSelezionato;
 
         const matchStato =
-            stato === "" ||
-            c.stato === stato;
+            statoSelezionato === "" ||
+            c.stato === statoSelezionato;
 
         const matchPagamentoVenditore =
-            pagamentoVenditore === "" ||
-            c.pagamentoVenditore === pagamentoVenditore;
+            pagamentoVenditoreSelezionato === "" ||
+            c.pagamentoVenditore === pagamentoVenditoreSelezionato;
 
         return matchRicerca &&
                matchMese &&
@@ -263,6 +264,23 @@ function renderContratti(){
     const lista = getListaFiltrata();
 
     tbody.innerHTML = "";
+
+    if(lista.length === 0){
+
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+            <td colspan="17" style="text-align:center; padding:30px; color:#6b7280; font-weight:bold;">
+                Nessun contratto trovato per i filtri selezionati.
+            </td>
+        `;
+
+        tbody.appendChild(row);
+
+        aggiornaStatistiche(lista);
+
+        return;
+    }
 
     lista.forEach(contratto => {
 
@@ -473,7 +491,11 @@ function resetFiltri(){
 }
 
 searchInput.addEventListener("input", renderContratti);
-monthFilter.addEventListener("change", renderContratti);
+
+monthFilter.addEventListener("change", function(){
+    renderContratti();
+});
+
 vendorFilter.addEventListener("change", renderContratti);
 partnerFilter.addEventListener("change", renderContratti);
 managerFilter.addEventListener("change", renderContratti);
