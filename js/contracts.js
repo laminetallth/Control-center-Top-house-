@@ -35,8 +35,8 @@ let contratti = JSON.parse(localStorage.getItem("contrattiTopHouse")) || [
     },
     {
         id: 3,
-        dataInserimento: "2026-06-05",
-        dataEsito: "2026-06-15",
+        dataInserimento: "2026-07-05",
+        dataEsito: "2026-07-15",
         nome: "Paolo",
         cognome: "Neri",
         venditore: "Antonio Attardi",
@@ -58,6 +58,12 @@ const searchInput = document.getElementById("searchInput");
 const saveButton = document.getElementById("saveButton");
 const formTitle = document.getElementById("formTitle");
 const cancelEditButton = document.getElementById("cancelEditButton");
+
+const monthFilter = document.getElementById("monthFilter");
+const vendorFilter = document.getElementById("vendorFilter");
+const managerFilter = document.getElementById("managerFilter");
+const statusFilter = document.getElementById("statusFilter");
+const paymentVendorFilter = document.getElementById("paymentVendorFilter");
 
 function salvaStorage(){
     localStorage.setItem("contrattiTopHouse", JSON.stringify(contratti));
@@ -95,7 +101,49 @@ function pagamentoBadge(pagamento){
     return `<span class="badge pending">${pagamento}</span>`;
 }
 
-function renderContratti(lista = contratti){
+function getListaFiltrata(){
+
+    const ricerca = searchInput.value.toLowerCase();
+    const mese = monthFilter.value;
+    const venditore = vendorFilter.value;
+    const gestore = managerFilter.value;
+    const stato = statusFilter.value;
+    const pagamentoVenditore = paymentVendorFilter.value;
+
+    return contratti.filter(c => {
+
+        const matchRicerca =
+            String(c.id).includes(ricerca) ||
+            c.nome.toLowerCase().includes(ricerca) ||
+            c.cognome.toLowerCase().includes(ricerca) ||
+            c.venditore.toLowerCase().includes(ricerca) ||
+            c.partner.toLowerCase().includes(ricerca) ||
+            c.gestore.toLowerCase().includes(ricerca) ||
+            c.servizio.toLowerCase().includes(ricerca) ||
+            c.stato.toLowerCase().includes(ricerca) ||
+            c.pagamentoPartner.toLowerCase().includes(ricerca) ||
+            c.pagamentoVenditore.toLowerCase().includes(ricerca);
+
+        const matchMese = mese === "" || (c.dataInserimento && c.dataInserimento.startsWith(mese));
+
+        const matchVenditore = venditore === "" || c.venditore === venditore;
+
+        const matchGestore = gestore === "" || c.gestore === gestore;
+
+        const matchStato = stato === "" || c.stato === stato;
+
+        const matchPagamentoVenditore = pagamentoVenditore === "" || c.pagamentoVenditore === pagamentoVenditore;
+
+        return matchRicerca &&
+               matchMese &&
+               matchVenditore &&
+               matchGestore &&
+               matchStato &&
+               matchPagamentoVenditore;
+    });
+}
+
+function renderContratti(lista = getListaFiltrata()){
 
     tbody.innerHTML = "";
 
@@ -131,18 +179,19 @@ function renderContratti(lista = contratti){
 
     });
 
-    aggiornaStatistiche();
+    aggiornaStatistiche(lista);
+    aggiornaFiltri();
 }
 
-function aggiornaStatistiche(){
+function aggiornaStatistiche(lista = getListaFiltrata()){
 
-    const totale = contratti.length;
+    const totale = lista.length;
 
-    const ok = contratti.filter(c => c.stato === "OK" || c.stato === "Pagato").length;
+    const ok = lista.filter(c => c.stato === "OK" || c.stato === "Pagato").length;
 
-    const koStorni = contratti.filter(c => c.stato === "KO" || c.stato === "Storno").length;
+    const koStorni = lista.filter(c => c.stato === "KO" || c.stato === "Storno").length;
 
-    const daPagareVenditori = contratti
+    const daPagareVenditori = lista
         .filter(c =>
             (c.stato === "OK" || c.stato === "Pagato") &&
             c.pagamentoVenditore === "Da pagare"
@@ -153,6 +202,29 @@ function aggiornaStatistiche(){
     document.getElementById("totaleOk").innerText = ok;
     document.getElementById("totaleKo").innerText = koStorni;
     document.getElementById("totaleVenditori").innerText = daPagareVenditori + "€";
+}
+
+function aggiornaFiltri(){
+
+    const venditoreCorrente = vendorFilter.value;
+    const gestoreCorrente = managerFilter.value;
+
+    const venditori = [...new Set(contratti.map(c => c.venditore).filter(Boolean))].sort();
+    const gestori = [...new Set(contratti.map(c => c.gestore).filter(Boolean))].sort();
+
+    vendorFilter.innerHTML = `<option value="">Tutti i venditori</option>`;
+    managerFilter.innerHTML = `<option value="">Tutti i gestori</option>`;
+
+    venditori.forEach(v => {
+        vendorFilter.innerHTML += `<option value="${v}">${v}</option>`;
+    });
+
+    gestori.forEach(g => {
+        managerFilter.innerHTML += `<option value="${g}">${g}</option>`;
+    });
+
+    vendorFilter.value = venditoreCorrente;
+    managerFilter.value = gestoreCorrente;
 }
 
 form.addEventListener("submit", function(e){
@@ -233,7 +305,6 @@ function modificaContratto(id){
         top: 0,
         behavior: "smooth"
     });
-
 }
 
 function eliminaContratto(id){
@@ -251,7 +322,6 @@ function eliminaContratto(id){
     renderContratti();
 
     resetForm();
-
 }
 
 function annullaModifica(){
@@ -269,35 +339,34 @@ function resetForm(){
     formTitle.innerText = "➕ Nuovo Contratto";
 
     cancelEditButton.style.display = "none";
-
 }
 
-searchInput.addEventListener("input", function(){
+function resetFiltri(){
 
-    const ricerca = searchInput.value.toLowerCase();
+    searchInput.value = "";
+    monthFilter.value = "";
+    vendorFilter.value = "";
+    managerFilter.value = "";
+    statusFilter.value = "";
+    paymentVendorFilter.value = "";
 
-    const filtrati = contratti.filter(c =>
-        String(c.id).includes(ricerca) ||
-        c.nome.toLowerCase().includes(ricerca) ||
-        c.cognome.toLowerCase().includes(ricerca) ||
-        c.venditore.toLowerCase().includes(ricerca) ||
-        c.partner.toLowerCase().includes(ricerca) ||
-        c.gestore.toLowerCase().includes(ricerca) ||
-        c.servizio.toLowerCase().includes(ricerca) ||
-        c.stato.toLowerCase().includes(ricerca) ||
-        c.pagamentoPartner.toLowerCase().includes(ricerca) ||
-        c.pagamentoVenditore.toLowerCase().includes(ricerca)
-    );
+    renderContratti();
+}
 
-    renderContratti(filtrati);
-
-});
+searchInput.addEventListener("input", renderContratti);
+monthFilter.addEventListener("change", renderContratti);
+vendorFilter.addEventListener("change", renderContratti);
+managerFilter.addEventListener("change", renderContratti);
+statusFilter.addEventListener("change", renderContratti);
+paymentVendorFilter.addEventListener("change", renderContratti);
 
 function exportCSV(){
 
+    const lista = getListaFiltrata();
+
     let csv = "ID,Data Inserimento,Data Esito,Nome,Cognome,Venditore,Partner,Gestore,Servizio,Stato,Gettone Partner,Gettone Venditore,Pagamento Partner,Pagamento Venditore,Note\n";
 
-    contratti.forEach(c => {
+    lista.forEach(c => {
         csv += `${c.id},${c.dataInserimento},${c.dataEsito},${c.nome},${c.cognome},${c.venditore},${c.partner},${c.gestore},${c.servizio},${c.stato},${c.gettonePartner},${c.gettoneVenditore},${c.pagamentoPartner},${c.pagamentoVenditore},${c.note}\n`;
     });
 
@@ -307,10 +376,9 @@ function exportCSV(){
 
     link.href = URL.createObjectURL(blob);
 
-    link.download = "contratti-top-house.csv";
+    link.download = "contratti-top-house-filtrati.csv";
 
     link.click();
-
 }
 
 function resetContratti(){
@@ -324,9 +392,7 @@ function resetContratti(){
         renderContratti();
 
         resetForm();
-
     }
-
 }
 
 cancelEditButton.style.display = "none";
