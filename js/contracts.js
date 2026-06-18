@@ -19,6 +19,26 @@ const PARTNER_REGISTRATI = [
     "WLD Impianti"
 ];
 
+const GESTORI_REGISTRATI = [
+    "ACEA",
+    "ALPERIA",
+    "COGEME",
+    "DUFERCO",
+    "ENEL",
+    "ENGIE",
+    "GDE",
+    "HERA",
+    "IREN",
+    "ONOVA",
+    "S4",
+    "SIMECOM",
+    "SORGENIA",
+    "STREAM",
+    "UNION",
+    "UNOENERGY",
+    "VIVIENERGIA"
+];
+
 const CONTRATTI_DEMO = [
     {
         id: 1,
@@ -28,7 +48,7 @@ const CONTRATTI_DEMO = [
         cognome: "Rossi",
         venditore: "Fabio Magnago",
         partner: "S4",
-        gestore: "Enel",
+        gestore: "ENEL",
         servizio: "Luce",
         stato: "OK",
         gettonePartner: 120,
@@ -45,7 +65,7 @@ const CONTRATTI_DEMO = [
         cognome: "Bianchi",
         venditore: "Studio Cian",
         partner: "Onova",
-        gestore: "Engie",
+        gestore: "ENGIE",
         servizio: "Gas",
         stato: "KO",
         gettonePartner: 0,
@@ -62,7 +82,7 @@ const CONTRATTI_DEMO = [
         cognome: "Neri",
         venditore: "Antonio Attardi",
         partner: "EKO",
-        gestore: "A2A",
+        gestore: "ACEA",
         servizio: "Luce + Gas",
         stato: "Storno",
         gettonePartner: 0,
@@ -81,6 +101,14 @@ function numero(valore){
     return Number(valore || 0);
 }
 
+function abbinaDaLista(valore, lista){
+    const valorePulito = testo(valore).toLowerCase();
+
+    const trovato = lista.find(elemento => elemento.toLowerCase() === valorePulito);
+
+    return trovato || testo(valore);
+}
+
 function normalizzaContratto(c, index){
     return {
         id: Number(c.id || index + 1),
@@ -88,9 +116,9 @@ function normalizzaContratto(c, index){
         dataEsito: testo(c.dataEsito),
         nome: testo(c.nome),
         cognome: testo(c.cognome),
-        venditore: testo(c.venditore),
-        partner: testo(c.partner),
-        gestore: testo(c.gestore),
+        venditore: abbinaDaLista(c.venditore, VENDITORI_REGISTRATI),
+        partner: abbinaDaLista(c.partner, PARTNER_REGISTRATI),
+        gestore: abbinaDaLista(c.gestore, GESTORI_REGISTRATI),
         servizio: testo(c.servizio),
         stato: testo(c.stato) || "Inserito",
         gettonePartner: numero(c.gettonePartner),
@@ -157,6 +185,14 @@ function pagamentoBadge(pagamento){
     }
 
     return `<span class="badge pending">${pagamento}</span>`;
+}
+
+function calcolaMargine(contratto){
+    if(contratto.stato !== "OK" && contratto.stato !== "Pagato"){
+        return 0;
+    }
+
+    return Number(contratto.gettonePartner || 0) - Number(contratto.gettoneVenditore || 0);
 }
 
 function getListaFiltrata(){
@@ -230,6 +266,8 @@ function renderContratti(){
 
     lista.forEach(contratto => {
 
+        const margine = calcolaMargine(contratto);
+
         const row = document.createElement("tr");
 
         row.innerHTML = `
@@ -251,6 +289,7 @@ function renderContratti(){
             <td>${statoBadge(contratto.stato)}</td>
             <td>${contratto.gettonePartner}€</td>
             <td>${contratto.gettoneVenditore}€</td>
+            <td>${margine}€</td>
             <td>${pagamentoBadge(contratto.pagamentoPartner)}</td>
             <td>${pagamentoBadge(contratto.pagamentoVenditore)}</td>
             <td>${contratto.note}</td>
@@ -278,10 +317,15 @@ function aggiornaStatistiche(lista){
         )
         .reduce((totale, c) => totale + Number(c.gettoneVenditore || 0), 0);
 
+    const margineTopHouse = lista
+        .filter(c => c.stato === "OK" || c.stato === "Pagato")
+        .reduce((totale, c) => totale + calcolaMargine(c), 0);
+
     document.getElementById("totaleContratti").innerText = totale;
     document.getElementById("totaleOk").innerText = ok;
     document.getElementById("totaleKo").innerText = koStorni;
     document.getElementById("totaleVenditori").innerText = daPagareVenditori + "€";
+    document.getElementById("margineTopHouse").innerText = margineTopHouse + "€";
 }
 
 function popolaFiltriFissi(){
@@ -298,22 +342,11 @@ function popolaFiltriFissi(){
         partnerFilter.innerHTML += `<option value="${partner}">${partner}</option>`;
     });
 
-    aggiornaFiltroGestori();
-}
-
-function aggiornaFiltroGestori(){
-
-    const gestoreCorrente = managerFilter.value;
-
-    const gestori = [...new Set(contratti.map(c => c.gestore).filter(Boolean))].sort();
-
     managerFilter.innerHTML = `<option value="">Tutti i gestori</option>`;
 
-    gestori.forEach(gestore => {
+    GESTORI_REGISTRATI.forEach(gestore => {
         managerFilter.innerHTML += `<option value="${gestore}">${gestore}</option>`;
     });
-
-    managerFilter.value = gestoreCorrente;
 }
 
 form.addEventListener("submit", function(e){
@@ -347,7 +380,6 @@ form.addEventListener("submit", function(e){
     }
 
     salvaStorage();
-    aggiornaFiltroGestori();
     renderContratti();
     resetForm();
 });
@@ -406,7 +438,6 @@ function eliminaContratto(id){
     contratti = contratti.filter(c => c.id !== id);
 
     salvaStorage();
-    aggiornaFiltroGestori();
     renderContratti();
     resetForm();
 }
@@ -453,10 +484,13 @@ function exportCSV(){
 
     const lista = getListaFiltrata();
 
-    let csv = "ID,Data Inserimento,Data Esito,Nome,Cognome,Venditore,Partner,Gestore,Servizio,Stato,Gettone Partner,Gettone Venditore,Pagamento Partner,Pagamento Venditore,Note\n";
+    let csv = "ID,Data Inserimento,Data Esito,Nome,Cognome,Venditore,Partner,Gestore,Servizio,Stato,Gettone Partner,Gettone Venditore,Margine Top House,Pagamento Partner,Pagamento Venditore,Note\n";
 
     lista.forEach(c => {
-        csv += `${c.id},${c.dataInserimento},${c.dataEsito},${c.nome},${c.cognome},${c.venditore},${c.partner},${c.gestore},${c.servizio},${c.stato},${c.gettonePartner},${c.gettoneVenditore},${c.pagamentoPartner},${c.pagamentoVenditore},${c.note}\n`;
+
+        const margine = calcolaMargine(c);
+
+        csv += `${c.id},${c.dataInserimento},${c.dataEsito},${c.nome},${c.cognome},${c.venditore},${c.partner},${c.gestore},${c.servizio},${c.stato},${c.gettonePartner},${c.gettoneVenditore},${margine},${c.pagamentoPartner},${c.pagamentoVenditore},${c.note}\n`;
     });
 
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -477,7 +511,6 @@ function resetContratti(){
         contratti = [];
 
         salvaStorage();
-        aggiornaFiltroGestori();
         renderContratti();
         resetForm();
     }
@@ -490,7 +523,6 @@ function resetDemo(){
         contratti = CONTRATTI_DEMO.map(normalizzaContratto);
 
         salvaStorage();
-        aggiornaFiltroGestori();
         renderContratti();
         resetForm();
     }
