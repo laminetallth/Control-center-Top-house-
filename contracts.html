@@ -46,7 +46,7 @@
 
             <div>
                 <h1>Contratti</h1>
-                <span>Archivio pratiche, stati, gettoni e pagamenti venditori</span>
+                <span>Registro pratiche, esiti, gettoni e pagamenti</span>
             </div>
 
             <div class="month-box">
@@ -73,8 +73,8 @@
             </div>
 
             <div class="card">
-                <h4>Gettoni Maturati</h4>
-                <p id="totaleGettoni">0€</p>
+                <h4>Da Pagare Venditori</h4>
+                <p id="totaleVenditori">0€</p>
             </div>
 
         </section>
@@ -84,13 +84,13 @@
             <div class="section-title">
                 <div>
                     <h3>➕ Nuovo Contratto</h3>
-                    <p>Inserisci la pratica appena caricata dal venditore</p>
+                    <p>Inserisci la pratica caricata dal venditore</p>
                 </div>
             </div>
 
             <form class="contract-form" id="contractForm">
 
-                <input type="date" id="data" required>
+                <input type="date" id="dataInserimento" required>
 
                 <input type="text" id="nome" placeholder="Nome cliente" required>
 
@@ -115,79 +115,4 @@
                 </select>
 
                 <select id="stato" required>
-                    <option value="Inserito">Inserito</option>
-                    <option value="In lavorazione">In lavorazione</option>
-                    <option value="OK">OK</option>
-                    <option value="KO">KO</option>
-                    <option value="Storno">Storno</option>
-                    <option value="Pagato">Pagato</option>
-                </select>
-
-                <input type="number" id="gettone" placeholder="Gettone €" min="0">
-
-                <select id="pagamento">
-                    <option value="Da pagare">Da pagare</option>
-                    <option value="Pagato">Pagato</option>
-                    <option value="Non dovuto">Non dovuto</option>
-                </select>
-
-                <input type="text" id="note" placeholder="Note">
-
-                <button type="submit">Salva Contratto</button>
-
-            </form>
-
-        </section>
-
-        <section class="box full-box">
-
-            <div class="section-title">
-                <div>
-                    <h3>📋 Registro Contratti</h3>
-                    <p>Tabella stile Excel per controllo mensile</p>
-                </div>
-
-                <div class="table-actions">
-                    <input type="text" id="searchInput" placeholder="Cerca cliente, venditore, gestore...">
-                    <button onclick="exportCSV()">Esporta CSV</button>
-                    <button class="danger" onclick="resetContratti()">Svuota Demo</button>
-                </div>
-            </div>
-
-            <div class="table-wrapper">
-
-                <table class="contracts-table">
-
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Data</th>
-                            <th>Nome</th>
-                            <th>Cognome</th>
-                            <th>Venditore</th>
-                            <th>Partner</th>
-                            <th>Gestore</th>
-                            <th>Servizio</th>
-                            <th>Stato</th>
-                            <th>Gettone</th>
-                            <th>Pagamento</th>
-                            <th>Note</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="contractsBody">
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </section>
-
-    </main>
-
-    <script src="js/contracts.js"></script>
-
-</body>
-
-</html>
+                    <option value="Inserito">Inser
