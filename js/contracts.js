@@ -1,3 +1,24 @@
+const VENDITORI_REGISTRATI = [
+    "Antonio Attardi",
+    "Davide Marino",
+    "Fabio Magnago",
+    "Gabriele Straniero",
+    "Giuseppe Maresca",
+    "Lamine Tall",
+    "Morena Caccavo",
+    "Studio Cian"
+];
+
+const PARTNER_REGISTRATI = [
+    "EKO",
+    "Greenword",
+    "New costruction",
+    "Onova",
+    "S4",
+    "Union",
+    "WLD Impianti"
+];
+
 let contratti = JSON.parse(localStorage.getItem("contrattiTopHouse")) || [
     {
         id: 1,
@@ -161,7 +182,6 @@ function getListaFiltrata(){
                matchPagamentoVenditore;
 
     });
-
 }
 
 function renderContratti(lista = getListaFiltrata()){
@@ -201,8 +221,6 @@ function renderContratti(lista = getListaFiltrata()){
     });
 
     aggiornaStatistiche(lista);
-    aggiornaFiltri();
-
 }
 
 function aggiornaStatistiche(lista){
@@ -227,36 +245,36 @@ function aggiornaStatistiche(lista){
 
 }
 
-function aggiornaFiltri(){
-
-    const venditoreCorrente = vendorFilter.value;
-    const partnerCorrente = partnerFilter.value;
-    const gestoreCorrente = managerFilter.value;
-
-    const venditori = [...new Set(contratti.map(c => c.venditore).filter(Boolean))].sort();
-    const partners = [...new Set(contratti.map(c => c.partner).filter(Boolean))].sort();
-    const gestori = [...new Set(contratti.map(c => c.gestore).filter(Boolean))].sort();
+function popolaFiltriFissi(){
 
     vendorFilter.innerHTML = `<option value="">Tutti i venditori</option>`;
+
+    VENDITORI_REGISTRATI.forEach(venditore => {
+        vendorFilter.innerHTML += `<option value="${venditore}">${venditore}</option>`;
+    });
+
     partnerFilter.innerHTML = `<option value="">Tutti i partner</option>`;
+
+    PARTNER_REGISTRATI.forEach(partner => {
+        partnerFilter.innerHTML += `<option value="${partner}">${partner}</option>`;
+    });
+
+    aggiornaFiltroGestori();
+}
+
+function aggiornaFiltroGestori(){
+
+    const gestoreCorrente = managerFilter.value;
+
+    const gestori = [...new Set(contratti.map(c => c.gestore).filter(Boolean))].sort();
+
     managerFilter.innerHTML = `<option value="">Tutti i gestori</option>`;
 
-    venditori.forEach(v => {
-        vendorFilter.innerHTML += `<option value="${v}">${v}</option>`;
+    gestori.forEach(gestore => {
+        managerFilter.innerHTML += `<option value="${gestore}">${gestore}</option>`;
     });
 
-    partners.forEach(p => {
-        partnerFilter.innerHTML += `<option value="${p}">${p}</option>`;
-    });
-
-    gestori.forEach(g => {
-        managerFilter.innerHTML += `<option value="${g}">${g}</option>`;
-    });
-
-    vendorFilter.value = venditoreCorrente;
-    partnerFilter.value = partnerCorrente;
     managerFilter.value = gestoreCorrente;
-
 }
 
 form.addEventListener("submit", function(e){
@@ -291,6 +309,8 @@ form.addEventListener("submit", function(e){
 
     salvaStorage();
 
+    aggiornaFiltroGestori();
+
     renderContratti();
 
     resetForm();
@@ -304,7 +324,6 @@ function generaNuovoId(){
     }
 
     return Math.max(...contratti.map(c => c.id)) + 1;
-
 }
 
 function modificaContratto(id){
@@ -339,7 +358,6 @@ function modificaContratto(id){
         top: 0,
         behavior: "smooth"
     });
-
 }
 
 function eliminaContratto(id){
@@ -354,10 +372,11 @@ function eliminaContratto(id){
 
     salvaStorage();
 
+    aggiornaFiltroGestori();
+
     renderContratti();
 
     resetForm();
-
 }
 
 function annullaModifica(){
@@ -375,7 +394,6 @@ function resetForm(){
     formTitle.innerText = "➕ Nuovo Contratto";
 
     cancelEditButton.style.display = "none";
-
 }
 
 function resetFiltri(){
@@ -389,7 +407,6 @@ function resetFiltri(){
     paymentVendorFilter.value = "";
 
     renderContratti();
-
 }
 
 searchInput.addEventListener("input", renderContratti);
@@ -419,7 +436,6 @@ function exportCSV(){
     link.download = "contratti-top-house-filtrati.csv";
 
     link.click();
-
 }
 
 function resetContratti(){
@@ -430,14 +446,16 @@ function resetContratti(){
 
         salvaStorage();
 
+        aggiornaFiltroGestori();
+
         renderContratti();
 
         resetForm();
-
     }
-
 }
 
 cancelEditButton.style.display = "none";
+
+popolaFiltriFissi();
 
 renderContratti();
