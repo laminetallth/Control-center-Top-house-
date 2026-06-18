@@ -125,22 +125,15 @@ function getListaFiltrata(){
             c.pagamentoVenditore.toLowerCase().includes(ricerca);
 
         const matchMese = mese === "" || (c.dataInserimento && c.dataInserimento.startsWith(mese));
-
         const matchVenditore = venditore === "" || c.venditore === venditore;
-
         const matchGestore = gestore === "" || c.gestore === gestore;
-
         const matchStato = stato === "" || c.stato === stato;
-
         const matchPagamentoVenditore = pagamentoVenditore === "" || c.pagamentoVenditore === pagamentoVenditore;
 
-        return matchRicerca &&
-               matchMese &&
-               matchVenditore &&
-               matchGestore &&
-               matchStato &&
-               matchPagamentoVenditore;
+        return matchRicerca && matchMese && matchVenditore && matchGestore && matchStato && matchPagamentoVenditore;
+
     });
+
 }
 
 function renderContratti(lista = getListaFiltrata()){
@@ -181,14 +174,13 @@ function renderContratti(lista = getListaFiltrata()){
 
     aggiornaStatistiche(lista);
     aggiornaFiltri();
+
 }
 
-function aggiornaStatistiche(lista = getListaFiltrata()){
+function aggiornaStatistiche(lista){
 
     const totale = lista.length;
-
     const ok = lista.filter(c => c.stato === "OK" || c.stato === "Pagato").length;
-
     const koStorni = lista.filter(c => c.stato === "KO" || c.stato === "Storno").length;
 
     const daPagareVenditori = lista
@@ -202,6 +194,7 @@ function aggiornaStatistiche(lista = getListaFiltrata()){
     document.getElementById("totaleOk").innerText = ok;
     document.getElementById("totaleKo").innerText = koStorni;
     document.getElementById("totaleVenditori").innerText = daPagareVenditori + "€";
+
 }
 
 function aggiornaFiltri(){
@@ -225,6 +218,7 @@ function aggiornaFiltri(){
 
     vendorFilter.value = venditoreCorrente;
     managerFilter.value = gestoreCorrente;
+
 }
 
 form.addEventListener("submit", function(e){
@@ -258,9 +252,7 @@ form.addEventListener("submit", function(e){
     }
 
     salvaStorage();
-
     renderContratti();
-
     resetForm();
 
 });
@@ -305,6 +297,7 @@ function modificaContratto(id){
         top: 0,
         behavior: "smooth"
     });
+
 }
 
 function eliminaContratto(id){
@@ -318,10 +311,9 @@ function eliminaContratto(id){
     contratti = contratti.filter(c => c.id !== id);
 
     salvaStorage();
-
     renderContratti();
-
     resetForm();
+
 }
 
 function annullaModifica(){
@@ -339,6 +331,7 @@ function resetForm(){
     formTitle.innerText = "➕ Nuovo Contratto";
 
     cancelEditButton.style.display = "none";
+
 }
 
 function resetFiltri(){
@@ -351,6 +344,7 @@ function resetFiltri(){
     paymentVendorFilter.value = "";
 
     renderContratti();
+
 }
 
 searchInput.addEventListener("input", renderContratti);
@@ -379,6 +373,7 @@ function exportCSV(){
     link.download = "contratti-top-house-filtrati.csv";
 
     link.click();
+
 }
 
 function resetContratti(){
@@ -392,7 +387,9 @@ function resetContratti(){
         renderContratti();
 
         resetForm();
+
     }
+
 }
 
 cancelEditButton.style.display = "none";
