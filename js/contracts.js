@@ -19,7 +19,7 @@ const PARTNER_REGISTRATI = [
     "WLD Impianti"
 ];
 
-let contratti = JSON.parse(localStorage.getItem("contrattiTopHouse")) || [
+const CONTRATTI_DEMO = [
     {
         id: 1,
         dataInserimento: "2026-06-01",
@@ -72,6 +72,40 @@ let contratti = JSON.parse(localStorage.getItem("contrattiTopHouse")) || [
         note: "Cliente ha annullato"
     }
 ];
+
+function testo(valore){
+    return String(valore || "").trim();
+}
+
+function numero(valore){
+    return Number(valore || 0);
+}
+
+function normalizzaContratto(c, index){
+    return {
+        id: Number(c.id || index + 1),
+        dataInserimento: testo(c.dataInserimento),
+        dataEsito: testo(c.dataEsito),
+        nome: testo(c.nome),
+        cognome: testo(c.cognome),
+        venditore: testo(c.venditore),
+        partner: testo(c.partner),
+        gestore: testo(c.gestore),
+        servizio: testo(c.servizio),
+        stato: testo(c.stato) || "Inserito",
+        gettonePartner: numero(c.gettonePartner),
+        gettoneVenditore: numero(c.gettoneVenditore),
+        pagamentoPartner: testo(c.pagamentoPartner) || "Da incassare",
+        pagamentoVenditore: testo(c.pagamentoVenditore) || "Da pagare",
+        note: testo(c.note)
+    };
+}
+
+let contrattiSalvati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
+
+let contratti = Array.isArray(contrattiSalvati)
+    ? contrattiSalvati.map(normalizzaContratto)
+    : CONTRATTI_DEMO.map(normalizzaContratto);
 
 const form = document.getElementById("contractForm");
 const tbody = document.getElementById("contractsBody");
@@ -127,7 +161,7 @@ function pagamentoBadge(pagamento){
 
 function getListaFiltrata(){
 
-    const ricerca = searchInput.value.toLowerCase();
+    const ricerca = testo(searchInput.value).toLowerCase();
     const mese = monthFilter.value;
     const venditore = vendorFilter.value;
     const partner = partnerFilter.value;
@@ -137,21 +171,25 @@ function getListaFiltrata(){
 
     return contratti.filter(c => {
 
-        const matchRicerca =
-            String(c.id).includes(ricerca) ||
-            c.nome.toLowerCase().includes(ricerca) ||
-            c.cognome.toLowerCase().includes(ricerca) ||
-            c.venditore.toLowerCase().includes(ricerca) ||
-            c.partner.toLowerCase().includes(ricerca) ||
-            c.gestore.toLowerCase().includes(ricerca) ||
-            c.servizio.toLowerCase().includes(ricerca) ||
-            c.stato.toLowerCase().includes(ricerca) ||
-            c.pagamentoPartner.toLowerCase().includes(ricerca) ||
-            c.pagamentoVenditore.toLowerCase().includes(ricerca);
+        const contenuto = `
+            ${c.id}
+            ${c.nome}
+            ${c.cognome}
+            ${c.venditore}
+            ${c.partner}
+            ${c.gestore}
+            ${c.servizio}
+            ${c.stato}
+            ${c.pagamentoPartner}
+            ${c.pagamentoVenditore}
+            ${c.note}
+        `.toLowerCase();
+
+        const matchRicerca = contenuto.includes(ricerca);
 
         const matchMese =
             mese === "" ||
-            (c.dataInserimento && c.dataInserimento.startsWith(mese));
+            testo(c.dataInserimento).startsWith(mese);
 
         const matchVenditore =
             venditore === "" ||
@@ -184,7 +222,9 @@ function getListaFiltrata(){
     });
 }
 
-function renderContratti(lista = getListaFiltrata()){
+function renderContratti(){
+
+    const lista = getListaFiltrata();
 
     tbody.innerHTML = "";
 
@@ -200,8 +240,8 @@ function renderContratti(lista = getListaFiltrata()){
                 </div>
             </td>
             <td>${contratto.id}</td>
-            <td>${contratto.dataInserimento || ""}</td>
-            <td>${contratto.dataEsito || ""}</td>
+            <td>${contratto.dataInserimento}</td>
+            <td>${contratto.dataEsito}</td>
             <td>${contratto.nome}</td>
             <td>${contratto.cognome}</td>
             <td>${contratto.venditore}</td>
@@ -209,11 +249,11 @@ function renderContratti(lista = getListaFiltrata()){
             <td>${contratto.gestore}</td>
             <td>${contratto.servizio}</td>
             <td>${statoBadge(contratto.stato)}</td>
-            <td>${contratto.gettonePartner || 0}€</td>
-            <td>${contratto.gettoneVenditore || 0}€</td>
+            <td>${contratto.gettonePartner}€</td>
+            <td>${contratto.gettoneVenditore}€</td>
             <td>${pagamentoBadge(contratto.pagamentoPartner)}</td>
             <td>${pagamentoBadge(contratto.pagamentoVenditore)}</td>
-            <td>${contratto.note || ""}</td>
+            <td>${contratto.note}</td>
         `;
 
         tbody.appendChild(row);
@@ -242,7 +282,6 @@ function aggiornaStatistiche(lista){
     document.getElementById("totaleOk").innerText = ok;
     document.getElementById("totaleKo").innerText = koStorni;
     document.getElementById("totaleVenditori").innerText = daPagareVenditori + "€";
-
 }
 
 function popolaFiltriFissi(){
@@ -302,19 +341,15 @@ form.addEventListener("submit", function(e){
     };
 
     if(editId){
-        contratti = contratti.map(c => c.id === Number(editId) ? datiContratto : c);
+        contratti = contratti.map(c => c.id === Number(editId) ? normalizzaContratto(datiContratto, 0) : c);
     }else{
-        contratti.push(datiContratto);
+        contratti.push(normalizzaContratto(datiContratto, contratti.length));
     }
 
     salvaStorage();
-
     aggiornaFiltroGestori();
-
     renderContratti();
-
     resetForm();
-
 });
 
 function generaNuovoId(){
@@ -323,7 +358,7 @@ function generaNuovoId(){
         return 1;
     }
 
-    return Math.max(...contratti.map(c => c.id)) + 1;
+    return Math.max(...contratti.map(c => Number(c.id || 0))) + 1;
 }
 
 function modificaContratto(id){
@@ -335,20 +370,20 @@ function modificaContratto(id){
     }
 
     document.getElementById("editId").value = contratto.id;
-    document.getElementById("dataInserimento").value = contratto.dataInserimento || "";
-    document.getElementById("dataEsito").value = contratto.dataEsito || "";
-    document.getElementById("nome").value = contratto.nome || "";
-    document.getElementById("cognome").value = contratto.cognome || "";
-    document.getElementById("venditore").value = contratto.venditore || "";
-    document.getElementById("partner").value = contratto.partner || "";
-    document.getElementById("gestore").value = contratto.gestore || "";
-    document.getElementById("servizio").value = contratto.servizio || "";
-    document.getElementById("stato").value = contratto.stato || "Inserito";
-    document.getElementById("gettonePartner").value = contratto.gettonePartner || 0;
-    document.getElementById("gettoneVenditore").value = contratto.gettoneVenditore || 0;
-    document.getElementById("pagamentoPartner").value = contratto.pagamentoPartner || "Da incassare";
-    document.getElementById("pagamentoVenditore").value = contratto.pagamentoVenditore || "Da pagare";
-    document.getElementById("note").value = contratto.note || "";
+    document.getElementById("dataInserimento").value = contratto.dataInserimento;
+    document.getElementById("dataEsito").value = contratto.dataEsito;
+    document.getElementById("nome").value = contratto.nome;
+    document.getElementById("cognome").value = contratto.cognome;
+    document.getElementById("venditore").value = contratto.venditore;
+    document.getElementById("partner").value = contratto.partner;
+    document.getElementById("gestore").value = contratto.gestore;
+    document.getElementById("servizio").value = contratto.servizio;
+    document.getElementById("stato").value = contratto.stato;
+    document.getElementById("gettonePartner").value = contratto.gettonePartner;
+    document.getElementById("gettoneVenditore").value = contratto.gettoneVenditore;
+    document.getElementById("pagamentoPartner").value = contratto.pagamentoPartner;
+    document.getElementById("pagamentoVenditore").value = contratto.pagamentoVenditore;
+    document.getElementById("note").value = contratto.note;
 
     saveButton.innerText = "Aggiorna Contratto";
     formTitle.innerText = "✏️ Modifica Contratto";
@@ -371,11 +406,8 @@ function eliminaContratto(id){
     contratti = contratti.filter(c => c.id !== id);
 
     salvaStorage();
-
     aggiornaFiltroGestori();
-
     renderContratti();
-
     resetForm();
 }
 
@@ -445,14 +477,26 @@ function resetContratti(){
         contratti = [];
 
         salvaStorage();
-
         aggiornaFiltroGestori();
-
         renderContratti();
-
         resetForm();
     }
 }
+
+function resetDemo(){
+
+    if(confirm("Vuoi ricaricare i contratti demo? I dati attuali verranno sostituiti.")){
+
+        contratti = CONTRATTI_DEMO.map(normalizzaContratto);
+
+        salvaStorage();
+        aggiornaFiltroGestori();
+        renderContratti();
+        resetForm();
+    }
+}
+
+salvaStorage();
 
 cancelEditButton.style.display = "none";
 
