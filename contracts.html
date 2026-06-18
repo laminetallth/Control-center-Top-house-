@@ -1,505 +1,377 @@
-const VENDITORI_REGISTRATI = [
-    "Antonio Attardi",
-    "Davide Marino",
-    "Fabio Magnago",
-    "Gabriele Straniero",
-    "Giuseppe Maresca",
-    "Lamine Tall",
-    "Morena Caccavo",
-    "Studio Cian"
-];
+<!DOCTYPE html>
+<html lang="it">
 
-const PARTNER_REGISTRATI = [
-    "EKO",
-    "Greenword",
-    "New costruction",
-    "Onova",
-    "S4",
-    "Union",
-    "WLD Impianti"
-];
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contratti - Top House Gestionale</title>
 
-const CONTRATTI_DEMO = [
-    {
-        id: 1,
-        dataInserimento: "2026-06-01",
-        dataEsito: "2026-06-10",
-        nome: "Mario",
-        cognome: "Rossi",
-        venditore: "Fabio Magnago",
-        partner: "S4",
-        gestore: "Enel",
-        servizio: "Luce",
-        stato: "OK",
-        gettonePartner: 120,
-        gettoneVenditore: 80,
-        pagamentoPartner: "Da incassare",
-        pagamentoVenditore: "Da pagare",
-        note: "Pratica completa"
-    },
-    {
-        id: 2,
-        dataInserimento: "2026-06-03",
-        dataEsito: "2026-06-12",
-        nome: "Giulia",
-        cognome: "Bianchi",
-        venditore: "Studio Cian",
-        partner: "Onova",
-        gestore: "Engie",
-        servizio: "Gas",
-        stato: "KO",
-        gettonePartner: 0,
-        gettoneVenditore: 0,
-        pagamentoPartner: "Non dovuto",
-        pagamentoVenditore: "Non dovuto",
-        note: "Documento mancante"
-    },
-    {
-        id: 3,
-        dataInserimento: "2026-07-05",
-        dataEsito: "2026-07-15",
-        nome: "Paolo",
-        cognome: "Neri",
-        venditore: "Antonio Attardi",
-        partner: "EKO",
-        gestore: "A2A",
-        servizio: "Luce + Gas",
-        stato: "Storno",
-        gettonePartner: 0,
-        gettoneVenditore: 0,
-        pagamentoPartner: "Non dovuto",
-        pagamentoVenditore: "Non dovuto",
-        note: "Cliente ha annullato"
-    }
-];
+    <link rel="stylesheet" href="css/style.css">
+</head>
 
-function testo(valore){
-    return String(valore || "").trim();
-}
+<body>
 
-function numero(valore){
-    return Number(valore || 0);
-}
+    <aside class="sidebar">
 
-function normalizzaContratto(c, index){
-    return {
-        id: Number(c.id || index + 1),
-        dataInserimento: testo(c.dataInserimento),
-        dataEsito: testo(c.dataEsito),
-        nome: testo(c.nome),
-        cognome: testo(c.cognome),
-        venditore: testo(c.venditore),
-        partner: testo(c.partner),
-        gestore: testo(c.gestore),
-        servizio: testo(c.servizio),
-        stato: testo(c.stato) || "Inserito",
-        gettonePartner: numero(c.gettonePartner),
-        gettoneVenditore: numero(c.gettoneVenditore),
-        pagamentoPartner: testo(c.pagamentoPartner) || "Da incassare",
-        pagamentoVenditore: testo(c.pagamentoVenditore) || "Da pagare",
-        note: testo(c.note)
-    };
-}
+        <div class="logo-section">
 
-let contrattiSalvati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
+            <div class="logo-mark">
+                <img src="assets/logo-tophouse.png" alt="Top House Logo">
+            </div>
 
-let contratti = Array.isArray(contrattiSalvati)
-    ? contrattiSalvati.map(normalizzaContratto)
-    : CONTRATTI_DEMO.map(normalizzaContratto);
+            <h2>TOP HOUSE</h2>
+            <p>GESTIONALE</p>
 
-const form = document.getElementById("contractForm");
-const tbody = document.getElementById("contractsBody");
-const searchInput = document.getElementById("searchInput");
-const saveButton = document.getElementById("saveButton");
-const formTitle = document.getElementById("formTitle");
-const cancelEditButton = document.getElementById("cancelEditButton");
+        </div>
 
-const monthFilter = document.getElementById("monthFilter");
-const vendorFilter = document.getElementById("vendorFilter");
-const partnerFilter = document.getElementById("partnerFilter");
-const managerFilter = document.getElementById("managerFilter");
-const statusFilter = document.getElementById("statusFilter");
-const paymentVendorFilter = document.getElementById("paymentVendorFilter");
+        <ul class="menu">
 
-function salvaStorage(){
-    localStorage.setItem("contrattiTopHouse", JSON.stringify(contratti));
-}
+            <li>
+                <a href="index.html">🏠 Dashboard</a>
+            </li>
 
-function statoBadge(stato){
+            <li class="active">
+                <a href="contracts.html">📄 Contratti</a>
+            </li>
 
-    if(stato === "OK"){
-        return `<span class="badge ok">OK</span>`;
-    }
+            <li>
+                <a href="vendors.html">👥 Venditori</a>
+            </li>
 
-    if(stato === "KO"){
-        return `<span class="badge ko">KO</span>`;
-    }
+            <li>
+                <a href="partners.html">🤝 Partner</a>
+            </li>
 
-    if(stato === "Storno"){
-        return `<span class="badge storno">Storno</span>`;
-    }
+            <li>
+                <a href="#">💰 Provvigioni</a>
+            </li>
 
-    if(stato === "Pagato"){
-        return `<span class="badge paid">Pagato</span>`;
-    }
+            <li>
+                <a href="investments.html">📈 Investimenti</a>
+            </li>
 
-    return `<span class="badge pending">${stato}</span>`;
-}
+            <li>
+                <a href="cashflow.html">🏦 Cash Flow</a>
+            </li>
 
-function pagamentoBadge(pagamento){
+            <li>
+                <a href="#">📊 KPI</a>
+            </li>
 
-    if(pagamento === "Incassato" || pagamento === "Pagato"){
-        return `<span class="badge ok">${pagamento}</span>`;
-    }
+            <li>
+                <a href="reports.html">📑 Report</a>
+            </li>
 
-    if(pagamento === "Da incassare" || pagamento === "Da pagare"){
-        return `<span class="badge storno">${pagamento}</span>`;
-    }
+            <li>
+                <a href="#">📁 Documenti</a>
+            </li>
 
-    return `<span class="badge pending">${pagamento}</span>`;
-}
+            <li>
+                <a href="#">⚙️ Impostazioni</a>
+            </li>
 
-function getListaFiltrata(){
+        </ul>
 
-    const ricerca = testo(searchInput.value).toLowerCase();
-    const mese = monthFilter.value;
-    const venditore = vendorFilter.value;
-    const partner = partnerFilter.value;
-    const gestore = managerFilter.value;
-    const stato = statusFilter.value;
-    const pagamentoVenditore = paymentVendorFilter.value;
+    </aside>
 
-    return contratti.filter(c => {
+    <main class="main">
 
-        const contenuto = `
-            ${c.id}
-            ${c.nome}
-            ${c.cognome}
-            ${c.venditore}
-            ${c.partner}
-            ${c.gestore}
-            ${c.servizio}
-            ${c.stato}
-            ${c.pagamentoPartner}
-            ${c.pagamentoVenditore}
-            ${c.note}
-        `.toLowerCase();
+        <div class="header">
 
-        const matchRicerca = contenuto.includes(ricerca);
+            <div>
+                <h1>Contratti</h1>
+                <span>Registro pratiche, esiti, gettoni e pagamenti</span>
+            </div>
 
-        const matchMese =
-            mese === "" ||
-            testo(c.dataInserimento).startsWith(mese);
+            <select class="month-select" id="monthFilter">
+                <option value="">Tutte le mensilità</option>
+                <option value="2026-01">Gennaio 2026</option>
+                <option value="2026-02">Febbraio 2026</option>
+                <option value="2026-03">Marzo 2026</option>
+                <option value="2026-04">Aprile 2026</option>
+                <option value="2026-05">Maggio 2026</option>
+                <option value="2026-06" selected>Giugno 2026</option>
+                <option value="2026-07">Luglio 2026</option>
+                <option value="2026-08">Agosto 2026</option>
+                <option value="2026-09">Settembre 2026</option>
+                <option value="2026-10">Ottobre 2026</option>
+                <option value="2026-11">Novembre 2026</option>
+                <option value="2026-12">Dicembre 2026</option>
+            </select>
 
-        const matchVenditore =
-            venditore === "" ||
-            c.venditore === venditore;
+        </div>
 
-        const matchPartner =
-            partner === "" ||
-            c.partner === partner;
+        <section class="cards">
 
-        const matchGestore =
-            gestore === "" ||
-            c.gestore === gestore;
+            <div class="card">
+                <h4>Totale Contratti</h4>
+                <p id="totaleContratti">0</p>
+            </div>
 
-        const matchStato =
-            stato === "" ||
-            c.stato === stato;
+            <div class="card">
+                <h4>Contratti OK</h4>
+                <p id="totaleOk">0</p>
+            </div>
 
-        const matchPagamentoVenditore =
-            pagamentoVenditore === "" ||
-            c.pagamentoVenditore === pagamentoVenditore;
+            <div class="card">
+                <h4>KO / Storni</h4>
+                <p id="totaleKo">0</p>
+            </div>
 
-        return matchRicerca &&
-               matchMese &&
-               matchVenditore &&
-               matchPartner &&
-               matchGestore &&
-               matchStato &&
-               matchPagamentoVenditore;
+            <div class="card">
+                <h4>Da Pagare Venditori</h4>
+                <p id="totaleVenditori">0€</p>
+            </div>
 
-    });
-}
+            <div class="card">
+                <h4>Margine Top House</h4>
+                <p id="margineTopHouse">0€</p>
+            </div>
 
-function renderContratti(){
+        </section>
 
-    const lista = getListaFiltrata();
+        <section class="box full-box">
 
-    tbody.innerHTML = "";
-
-    lista.forEach(contratto => {
-
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
-            <td>
-                <div class="action-buttons">
-                    <button class="edit-btn" onclick="modificaContratto(${contratto.id})">Modifica</button>
-                    <button class="delete-btn" onclick="eliminaContratto(${contratto.id})">Elimina</button>
+            <div class="section-title">
+                <div>
+                    <h3 id="formTitle">➕ Nuovo Contratto</h3>
+                    <p>Inserisci qui la pratica caricata dal venditore.</p>
                 </div>
-            </td>
-            <td>${contratto.id}</td>
-            <td>${contratto.dataInserimento}</td>
-            <td>${contratto.dataEsito}</td>
-            <td>${contratto.nome}</td>
-            <td>${contratto.cognome}</td>
-            <td>${contratto.venditore}</td>
-            <td>${contratto.partner}</td>
-            <td>${contratto.gestore}</td>
-            <td>${contratto.servizio}</td>
-            <td>${statoBadge(contratto.stato)}</td>
-            <td>${contratto.gettonePartner}€</td>
-            <td>${contratto.gettoneVenditore}€</td>
-            <td>${pagamentoBadge(contratto.pagamentoPartner)}</td>
-            <td>${pagamentoBadge(contratto.pagamentoVenditore)}</td>
-            <td>${contratto.note}</td>
-        `;
-
-        tbody.appendChild(row);
-
-    });
-
-    aggiornaStatistiche(lista);
-}
-
-function aggiornaStatistiche(lista){
-
-    const totale = lista.length;
-
-    const ok = lista.filter(c => c.stato === "OK" || c.stato === "Pagato").length;
-
-    const koStorni = lista.filter(c => c.stato === "KO" || c.stato === "Storno").length;
-
-    const daPagareVenditori = lista
-        .filter(c =>
-            (c.stato === "OK" || c.stato === "Pagato") &&
-            c.pagamentoVenditore === "Da pagare"
-        )
-        .reduce((totale, c) => totale + Number(c.gettoneVenditore || 0), 0);
-
-    document.getElementById("totaleContratti").innerText = totale;
-    document.getElementById("totaleOk").innerText = ok;
-    document.getElementById("totaleKo").innerText = koStorni;
-    document.getElementById("totaleVenditori").innerText = daPagareVenditori + "€";
-}
-
-function popolaFiltriFissi(){
-
-    vendorFilter.innerHTML = `<option value="">Tutti i venditori</option>`;
-
-    VENDITORI_REGISTRATI.forEach(venditore => {
-        vendorFilter.innerHTML += `<option value="${venditore}">${venditore}</option>`;
-    });
-
-    partnerFilter.innerHTML = `<option value="">Tutti i partner</option>`;
-
-    PARTNER_REGISTRATI.forEach(partner => {
-        partnerFilter.innerHTML += `<option value="${partner}">${partner}</option>`;
-    });
-
-    aggiornaFiltroGestori();
-}
-
-function aggiornaFiltroGestori(){
-
-    const gestoreCorrente = managerFilter.value;
-
-    const gestori = [...new Set(contratti.map(c => c.gestore).filter(Boolean))].sort();
-
-    managerFilter.innerHTML = `<option value="">Tutti i gestori</option>`;
-
-    gestori.forEach(gestore => {
-        managerFilter.innerHTML += `<option value="${gestore}">${gestore}</option>`;
-    });
-
-    managerFilter.value = gestoreCorrente;
-}
-
-form.addEventListener("submit", function(e){
-
-    e.preventDefault();
-
-    const editId = document.getElementById("editId").value;
-
-    const datiContratto = {
-        id: editId ? Number(editId) : generaNuovoId(),
-        dataInserimento: document.getElementById("dataInserimento").value,
-        dataEsito: document.getElementById("dataEsito").value,
-        nome: document.getElementById("nome").value,
-        cognome: document.getElementById("cognome").value,
-        venditore: document.getElementById("venditore").value,
-        partner: document.getElementById("partner").value,
-        gestore: document.getElementById("gestore").value,
-        servizio: document.getElementById("servizio").value,
-        stato: document.getElementById("stato").value,
-        gettonePartner: Number(document.getElementById("gettonePartner").value || 0),
-        gettoneVenditore: Number(document.getElementById("gettoneVenditore").value || 0),
-        pagamentoPartner: document.getElementById("pagamentoPartner").value,
-        pagamentoVenditore: document.getElementById("pagamentoVenditore").value,
-        note: document.getElementById("note").value
-    };
-
-    if(editId){
-        contratti = contratti.map(c => c.id === Number(editId) ? normalizzaContratto(datiContratto, 0) : c);
-    }else{
-        contratti.push(normalizzaContratto(datiContratto, contratti.length));
-    }
-
-    salvaStorage();
-    aggiornaFiltroGestori();
-    renderContratti();
-    resetForm();
-});
-
-function generaNuovoId(){
-
-    if(contratti.length === 0){
-        return 1;
-    }
-
-    return Math.max(...contratti.map(c => Number(c.id || 0))) + 1;
-}
-
-function modificaContratto(id){
-
-    const contratto = contratti.find(c => c.id === id);
-
-    if(!contratto){
-        return;
-    }
-
-    document.getElementById("editId").value = contratto.id;
-    document.getElementById("dataInserimento").value = contratto.dataInserimento;
-    document.getElementById("dataEsito").value = contratto.dataEsito;
-    document.getElementById("nome").value = contratto.nome;
-    document.getElementById("cognome").value = contratto.cognome;
-    document.getElementById("venditore").value = contratto.venditore;
-    document.getElementById("partner").value = contratto.partner;
-    document.getElementById("gestore").value = contratto.gestore;
-    document.getElementById("servizio").value = contratto.servizio;
-    document.getElementById("stato").value = contratto.stato;
-    document.getElementById("gettonePartner").value = contratto.gettonePartner;
-    document.getElementById("gettoneVenditore").value = contratto.gettoneVenditore;
-    document.getElementById("pagamentoPartner").value = contratto.pagamentoPartner;
-    document.getElementById("pagamentoVenditore").value = contratto.pagamentoVenditore;
-    document.getElementById("note").value = contratto.note;
-
-    saveButton.innerText = "Aggiorna Contratto";
-    formTitle.innerText = "✏️ Modifica Contratto";
-    cancelEditButton.style.display = "block";
-
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-}
-
-function eliminaContratto(id){
-
-    const conferma = confirm("Vuoi davvero eliminare questo contratto?");
-
-    if(!conferma){
-        return;
-    }
-
-    contratti = contratti.filter(c => c.id !== id);
-
-    salvaStorage();
-    aggiornaFiltroGestori();
-    renderContratti();
-    resetForm();
-}
-
-function annullaModifica(){
-    resetForm();
-}
-
-function resetForm(){
-
-    form.reset();
-
-    document.getElementById("editId").value = "";
-
-    saveButton.innerText = "Salva Contratto";
-
-    formTitle.innerText = "➕ Nuovo Contratto";
-
-    cancelEditButton.style.display = "none";
-}
-
-function resetFiltri(){
-
-    searchInput.value = "";
-    monthFilter.value = "";
-    vendorFilter.value = "";
-    partnerFilter.value = "";
-    managerFilter.value = "";
-    statusFilter.value = "";
-    paymentVendorFilter.value = "";
-
-    renderContratti();
-}
-
-searchInput.addEventListener("input", renderContratti);
-monthFilter.addEventListener("change", renderContratti);
-vendorFilter.addEventListener("change", renderContratti);
-partnerFilter.addEventListener("change", renderContratti);
-managerFilter.addEventListener("change", renderContratti);
-statusFilter.addEventListener("change", renderContratti);
-paymentVendorFilter.addEventListener("change", renderContratti);
-
-function exportCSV(){
-
-    const lista = getListaFiltrata();
-
-    let csv = "ID,Data Inserimento,Data Esito,Nome,Cognome,Venditore,Partner,Gestore,Servizio,Stato,Gettone Partner,Gettone Venditore,Pagamento Partner,Pagamento Venditore,Note\n";
-
-    lista.forEach(c => {
-        csv += `${c.id},${c.dataInserimento},${c.dataEsito},${c.nome},${c.cognome},${c.venditore},${c.partner},${c.gestore},${c.servizio},${c.stato},${c.gettonePartner},${c.gettoneVenditore},${c.pagamentoPartner},${c.pagamentoVenditore},${c.note}\n`;
-    });
-
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-
-    const link = document.createElement("a");
-
-    link.href = URL.createObjectURL(blob);
-
-    link.download = "contratti-top-house-filtrati.csv";
-
-    link.click();
-}
-
-function resetContratti(){
-
-    if(confirm("Vuoi davvero svuotare tutti i contratti?")){
-
-        contratti = [];
-
-        salvaStorage();
-        aggiornaFiltroGestori();
-        renderContratti();
-        resetForm();
-    }
-}
-
-function resetDemo(){
-
-    if(confirm("Vuoi ricaricare i contratti demo? I dati attuali verranno sostituiti.")){
-
-        contratti = CONTRATTI_DEMO.map(normalizzaContratto);
-
-        salvaStorage();
-        aggiornaFiltroGestori();
-        renderContratti();
-        resetForm();
-    }
-}
-
-salvaStorage();
-
-cancelEditButton.style.display = "none";
-
-popolaFiltriFissi();
-
-renderContratti();
+            </div>
+
+            <form class="contract-form" id="contractForm">
+
+                <input type="hidden" id="editId">
+
+                <div class="form-field">
+                    <label>Data inserimento</label>
+                    <input type="date" id="dataInserimento" required>
+                </div>
+
+                <div class="form-field">
+                    <label>Data esito</label>
+                    <input type="date" id="dataEsito">
+                </div>
+
+                <div class="form-field">
+                    <label>Nome cliente</label>
+                    <input type="text" id="nome" placeholder="Es. Mario" required>
+                </div>
+
+                <div class="form-field">
+                    <label>Cognome cliente</label>
+                    <input type="text" id="cognome" placeholder="Es. Rossi" required>
+                </div>
+
+                <div class="form-field">
+                    <label>Venditore</label>
+                    <select id="venditore" required>
+                        <option value="">Seleziona venditore</option>
+                        <option value="Antonio Attardi">Antonio Attardi</option>
+                        <option value="Davide Marino">Davide Marino</option>
+                        <option value="Fabio Magnago">Fabio Magnago</option>
+                        <option value="Gabriele Straniero">Gabriele Straniero</option>
+                        <option value="Giuseppe Maresca">Giuseppe Maresca</option>
+                        <option value="Lamine Tall">Lamine Tall</option>
+                        <option value="Morena Caccavo">Morena Caccavo</option>
+                        <option value="Studio Cian">Studio Cian</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Partner</label>
+                    <select id="partner" required>
+                        <option value="">Seleziona partner</option>
+                        <option value="EKO">EKO</option>
+                        <option value="Greenword">Greenword</option>
+                        <option value="New costruction">New costruction</option>
+                        <option value="Onova">Onova</option>
+                        <option value="S4">S4</option>
+                        <option value="Union">Union</option>
+                        <option value="WLD Impianti">WLD Impianti</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Gestore</label>
+                    <select id="gestore" required>
+                        <option value="">Seleziona gestore</option>
+                        <option value="ACEA">ACEA</option>
+                        <option value="ALPERIA">ALPERIA</option>
+                        <option value="COGEME">COGEME</option>
+                        <option value="DUFERCO">DUFERCO</option>
+                        <option value="ENEL">ENEL</option>
+                        <option value="ENGIE">ENGIE</option>
+                        <option value="GDE">GDE</option>
+                        <option value="HERA">HERA</option>
+                        <option value="IREN">IREN</option>
+                        <option value="ONOVA">ONOVA</option>
+                        <option value="S4">S4</option>
+                        <option value="SIMECOM">SIMECOM</option>
+                        <option value="SORGENIA">SORGENIA</option>
+                        <option value="STREAM">STREAM</option>
+                        <option value="UNION">UNION</option>
+                        <option value="UNOENERGY">UNOENERGY</option>
+                        <option value="VIVIENERGIA">VIVIENERGIA</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Servizio</label>
+                    <select id="servizio" required>
+                        <option value="">Seleziona servizio</option>
+                        <option value="Luce">Luce</option>
+                        <option value="Gas">Gas</option>
+                        <option value="Luce + Gas">Luce + Gas</option>
+                        <option value="Fotovoltaico">Fotovoltaico</option>
+                        <option value="Infissi">Infissi</option>
+                        <option value="Climatizzatore">Climatizzatore</option>
+                        <option value="Caldaia">Caldaia</option>
+                        <option value="Pompa di calore">Pompa di calore</option>
+                        <option value="Wall box">Wall box</option>
+                        <option value="Altro">Altro</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Stato pratica</label>
+                    <select id="stato" required>
+                        <option value="Inserito">Inserito</option>
+                        <option value="In lavorazione">In lavorazione</option>
+                        <option value="OK">OK</option>
+                        <option value="KO">KO</option>
+                        <option value="Storno">Storno</option>
+                        <option value="Pagato">Pagato</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Gettone partner €</label>
+                    <input type="number" id="gettonePartner" placeholder="Es. 120" min="0">
+                </div>
+
+                <div class="form-field">
+                    <label>Gettone venditore €</label>
+                    <input type="number" id="gettoneVenditore" placeholder="Es. 80" min="0">
+                </div>
+
+                <div class="form-field">
+                    <label>Pagamento partner</label>
+                    <select id="pagamentoPartner">
+                        <option value="Da incassare">Da incassare</option>
+                        <option value="Incassato">Incassato</option>
+                        <option value="Non dovuto">Non dovuto</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label>Pagamento venditore</label>
+                    <select id="pagamentoVenditore">
+                        <option value="Da pagare">Da pagare</option>
+                        <option value="Pagato">Pagato</option>
+                        <option value="Non dovuto">Non dovuto</option>
+                    </select>
+                </div>
+
+                <div class="form-field form-field-wide">
+                    <label>Note</label>
+                    <input type="text" id="note" placeholder="Es. Documento mancante, cliente da richiamare...">
+                </div>
+
+                <button type="submit" class="save-btn" id="saveButton">Salva Contratto</button>
+                <button type="button" class="cancel-btn" id="cancelEditButton" onclick="annullaModifica()">Annulla Modifica</button>
+
+            </form>
+
+        </section>
+
+        <section class="box full-box">
+
+            <div class="section-title">
+                <div>
+                    <h3>📋 Registro Contratti</h3>
+                    <p>Filtra per mese, venditore, partner, gestore, stato e pagamento.</p>
+                </div>
+            </div>
+
+            <div class="table-actions filters-area">
+
+                <input type="text" id="searchInput" placeholder="Cerca cliente, venditore, partner, gestore...">
+
+                <select id="vendorFilter">
+                    <option value="">Tutti i venditori</option>
+                </select>
+
+                <select id="partnerFilter">
+                    <option value="">Tutti i partner</option>
+                </select>
+
+                <select id="managerFilter">
+                    <option value="">Tutti i gestori</option>
+                </select>
+
+                <select id="statusFilter">
+                    <option value="">Tutti gli stati</option>
+                    <option value="Inserito">Inserito</option>
+                    <option value="In lavorazione">In lavorazione</option>
+                    <option value="OK">OK</option>
+                    <option value="KO">KO</option>
+                    <option value="Storno">Storno</option>
+                    <option value="Pagato">Pagato</option>
+                </select>
+
+                <select id="paymentVendorFilter">
+                    <option value="">Pagamento venditore</option>
+                    <option value="Da pagare">Da pagare</option>
+                    <option value="Pagato">Pagato</option>
+                    <option value="Non dovuto">Non dovuto</option>
+                </select>
+
+                <button onclick="exportCSV()">Esporta CSV</button>
+                <button onclick="resetFiltri()">Reset Filtri</button>
+                <button class="danger" onclick="resetContratti()">Svuota Tutto</button>
+
+            </div>
+
+            <div class="table-wrapper">
+
+                <table class="contracts-table">
+
+                    <thead>
+                        <tr>
+                            <th>Azioni</th>
+                            <th>ID</th>
+                            <th>Data Inserimento</th>
+                            <th>Data Esito</th>
+                            <th>Nome</th>
+                            <th>Cognome</th>
+                            <th>Venditore</th>
+                            <th>Partner</th>
+                            <th>Gestore</th>
+                            <th>Servizio</th>
+                            <th>Stato</th>
+                            <th>Gettone Partner</th>
+                            <th>Gettone Venditore</th>
+                            <th>Margine Top House</th>
+                            <th>Pagamento Partner</th>
+                            <th>Pagamento Venditore</th>
+                            <th>Note</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="contractsBody">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="js/contracts.js"></script>
+
+</body>
+
+</html>
