@@ -117,12 +117,14 @@
 
             <div class="section-title">
                 <div>
-                    <h3>➕ Nuovo Contratto</h3>
+                    <h3 id="formTitle">➕ Nuovo Contratto</h3>
                     <p>Inserisci qui la pratica caricata dal venditore.</p>
                 </div>
             </div>
 
             <form class="contract-form contract-form-clean" id="contractForm">
+
+                <input type="hidden" id="editId">
 
                 <div class="form-field">
                     <label>Data inserimento</label>
@@ -219,7 +221,8 @@
                     <input type="text" id="note" placeholder="Es. Documento mancante, cliente da richiamare...">
                 </div>
 
-                <button type="submit" class="save-btn">Salva Contratto</button>
+                <button type="submit" class="save-btn" id="saveButton">Salva Contratto</button>
+                <button type="button" class="cancel-btn" id="cancelEditButton" onclick="annullaModifica()">Annulla Modifica</button>
 
             </form>
 
@@ -246,6 +249,7 @@
 
                     <thead>
                         <tr>
+                            <th>Azioni</th>
                             <th>ID</th>
                             <th>Data Inserimento</th>
                             <th>Data Esito</th>
