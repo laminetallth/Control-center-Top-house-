@@ -1,12 +1,52 @@
 const VENDITORI_REGISTRATI = [
-    "Antonio Attardi",
-    "Davide Marino",
-    "Fabio Magnago",
-    "Gabriele Straniero",
-    "Giuseppe Maresca",
-    "Lamine Tall",
-    "Morena Caccavo",
-    "Studio Cian"
+    {
+        nome: "Antonio Attardi",
+        zona: "Calabria",
+        ruolo: "Venditore",
+        foto: "assets/vendors/antonio-attardi.jpg"
+    },
+    {
+        nome: "Davide Marino",
+        zona: "Calabria",
+        ruolo: "Venditore",
+        foto: "assets/vendors/davide-marino.jpg"
+    },
+    {
+        nome: "Fabio Magnago",
+        zona: "Lombardia",
+        ruolo: "Venditore",
+        foto: "assets/vendors/fabio-magnago.jpg"
+    },
+    {
+        nome: "Gabriele Straniero",
+        zona: "Calabria",
+        ruolo: "Venditore",
+        foto: "assets/vendors/gabriele-straniero.jpg"
+    },
+    {
+        nome: "Giuseppe Maresca",
+        zona: "Calabria",
+        ruolo: "Venditore",
+        foto: "assets/vendors/giuseppe-maresca.jpg"
+    },
+    {
+        nome: "Lamine Tall",
+        zona: "Lombardia",
+        ruolo: "Direzione / Venditore",
+        foto: "assets/vendors/lamine-tall.jpg"
+    },
+    {
+        nome: "Morena Caccavo",
+        zona: "Lombardia",
+        ruolo: "Venditore",
+        foto: "assets/vendors/morena-caccavo.jpg"
+    },
+    {
+        nome: "Studio Cian",
+        zona: "Lombardia",
+        ruolo: "Studio Partner",
+        foto: "assets/vendors/studio-cian.jpg"
+    }
 ];
 
 function testo(valore){
@@ -15,6 +55,19 @@ function testo(valore){
 
 function numero(valore){
     return Number(valore || 0);
+}
+
+function slugVenditore(nome){
+    return encodeURIComponent(nome);
+}
+
+function iniziali(nome){
+    return testo(nome)
+        .split(" ")
+        .map(parte => parte.charAt(0))
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
 }
 
 function caricaContratti(){
@@ -50,17 +103,30 @@ function filtraPerMese(contratti){
     });
 }
 
+function trovaVenditoreRegistrato(nome){
+    return VENDITORI_REGISTRATI.find(v => v.nome === nome) || {
+        nome: nome,
+        zona: "-",
+        ruolo: "Venditore",
+        foto: ""
+    };
+}
+
 function creaStatisticheVenditori(contratti){
 
     const statistiche = {};
 
     VENDITORI_REGISTRATI.forEach(venditore => {
 
-        statistiche[venditore] = {
-            nome: venditore,
+        statistiche[venditore.nome] = {
+            nome: venditore.nome,
+            zona: venditore.zona,
+            ruolo: venditore.ruolo,
+            foto: venditore.foto,
             totale: 0,
             ok: 0,
-            koStorni: 0,
+            ko: 0,
+            storni: 0,
             provvigioniMaturate: 0,
             daPagare: 0,
             pagato: 0,
@@ -71,15 +137,25 @@ function creaStatisticheVenditori(contratti){
 
     contratti.forEach(contratto => {
 
-        const venditore = testo(contratto.venditore);
+        const nomeVenditore = testo(contratto.venditore);
 
-        if(!statistiche[venditore]){
+        if(!nomeVenditore){
+            return;
+        }
 
-            statistiche[venditore] = {
-                nome: venditore,
+        const registrato = trovaVenditoreRegistrato(nomeVenditore);
+
+        if(!statistiche[nomeVenditore]){
+
+            statistiche[nomeVenditore] = {
+                nome: nomeVenditore,
+                zona: registrato.zona,
+                ruolo: registrato.ruolo,
+                foto: registrato.foto,
                 totale: 0,
                 ok: 0,
-                koStorni: 0,
+                ko: 0,
+                storni: 0,
                 provvigioniMaturate: 0,
                 daPagare: 0,
                 pagato: 0,
@@ -88,28 +164,32 @@ function creaStatisticheVenditori(contratti){
 
         }
 
-        statistiche[venditore].totale += 1;
+        statistiche[nomeVenditore].totale += 1;
 
         if(contratto.stato === "OK" || contratto.stato === "Pagato"){
 
-            statistiche[venditore].ok += 1;
+            statistiche[nomeVenditore].ok += 1;
 
-            statistiche[venditore].provvigioniMaturate += numero(contratto.gettoneVenditore);
+            statistiche[nomeVenditore].provvigioniMaturate += numero(contratto.gettoneVenditore);
 
-            statistiche[venditore].margine += calcolaMargine(contratto);
+            statistiche[nomeVenditore].margine += calcolaMargine(contratto);
 
             if(contratto.pagamentoVenditore === "Da pagare"){
-                statistiche[venditore].daPagare += numero(contratto.gettoneVenditore);
+                statistiche[nomeVenditore].daPagare += numero(contratto.gettoneVenditore);
             }
 
             if(contratto.pagamentoVenditore === "Pagato"){
-                statistiche[venditore].pagato += numero(contratto.gettoneVenditore);
+                statistiche[nomeVenditore].pagato += numero(contratto.gettoneVenditore);
             }
 
         }
 
-        if(contratto.stato === "KO" || contratto.stato === "Storno"){
-            statistiche[venditore].koStorni += 1;
+        if(contratto.stato === "KO"){
+            statistiche[nomeVenditore].ko += 1;
+        }
+
+        if(contratto.stato === "Storno"){
+            statistiche[nomeVenditore].storni += 1;
         }
 
     });
@@ -122,6 +202,10 @@ function aggiornaCards(venditori){
     const totaleVenditori = VENDITORI_REGISTRATI.length;
 
     const totaleOk = venditori.reduce((totale, venditore) => totale + venditore.ok, 0);
+
+    const totaleKo = venditori.reduce((totale, venditore) => totale + venditore.ko, 0);
+
+    const totaleStorni = venditori.reduce((totale, venditore) => totale + venditore.storni, 0);
 
     const provvigioniMaturate = venditori.reduce((totale, venditore) => {
         return totale + venditore.provvigioniMaturate;
@@ -137,6 +221,8 @@ function aggiornaCards(venditori){
 
     document.getElementById("totaleVenditoriRegistrati").innerText = totaleVenditori;
     document.getElementById("totaleOk").innerText = totaleOk;
+    document.getElementById("totaleKo").innerText = totaleKo;
+    document.getElementById("totaleStorni").innerText = totaleStorni;
     document.getElementById("provvigioniMaturate").innerText = provvigioniMaturate + "€";
     document.getElementById("daPagareVenditori").innerText = daPagareVenditori + "€";
     document.getElementById("margineGenerato").innerText = margineGenerato + "€";
@@ -164,13 +250,20 @@ function renderClassificaVenditori(venditori){
 
         row.innerHTML = `
             <td>${venditore.nome}</td>
+            <td>${venditore.zona}</td>
             <td>${venditore.totale}</td>
             <td>${venditore.ok}</td>
-            <td>${venditore.koStorni}</td>
+            <td>${venditore.ko}</td>
+            <td>${venditore.storni}</td>
             <td>${venditore.provvigioniMaturate}€</td>
             <td>${venditore.daPagare}€</td>
             <td>${venditore.pagato}€</td>
             <td>${venditore.margine}€</td>
+            <td>
+                <a class="mini-btn" href="vendor-detail.html?vendor=${slugVenditore(venditore.nome)}">
+                    Apri Scheda
+                </a>
+            </td>
         `;
 
         tbody.appendChild(row);
@@ -196,6 +289,7 @@ function aggiornaMigliorVenditore(venditori){
     if(migliori.length === 0){
 
         document.getElementById("bestVendorName").innerText = "-";
+        document.getElementById("bestVendorArea").innerText = "-";
         document.getElementById("bestVendorOk").innerText = "0";
         document.getElementById("bestVendorCommission").innerText = "0€";
         document.getElementById("bestVendorMargin").innerText = "0€";
@@ -206,6 +300,7 @@ function aggiornaMigliorVenditore(venditori){
     const migliore = migliori[0];
 
     document.getElementById("bestVendorName").innerText = migliore.nome;
+    document.getElementById("bestVendorArea").innerText = migliore.zona;
     document.getElementById("bestVendorOk").innerText = migliore.ok;
     document.getElementById("bestVendorCommission").innerText = migliore.provvigioniMaturate + "€";
     document.getElementById("bestVendorMargin").innerText = migliore.margine + "€";
@@ -214,21 +309,30 @@ function aggiornaMigliorVenditore(venditori){
 
 function renderVenditoriRegistrati(){
 
-    const tbody = document.getElementById("registeredVendorsBody");
+    const container = document.getElementById("registeredVendorsGrid");
 
-    tbody.innerHTML = "";
+    container.innerHTML = "";
 
     VENDITORI_REGISTRATI.forEach(venditore => {
 
-        const row = document.createElement("tr");
+        const card = document.createElement("a");
 
-        row.innerHTML = `
-            <td>${venditore}</td>
-            <td><span class="badge ok">Attivo</span></td>
-            <td>Venditore</td>
+        card.className = "vendor-card-small";
+        card.href = `vendor-detail.html?vendor=${slugVenditore(venditore.nome)}`;
+
+        card.innerHTML = `
+            <div class="vendor-avatar-small" data-initials="${iniziali(venditore.nome)}">
+                <img src="${venditore.foto}" alt="${venditore.nome}" onerror="this.style.display='none'; this.parentElement.classList.add('no-photo');">
+            </div>
+
+            <div>
+                <h4>${venditore.nome}</h4>
+                <p>${venditore.zona} · ${venditore.ruolo}</p>
+                <span>Apri scheda venditore</span>
+            </div>
         `;
 
-        tbody.appendChild(row);
+        container.appendChild(card);
 
     });
 
