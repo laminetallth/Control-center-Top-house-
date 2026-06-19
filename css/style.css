@@ -697,7 +697,10 @@ button:hover,
     gap:18px;
 }
 
-.partner-category-card{
+.partner-category-card,
+.partner-category-card:visited,
+.partner-category-card:hover,
+.partner-category-card:active{
     background:#f8fafc;
     border:1px solid #e5e7eb;
     border-radius:22px;
@@ -705,9 +708,10 @@ button:hover,
     display:flex;
     gap:16px;
     align-items:flex-start;
-    text-decoration:none;
-    color:#081120;
+    text-decoration:none !important;
+    color:#081120 !important;
     transition:.3s;
+    width:100%;
 }
 
 .partner-category-card:hover{
@@ -716,8 +720,13 @@ button:hover,
     border-color:#ff7b00;
 }
 
+.partner-category-card *{
+    text-decoration:none !important;
+}
+
 .partner-category-content{
     width:100%;
+    min-width:0;
 }
 
 .partner-category-top{
@@ -730,42 +739,50 @@ button:hover,
 
 .partner-category-top h4{
     font-size:18px;
+    color:#081120 !important;
+    text-decoration:none !important;
 }
 
 .partner-category-top span{
     background:linear-gradient(90deg,#d90429,#ff7b00);
-    color:white;
+    color:white !important;
     padding:6px 10px;
     border-radius:999px;
     font-size:12px;
     font-weight:800;
     white-space:nowrap;
+    text-decoration:none !important;
 }
 
 .partner-category-content p{
-    color:#4b5563;
+    color:#4b5563 !important;
     font-size:14px;
     margin-bottom:8px;
+    text-decoration:none !important;
 }
 
 .partner-category-content small{
     display:block;
-    color:#6b7280;
+    color:#6b7280 !important;
     font-size:12px;
     line-height:1.4;
     margin-bottom:12px;
+    text-decoration:none !important;
 }
 
 .partner-card-stats{
+    margin-top:10px;
     display:flex;
     flex-wrap:wrap;
     gap:8px;
+    align-items:center;
     color:#6b7280;
     font-size:12px;
 }
 
 .partner-card-stats b{
-    color:#ff7b00;
+    color:#ff7b00 !important;
+    text-decoration:none !important;
 }
 
 /* ANALISI GRAFICI PARTNER */
@@ -1013,9 +1030,50 @@ button:hover,
         grid-template-columns:1fr;
     }
 
-    .partner-category-card,
     .vendor-card-small{
         flex-direction:column;
+        align-items:flex-start;
+    }
+
+    .partner-category-card{
+        flex-direction:row !important;
+        align-items:flex-start !important;
+        padding:16px !important;
+        gap:14px !important;
+    }
+
+    .partner-category-card .vendor-avatar-small{
+        width:58px !important;
+        height:58px !important;
+        min-width:58px !important;
+    }
+
+    .partner-category-top{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:6px;
+    }
+
+    .partner-category-top h4{
+        font-size:18px;
+        line-height:1.2;
+    }
+
+    .partner-category-content p{
+        font-size:14px;
+        line-height:1.35;
+    }
+
+    .partner-category-content small{
+        font-size:12px;
+        line-height:1.35;
+    }
+
+    .partner-card-stats{
+        flex-direction:column;
+        align-items:flex-start;
+        gap:4px;
+        font-size:13px;
     }
 
     .pie-circle{
