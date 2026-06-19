@@ -16,7 +16,8 @@ const PARTNER_REGISTRATI = [
     "Onova",
     "S4",
     "Union",
-    "WLD Impianti"
+    "WLD Impianti",
+    "Vita Group"
 ];
 
 const GESTORI_REGISTRATI = [
@@ -36,7 +37,23 @@ const GESTORI_REGISTRATI = [
     "STREAM",
     "UNION",
     "UNOENERGY",
-    "VIVIENERGIA"
+    "VIVIENERGIA",
+    "Non applicabile"
+];
+
+const SERVIZI_REGISTRATI = [
+    "Luce",
+    "Gas",
+    "Luce + Gas",
+    "Fotovoltaico",
+    "Caldaia",
+    "Wall box",
+    "Pompa di calore",
+    "Climatizzatore",
+    "Infissi",
+    "Allarmi",
+    "Depuratore acqua",
+    "Altro"
 ];
 
 const CONTRATTI_DEMO = [
@@ -64,7 +81,7 @@ const CONTRATTI_DEMO = [
         nome: "Giulia",
         cognome: "Bianchi",
         venditore: "Studio Cian",
-        partner: "Onova",
+        partner: "Greenword",
         gestore: "ENGIE",
         servizio: "Gas",
         stato: "KO",
@@ -82,8 +99,8 @@ const CONTRATTI_DEMO = [
         cognome: "Neri",
         venditore: "Antonio Attardi",
         partner: "EKO",
-        gestore: "ACEA",
-        servizio: "Luce + Gas",
+        gestore: "Non applicabile",
+        servizio: "Fotovoltaico",
         stato: "Storno",
         gettonePartner: 0,
         gettoneVenditore: 0,
@@ -117,7 +134,7 @@ function normalizzaContratto(c, index){
         venditore: abbinaDaLista(c.venditore, VENDITORI_REGISTRATI),
         partner: abbinaDaLista(c.partner, PARTNER_REGISTRATI),
         gestore: abbinaDaLista(c.gestore, GESTORI_REGISTRATI),
-        servizio: testo(c.servizio),
+        servizio: abbinaDaLista(c.servizio, SERVIZI_REGISTRATI),
         stato: testo(c.stato) || "Inserito",
         gettonePartner: numero(c.gettonePartner),
         gettoneVenditore: numero(c.gettoneVenditore),
@@ -144,6 +161,7 @@ const monthFilter = document.getElementById("monthFilter");
 const vendorFilter = document.getElementById("vendorFilter");
 const partnerFilter = document.getElementById("partnerFilter");
 const managerFilter = document.getElementById("managerFilter");
+const serviceFilter = document.getElementById("serviceFilter");
 const statusFilter = document.getElementById("statusFilter");
 const paymentVendorFilter = document.getElementById("paymentVendorFilter");
 
@@ -201,6 +219,7 @@ function getListaFiltrata(){
     const venditoreSelezionato = testo(vendorFilter.value);
     const partnerSelezionato = testo(partnerFilter.value);
     const gestoreSelezionato = testo(managerFilter.value);
+    const servizioSelezionato = testo(serviceFilter.value);
     const statoSelezionato = testo(statusFilter.value);
     const pagamentoVenditoreSelezionato = testo(paymentVendorFilter.value);
 
@@ -240,6 +259,10 @@ function getListaFiltrata(){
             gestoreSelezionato === "" ||
             c.gestore === gestoreSelezionato;
 
+        const matchServizio =
+            servizioSelezionato === "" ||
+            c.servizio === servizioSelezionato;
+
         const matchStato =
             statoSelezionato === "" ||
             c.stato === statoSelezionato;
@@ -253,6 +276,7 @@ function getListaFiltrata(){
                matchVenditore &&
                matchPartner &&
                matchGestore &&
+               matchServizio &&
                matchStato &&
                matchPagamentoVenditore;
 
@@ -376,6 +400,12 @@ function popolaFiltriFissi(){
     GESTORI_REGISTRATI.forEach(gestore => {
         managerFilter.innerHTML += `<option value="${gestore}">${gestore}</option>`;
     });
+
+    serviceFilter.innerHTML = `<option value="">Tutti i servizi</option>`;
+
+    SERVIZI_REGISTRATI.forEach(servizio => {
+        serviceFilter.innerHTML += `<option value="${servizio}">${servizio}</option>`;
+    });
 }
 
 form.addEventListener("submit", function(e){
@@ -495,6 +525,7 @@ function resetFiltri(){
     vendorFilter.value = "";
     partnerFilter.value = "";
     managerFilter.value = "";
+    serviceFilter.value = "";
     statusFilter.value = "";
     paymentVendorFilter.value = "";
 
@@ -510,6 +541,7 @@ monthFilter.addEventListener("change", function(){
 vendorFilter.addEventListener("change", renderContratti);
 partnerFilter.addEventListener("change", renderContratti);
 managerFilter.addEventListener("change", renderContratti);
+serviceFilter.addEventListener("change", renderContratti);
 statusFilter.addEventListener("change", renderContratti);
 paymentVendorFilter.addEventListener("change", renderContratti);
 
@@ -636,37 +668,4 @@ async function exportReport(){
                     margin-bottom:6px;
                 }
 
-                .subtitle{
-                    font-size:16px;
-                    opacity:.95;
-                }
-
-                .summary{
-                    width:100%;
-                    border-collapse:collapse;
-                    margin-bottom:24px;
-                }
-
-                .summary td{
-                    background:#f8fafc;
-                    border:1px solid #e5e7eb;
-                    padding:16px;
-                    font-size:15px;
-                    font-weight:bold;
-                    vertical-align:top;
-                }
-
-                .summary .value{
-                    color:#ff7b00;
-                    font-size:22px;
-                    font-weight:800;
-                }
-
-                table{
-                    width:100%;
-                    border-collapse:collapse;
-                }
-
-                th{
-                    background:#081120;
-                    c
+                
