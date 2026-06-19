@@ -83,7 +83,8 @@
                 <span>Panoramica generale aziendale</span>
             </div>
 
-            <select class="month-select">
+            <select class="month-select" id="monthFilter">
+                <option value="">Tutte le mensilità</option>
                 <option value="2026-01">Gennaio 2026</option>
                 <option value="2026-02">Febbraio 2026</option>
                 <option value="2026-03">Marzo 2026</option>
@@ -104,42 +105,42 @@
 
             <a href="contracts.html" class="card card-link">
                 <h4>Contratti Mese</h4>
-                <p>128</p>
+                <p id="totaleContratti">0</p>
             </a>
 
             <a href="contracts.html" class="card card-link">
                 <h4>Contratti OK</h4>
-                <p>97</p>
+                <p id="totaleOk">0</p>
             </a>
 
             <a href="contracts.html" class="card card-link">
                 <h4>KO</h4>
-                <p>21</p>
+                <p id="totaleKo">0</p>
             </a>
 
             <a href="contracts.html" class="card card-link">
                 <h4>Storni</h4>
-                <p>10</p>
+                <p id="totaleStorni">0</p>
             </a>
 
-            <div class="card">
-                <h4>Da Incassare</h4>
-                <p>18.500€</p>
-            </div>
+            <a href="partners.html" class="card card-link">
+                <h4>Da Incassare Partner</h4>
+                <p id="daIncassarePartner">0€</p>
+            </a>
 
-            <div class="card">
-                <h4>Da Pagare</h4>
-                <p>9.200€</p>
-            </div>
+            <a href="vendors.html" class="card card-link">
+                <h4>Da Pagare Venditori</h4>
+                <p id="daPagareVenditori">0€</p>
+            </a>
 
-            <div class="card">
-                <h4>Utile Stimato</h4>
-                <p>7.800€</p>
-            </div>
+            <a href="contracts.html" class="card card-link">
+                <h4>Margine Maturato</h4>
+                <p id="margineMaturato">0€</p>
+            </a>
 
-            <a href="investments.html" class="card card-link">
-                <h4>ROI Marketing</h4>
-                <p>183%</p>
+            <a href="partners.html" class="card card-link">
+                <h4>Incassato Partner</h4>
+                <p id="incassatoPartner">0€</p>
             </a>
 
         </section>
@@ -150,33 +151,25 @@
 
                 <h3>🏆 Migliori Venditori</h3>
 
-                <table>
+                <div class="table-wrapper">
 
-                    <tr>
-                        <th>Venditore</th>
-                        <th>Contratti OK</th>
-                        <th>Provvigioni</th>
-                    </tr>
+                    <table>
 
-                    <tr>
-                        <td>Fabio Magnago</td>
-                        <td>35</td>
-                        <td>2.800€</td>
-                    </tr>
+                        <thead>
+                            <tr>
+                                <th>Venditore</th>
+                                <th>Contratti OK</th>
+                                <th>Provvigioni</th>
+                                <th>Margine</th>
+                            </tr>
+                        </thead>
 
-                    <tr>
-                        <td>Studio Cian</td>
-                        <td>28</td>
-                        <td>2.100€</td>
-                    </tr>
+                        <tbody id="topVendorsBody">
+                        </tbody>
 
-                    <tr>
-                        <td>Antonio Attardi</td>
-                        <td>22</td>
-                        <td>1.850€</td>
-                    </tr>
+                    </table>
 
-                </table>
+                </div>
 
             </div>
 
@@ -184,12 +177,8 @@
 
                 <h3>⚠️ Attività da Gestire</h3>
 
-                <ul class="tasks">
-                    <li>Pagare Studio Cian entro il 25</li>
-                    <li>Sollecito Partner Enel</li>
-                    <li>Verifica storni luce</li>
-                    <li>Controllo fatture giugno</li>
-                    <li>Report mensile venditori</li>
+                <ul class="tasks" id="activityList">
+                    <li>Nessuna attività critica rilevata.</li>
                 </ul>
 
             </div>
@@ -204,35 +193,39 @@
 
                 <table>
 
-                    <tr>
-                        <th>Voce</th>
-                        <th>Importo</th>
-                        <th>Stato</th>
-                    </tr>
+                    <thead>
+                        <tr>
+                            <th>Voce</th>
+                            <th>Importo</th>
+                            <th>Stato</th>
+                        </tr>
+                    </thead>
 
-                    <tr>
-                        <td>Entrate Partner</td>
-                        <td>45.300€</td>
-                        <td>🟢 Positivo</td>
-                    </tr>
+                    <tbody>
+                        <tr>
+                            <td>Da Incassare Partner</td>
+                            <td id="cashDaIncassare">0€</td>
+                            <td>🟠 Da monitorare</td>
+                        </tr>
 
-                    <tr>
-                        <td>Uscite Venditori</td>
-                        <td>18.700€</td>
-                        <td>🟠 Da monitorare</td>
-                    </tr>
+                        <tr>
+                            <td>Incassato Partner</td>
+                            <td id="cashIncassato">0€</td>
+                            <td>🟢 Entrata confermata</td>
+                        </tr>
 
-                    <tr>
-                        <td>Costi Aziendali</td>
-                        <td>7.100€</td>
-                        <td>🟢 Ok</td>
-                    </tr>
+                        <tr>
+                            <td>Da Pagare Venditori</td>
+                            <td id="cashDaPagare">0€</td>
+                            <td>🟠 Uscita prevista</td>
+                        </tr>
 
-                    <tr>
-                        <td>Utile Netto Stimato</td>
-                        <td>19.500€</td>
-                        <td>🟢 Ottimo</td>
-                    </tr>
+                        <tr>
+                            <td>Margine Maturato Top House</td>
+                            <td id="cashMargine">0€</td>
+                            <td>🟢 Margine stimato</td>
+                        </tr>
+                    </tbody>
 
                 </table>
 
@@ -240,14 +233,14 @@
 
             <div class="box">
 
-                <h3>📈 Investimenti & ROI</h3>
+                <h3>📈 Riepilogo Aziendale</h3>
 
                 <ul class="tasks">
-                    <li>Marketing: 2.000€</li>
-                    <li>Evento Praia: 1.500€</li>
-                    <li>Materiale promo: 700€</li>
-                    <li>ROI medio: 183%</li>
-                    <li>Utile generato: 7.800€</li>
+                    <li><strong>Mese selezionato:</strong> <span id="meseSelezionatoLabel">-</span></li>
+                    <li><strong>Percentuale OK:</strong> <span id="percentualeOk">0%</span></li>
+                    <li><strong>Pratiche negative:</strong> <span id="praticheNegative">0</span></li>
+                    <li><strong>Miglior venditore:</strong> <span id="migliorVenditore">-</span></li>
+                    <li><strong>Miglior partner:</strong> <span id="migliorPartner">-</span></li>
                 </ul>
 
             </div>
@@ -255,6 +248,8 @@
         </section>
 
     </main>
+
+    <script src="js/dashboard.js"></script>
 
 </body>
 
