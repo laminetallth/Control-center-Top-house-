@@ -47,7 +47,7 @@ body{
     flex-shrink:0;
 }
 
-/* LOGO CORRETTO */
+/* LOGO SOLO CASETTA */
 
 .logo-section{
     text-align:center;
@@ -61,18 +61,19 @@ body{
     margin:0 auto 18px auto;
     background:white;
     border-radius:28px;
-    display:flex;
-    align-items:center;
-    justify-content:center;
     overflow:hidden;
-    padding:10px;
+    position:relative;
+    padding:0;
     box-shadow:0 10px 25px rgba(0,0,0,.20);
 }
 
 .logo-mark img{
-    width:100%;
-    height:100%;
-    object-fit:contain;
+    position:absolute;
+    width:470px;
+    height:auto;
+    max-width:none;
+    left:-34px;
+    top:-92px;
     display:block;
 }
 
