@@ -47,7 +47,7 @@ body{
     flex-shrink:0;
 }
 
-/* LOGO SOLO CASETTA */
+/* LOGO SIDEBAR - LOGO CASA */
 
 .logo-section{
     text-align:center;
@@ -59,21 +59,20 @@ body{
     width:120px;
     height:120px;
     margin:0 auto 18px auto;
-    background:white;
+    background:#081120;
     border-radius:28px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     overflow:hidden;
-    position:relative;
-    padding:0;
-    box-shadow:0 10px 25px rgba(0,0,0,.20);
+    padding:12px;
+    box-shadow:0 10px 25px rgba(0,0,0,.25);
 }
 
 .logo-mark img{
-    position:absolute;
-    width:470px;
-    height:auto;
-    max-width:none;
-    left:-34px;
-    top:-92px;
+    width:100%;
+    height:100%;
+    object-fit:contain;
     display:block;
 }
 
@@ -794,7 +793,10 @@ tr:hover td{
     gap:18px;
 }
 
-.partner-card{
+.partner-card,
+.partner-card:visited,
+.partner-card:hover,
+.partner-card:active{
     background:#f8fafc;
     border:1px solid #e5e7eb;
     border-radius:20px;
@@ -804,6 +806,8 @@ tr:hover td{
     align-items:flex-start;
     position:relative;
     transition:.3s;
+    color:#081120 !important;
+    text-decoration:none !important;
 }
 
 .partner-card:hover{
@@ -811,7 +815,10 @@ tr:hover td{
     box-shadow:0 12px 25px rgba(0,0,0,.12);
 }
 
-.partner-logo,
+.partner-card *{
+    text-decoration:none !important;
+}
+
 .partner-icon{
     width:66px;
     height:66px;
@@ -826,9 +833,62 @@ tr:hover td{
     flex-shrink:0;
 }
 
+.partner-logo-box{
+    width:78px;
+    height:78px;
+    border-radius:22px;
+    background:white;
+    border:1px solid #e5e7eb;
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+    overflow:hidden;
+    flex-shrink:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:8px;
+    position:relative;
+}
+
+.partner-logo-box img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    display:block;
+}
+
+.partner-logo-box span{
+    display:none;
+    color:white;
+    font-weight:800;
+    font-size:24px;
+}
+
+.partner-logo-box.no-logo{
+    background:linear-gradient(135deg,#d90429,#ff7b00);
+    border:none;
+}
+
+.partner-logo-box.no-logo span{
+    display:block;
+}
+
+.partner-card-content{
+    flex:1;
+    min-width:0;
+}
+
+.partner-card-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:8px;
+}
+
 .partner-card h4{
     font-size:20px;
     margin-bottom:6px;
+    color:#081120;
 }
 
 .partner-card p{
