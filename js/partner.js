@@ -1,46 +1,76 @@
 const PARTNER_REGISTRATI = [
     {
-        nome: "EKO",
-        categoria: "Partner Energia / Servizi",
-        zona: "Italia",
-        foto: "assets/partners/eko.jpg"
-    },
-    {
         nome: "Greenword",
-        categoria: "Partner Energia",
+        categoria: "Luce / Gas",
+        descrizione: "Partner multi-gestore per luce e gas",
+        servizi: ["Luce", "Gas", "Luce + Gas"],
         zona: "Italia",
         foto: "assets/partners/greenword.jpg"
     },
     {
-        nome: "New costruction",
-        categoria: "Partner Edilizia / Casa",
-        zona: "Italia",
-        foto: "assets/partners/new-costruction.jpg"
-    },
-    {
         nome: "Onova",
-        categoria: "Partner Energia",
+        categoria: "Luce / Gas",
+        descrizione: "Partner diretto energia",
+        servizi: ["Luce", "Gas", "Luce + Gas"],
         zona: "Italia",
         foto: "assets/partners/onova.jpg"
     },
     {
         nome: "S4",
-        categoria: "Partner Energia",
+        categoria: "Luce / Gas",
+        descrizione: "Partner diretto energia",
+        servizi: ["Luce", "Gas", "Luce + Gas"],
         zona: "Italia",
         foto: "assets/partners/s4.jpg"
     },
     {
         nome: "Union",
-        categoria: "Partner Energia",
+        categoria: "Luce / Gas",
+        descrizione: "Partner diretto energia",
+        servizi: ["Luce", "Gas", "Luce + Gas"],
         zona: "Italia",
         foto: "assets/partners/union.jpg"
     },
     {
+        nome: "EKO",
+        categoria: "Casa / Impianti",
+        descrizione: "Fotovoltaico, caldaie, wall box, pompe di calore e climatizzatori",
+        servizi: ["Fotovoltaico", "Caldaia", "Wall box", "Pompa di calore", "Climatizzatore"],
+        zona: "Italia",
+        foto: "assets/partners/eko.jpg"
+    },
+    {
+        nome: "New costruction",
+        categoria: "Infissi",
+        descrizione: "Partner dedicato agli infissi",
+        servizi: ["Infissi"],
+        zona: "Italia",
+        foto: "assets/partners/new-costruction.jpg"
+    },
+    {
         nome: "WLD Impianti",
-        categoria: "Partner Impianti",
+        categoria: "Allarmi",
+        descrizione: "Partner dedicato agli allarmi",
+        servizi: ["Allarmi"],
         zona: "Italia",
         foto: "assets/partners/wld-impianti.jpg"
+    },
+    {
+        nome: "Vita Group",
+        categoria: "Depuratori acqua",
+        descrizione: "Partner dedicato ai depuratori acqua",
+        servizi: ["Depuratore acqua"],
+        zona: "Italia",
+        foto: "assets/partners/vita-group.jpg"
     }
+];
+
+const ORDINE_CATEGORIE = [
+    "Luce / Gas",
+    "Casa / Impianti",
+    "Infissi",
+    "Allarmi",
+    "Depuratori acqua"
 ];
 
 function testo(valore){
@@ -104,7 +134,9 @@ function filtraPerMese(contratti){
 function trovaPartnerRegistrato(nome){
     return PARTNER_REGISTRATI.find(p => p.nome === nome) || {
         nome: nome,
-        categoria: "Partner",
+        categoria: "Altro",
+        descrizione: "Partner non classificato",
+        servizi: [],
         zona: "-",
         foto: ""
     };
@@ -119,6 +151,8 @@ function creaStatistichePartner(contratti){
         statistiche[partner.nome] = {
             nome: partner.nome,
             categoria: partner.categoria,
+            descrizione: partner.descrizione,
+            servizi: partner.servizi,
             zona: partner.zona,
             foto: partner.foto,
             totale: 0,
@@ -147,6 +181,8 @@ function creaStatistichePartner(contratti){
             statistiche[nomePartner] = {
                 nome: nomePartner,
                 categoria: registrato.categoria,
+                descrizione: registrato.descrizione,
+                servizi: registrato.servizi,
                 zona: registrato.zona,
                 foto: registrato.foto,
                 totale: 0,
@@ -220,6 +256,79 @@ function aggiornaCards(partners){
     document.getElementById("daIncassarePartner").innerText = daIncassare + "€";
     document.getElementById("incassatoPartner").innerText = incassato + "€";
     document.getElementById("margineMaturato").innerText = margine + "€";
+}
+
+function renderCategoriePartner(partners){
+
+    const container = document.getElementById("partnerCategories");
+
+    container.innerHTML = "";
+
+    ORDINE_CATEGORIE.forEach(categoria => {
+
+        const partnersCategoria = partners.filter(p => p.categoria === categoria);
+
+        if(partnersCategoria.length === 0){
+            return;
+        }
+
+        const section = document.createElement("div");
+
+        section.className = "partner-category-section";
+
+        let cards = "";
+
+        partnersCategoria.forEach(partner => {
+
+            const servizi = partner.servizi && partner.servizi.length > 0
+                ? partner.servizi.join(" · ")
+                : "Servizi non indicati";
+
+            cards += `
+                <a class="partner-category-card" href="partner-detail.html?partner=${slugPartner(partner.nome)}">
+
+                    <div class="vendor-avatar-small" data-initials="${iniziali(partner.nome)}">
+                        <img src="${partner.foto}" alt="${partner.nome}" onerror="this.style.display='none'; this.parentElement.classList.add('no-photo');">
+                    </div>
+
+                    <div class="partner-category-content">
+                        <div class="partner-category-top">
+                            <h4>${partner.nome}</h4>
+                            <span>${partner.ok} OK</span>
+                        </div>
+
+                        <p>${partner.descrizione}</p>
+
+                        <small>${servizi}</small>
+
+                        <div class="partner-card-stats">
+                            <b>${partner.totale}</b> pratiche
+                            <b>${partner.daIncassare}€</b> da incassare
+                            <b>${partner.margine}€</b> margine
+                        </div>
+                    </div>
+
+                </a>
+            `;
+
+        });
+
+        section.innerHTML = `
+            <div class="partner-category-header">
+                <div>
+                    <h3>${categoria}</h3>
+                    <p>${partnersCategoria.length} partner collegati a questa categoria</p>
+                </div>
+            </div>
+
+            <div class="partners-category-grid">
+                ${cards}
+            </div>
+        `;
+
+        container.appendChild(section);
+
+    });
 }
 
 function renderClassificaPartner(partners){
@@ -299,37 +408,6 @@ function aggiornaMigliorPartner(partners){
     document.getElementById("bestPartnerMargin").innerText = migliore.margine + "€";
 }
 
-function renderPartnerRegistrati(){
-
-    const container = document.getElementById("registeredPartnersGrid");
-
-    container.innerHTML = "";
-
-    PARTNER_REGISTRATI.forEach(partner => {
-
-        const card = document.createElement("a");
-
-        card.className = "vendor-card-small";
-        card.href = `partner-detail.html?partner=${slugPartner(partner.nome)}`;
-
-        card.innerHTML = `
-            <div class="vendor-avatar-small" data-initials="${iniziali(partner.nome)}">
-                <img src="${partner.foto}" alt="${partner.nome}" onerror="this.style.display='none'; this.parentElement.classList.add('no-photo');">
-            </div>
-
-            <div>
-                <h4>${partner.nome}</h4>
-                <p>${partner.zona} · ${partner.categoria}</p>
-                <span>Apri scheda partner</span>
-            </div>
-        `;
-
-        container.appendChild(card);
-
-    });
-
-}
-
 function aggiornaPaginaPartner(){
 
     const contratti = caricaContratti();
@@ -340,11 +418,11 @@ function aggiornaPaginaPartner(){
 
     aggiornaCards(statistichePartner);
 
+    renderCategoriePartner(statistichePartner);
+
     renderClassificaPartner(statistichePartner);
 
     aggiornaMigliorPartner(statistichePartner);
-
-    renderPartnerRegistrati();
 }
 
 document.getElementById("monthFilter").addEventListener("change", aggiornaPaginaPartner);
