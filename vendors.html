@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 
@@ -81,7 +80,7 @@
 
             <div>
                 <h1>Venditori</h1>
-                <span>Performance, provvigioni e pratiche per venditore</span>
+                <span>Performance, provvigioni e schede venditore</span>
             </div>
 
             <select class="month-select" id="monthFilter">
@@ -115,6 +114,16 @@
             </div>
 
             <div class="card">
+                <h4>KO</h4>
+                <p id="totaleKo">0</p>
+            </div>
+
+            <div class="card">
+                <h4>Storni</h4>
+                <p id="totaleStorni">0</p>
+            </div>
+
+            <div class="card">
                 <h4>Provvigioni Maturate</h4>
                 <p id="provvigioniMaturate">0€</p>
             </div>
@@ -144,13 +153,16 @@
                         <thead>
                             <tr>
                                 <th>Venditore</th>
-                                <th>Contratti Totali</th>
+                                <th>Zona</th>
+                                <th>Totali</th>
                                 <th>OK</th>
-                                <th>KO / Storni</th>
-                                <th>Provvigioni Maturate</th>
+                                <th>KO</th>
+                                <th>Storni</th>
+                                <th>Provvigioni</th>
                                 <th>Da Pagare</th>
                                 <th>Pagato</th>
-                                <th>Margine Top House</th>
+                                <th>Margine</th>
+                                <th>Scheda</th>
                             </tr>
                         </thead>
 
@@ -169,6 +181,7 @@
 
                 <ul class="tasks">
                     <li><strong>Nome:</strong> <span id="bestVendorName">-</span></li>
+                    <li><strong>Zona:</strong> <span id="bestVendorArea">-</span></li>
                     <li><strong>Contratti OK:</strong> <span id="bestVendorOk">0</span></li>
                     <li><strong>Provvigioni:</strong> <span id="bestVendorCommission">0€</span></li>
                     <li><strong>Margine generato:</strong> <span id="bestVendorMargin">0€</span></li>
@@ -182,29 +195,12 @@
 
             <div class="section-title">
                 <div>
-                    <h3>📋 Dettaglio Venditori Registrati</h3>
-                    <p>Elenco venditori attivi nel gestionale Top House.</p>
+                    <h3>📋 Venditori Registrati</h3>
+                    <p>Clicca su “Apri Scheda” per vedere foto, risultati, grafici e report contratti.</p>
                 </div>
             </div>
 
-            <div class="table-wrapper">
-
-                <table>
-
-                    <thead>
-                        <tr>
-                            <th>Venditore</th>
-                            <th>Stato</th>
-                            <th>Ruolo</th>
-                        </tr>
-                    </thead>
-
-                    <tbody id="registeredVendorsBody">
-                    </tbody>
-
-                </table>
-
-            </div>
+            <div class="vendors-grid" id="registeredVendorsGrid"></div>
 
         </section>
 
