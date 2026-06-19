@@ -4,73 +4,57 @@ const PARTNER_REGISTRATI = [
         categoria: "Luce / Gas",
         descrizione: "Partner multi-gestore per luce e gas",
         servizi: ["Luce", "Gas", "Luce + Gas"],
-        zona: "Italia",
-        foto: "assets/partners/greenword.jpg"
+        logo: "assets/partners/logo-greenword.png"
     },
     {
         nome: "Onova",
         categoria: "Luce / Gas",
         descrizione: "Partner diretto energia",
         servizi: ["Luce", "Gas", "Luce + Gas"],
-        zona: "Italia",
-        foto: "assets/partners/onova.jpg"
+        logo: "assets/partners/logo-onova.png"
     },
     {
         nome: "S4",
         categoria: "Luce / Gas",
         descrizione: "Partner diretto energia",
         servizi: ["Luce", "Gas", "Luce + Gas"],
-        zona: "Italia",
-        foto: "assets/partners/s4.jpg"
+        logo: "assets/partners/logo-s4.png"
     },
     {
         nome: "Union",
         categoria: "Luce / Gas",
         descrizione: "Partner diretto energia",
         servizi: ["Luce", "Gas", "Luce + Gas"],
-        zona: "Italia",
-        foto: "assets/partners/union.jpg"
+        logo: "assets/partners/logo-union.png"
     },
     {
         nome: "EKO",
         categoria: "Casa / Impianti",
-        descrizione: "Fotovoltaico, caldaie, wall box, pompe di calore e climatizzatori",
-        servizi: ["Fotovoltaico", "Caldaia", "Wall box", "Pompa di calore", "Climatizzatore"],
-        zona: "Italia",
-        foto: "assets/partners/eko.jpg"
-    },
-    {
-        nome: "New costruction",
-        categoria: "Infissi",
-        descrizione: "Partner dedicato agli infissi",
-        servizi: ["Infissi"],
-        zona: "Italia",
-        foto: "assets/partners/new-costruction.jpg"
+        descrizione: "Partner servizi casa e impianti",
+        servizi: ["Fotovoltaico", "Pompe di calore", "Climatizzatori"],
+        logo: "assets/partners/logo-eko.png"
     },
     {
         nome: "WLD Impianti",
-        categoria: "Allarmi",
-        descrizione: "Partner dedicato agli allarmi",
-        servizi: ["Allarmi"],
-        zona: "Italia",
-        foto: "assets/partners/wld-impianti.jpg"
+        categoria: "Casa / Impianti",
+        descrizione: "Partner impianti e lavori tecnici",
+        servizi: ["Impianti", "Fotovoltaico", "Wall Box"],
+        logo: "assets/partners/logo-wldimpianti.png"
+    },
+    {
+        nome: "New costruction",
+        categoria: "Casa / Infissi",
+        descrizione: "Partner per infissi e lavori casa",
+        servizi: ["Infissi", "Ristrutturazioni"],
+        logo: "assets/partners/logo-newcostruction.png"
     },
     {
         nome: "Vita Group",
-        categoria: "Depuratori acqua",
-        descrizione: "Partner dedicato ai depuratori acqua",
-        servizi: ["Depuratore acqua"],
-        zona: "Italia",
-        foto: "assets/partners/vita-group.jpg"
+        categoria: "Acqua / Depuratori",
+        descrizione: "Partner per depuratori acqua e servizi casa",
+        servizi: ["Depuratori", "Acqua", "Casa"],
+        logo: "assets/partners/logo-vitagroup.png"
     }
-];
-
-const ORDINE_CATEGORIE = [
-    "Luce / Gas",
-    "Casa / Impianti",
-    "Infissi",
-    "Allarmi",
-    "Depuratori acqua"
 ];
 
 function testo(valore){
@@ -81,31 +65,22 @@ function numero(valore){
     return Number(valore || 0);
 }
 
+function caricaContratti(){
+    const dati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
+
+    if(Array.isArray(dati)){
+        return dati;
+    }
+
+    return [];
+}
+
 function slugPartner(nome){
     return encodeURIComponent(nome);
 }
 
-function iniziali(nome){
-    return testo(nome)
-        .split(" ")
-        .map(parte => parte.charAt(0))
-        .join("")
-        .slice(0, 2)
-        .toUpperCase();
-}
-
-function caricaContratti(){
-    try{
-        const dati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
-
-        if(Array.isArray(dati)){
-            return dati;
-        }
-
-        return [];
-    }catch(error){
-        return [];
-    }
+function iniziale(nome){
+    return testo(nome).charAt(0).toUpperCase();
 }
 
 function calcolaMargine(contratto){
@@ -134,11 +109,10 @@ function filtraPerMese(contratti){
 function trovaPartnerRegistrato(nome){
     return PARTNER_REGISTRATI.find(p => p.nome === nome) || {
         nome: nome,
-        categoria: "Altro",
-        descrizione: "Partner non classificato",
-        servizi: [],
-        zona: "-",
-        foto: ""
+        categoria: "Altri Partner",
+        descrizione: "Partner non registrato",
+        servizi: ["Altro"],
+        logo: ""
     };
 }
 
@@ -153,8 +127,7 @@ function creaStatistichePartner(contratti){
             categoria: partner.categoria,
             descrizione: partner.descrizione,
             servizi: partner.servizi,
-            zona: partner.zona,
-            foto: partner.foto,
+            logo: partner.logo,
             totale: 0,
             ok: 0,
             ko: 0,
@@ -183,8 +156,7 @@ function creaStatistichePartner(contratti){
                 categoria: registrato.categoria,
                 descrizione: registrato.descrizione,
                 servizi: registrato.servizi,
-                zona: registrato.zona,
-                foto: registrato.foto,
+                logo: registrato.logo,
                 totale: 0,
                 ok: 0,
                 ko: 0,
@@ -227,117 +199,104 @@ function creaStatistichePartner(contratti){
     return Object.values(statistiche);
 }
 
-function aggiornaCards(partners){
+function aggiornaCards(partner){
 
     const totalePartner = PARTNER_REGISTRATI.length;
 
-    const totaleOk = partners.reduce((totale, partner) => totale + partner.ok, 0);
+    const totaleOk = partner.reduce((totale, p) => totale + p.ok, 0);
 
-    const totaleKo = partners.reduce((totale, partner) => totale + partner.ko, 0);
+    const totaleKo = partner.reduce((totale, p) => totale + p.ko, 0);
 
-    const totaleStorni = partners.reduce((totale, partner) => totale + partner.storni, 0);
+    const totaleStorni = partner.reduce((totale, p) => totale + p.storni, 0);
 
-    const daIncassare = partners.reduce((totale, partner) => {
-        return totale + partner.daIncassare;
-    }, 0);
+    const daIncassarePartner = partner.reduce((totale, p) => totale + p.daIncassare, 0);
 
-    const incassato = partners.reduce((totale, partner) => {
-        return totale + partner.incassato;
-    }, 0);
+    const incassatoPartner = partner.reduce((totale, p) => totale + p.incassato, 0);
 
-    const margine = partners.reduce((totale, partner) => {
-        return totale + partner.margine;
-    }, 0);
+    const margineMaturato = partner.reduce((totale, p) => totale + p.margine, 0);
 
     document.getElementById("totalePartnerRegistrati").innerText = totalePartner;
     document.getElementById("totaleOk").innerText = totaleOk;
     document.getElementById("totaleKo").innerText = totaleKo;
     document.getElementById("totaleStorni").innerText = totaleStorni;
-    document.getElementById("daIncassarePartner").innerText = daIncassare + "€";
-    document.getElementById("incassatoPartner").innerText = incassato + "€";
-    document.getElementById("margineMaturato").innerText = margine + "€";
+    document.getElementById("daIncassarePartner").innerText = daIncassarePartner + "€";
+    document.getElementById("incassatoPartner").innerText = incassatoPartner + "€";
+    document.getElementById("margineMaturato").innerText = margineMaturato + "€";
 }
 
-function renderCategoriePartner(partners){
+function renderPartnerCategorie(partner){
 
     const container = document.getElementById("partnerCategories");
 
     container.innerHTML = "";
 
-    ORDINE_CATEGORIE.forEach(categoria => {
+    const categorie = [...new Set(PARTNER_REGISTRATI.map(p => p.categoria))];
 
-        const partnersCategoria = partners.filter(p => p.categoria === categoria);
+    categorie.forEach(categoria => {
 
-        if(partnersCategoria.length === 0){
-            return;
-        }
+        const partnerCategoria = partner.filter(p => p.categoria === categoria);
 
-        const section = document.createElement("div");
+        const blocco = document.createElement("div");
 
-        section.className = "partner-category-section";
+        blocco.className = "partner-category";
 
-        let cards = "";
+        blocco.innerHTML = `
+            <h2>${categoria}</h2>
+            <p>${partnerCategoria.length} partner collegati a questa categoria</p>
+            <div class="partner-grid"></div>
+        `;
 
-        partnersCategoria.forEach(partner => {
+        const grid = blocco.querySelector(".partner-grid");
 
-            const servizi = partner.servizi && partner.servizi.length > 0
-                ? partner.servizi.join(" · ")
-                : "Servizi non indicati";
+        partnerCategoria.forEach(p => {
 
-            cards += `
-                <a class="partner-category-card" href="partner-detail.html?partner=${slugPartner(partner.nome)}">
+            const card = document.createElement("a");
 
-                    <div class="vendor-avatar-small" data-initials="${iniziali(partner.nome)}">
-                        <img src="${partner.foto}" alt="${partner.nome}" onerror="this.style.display='none'; this.parentElement.classList.add('no-photo');">
+            card.className = "partner-card";
+            card.href = `partner-detail.html?partner=${slugPartner(p.nome)}`;
+
+            card.innerHTML = `
+                <div class="partner-logo-box">
+                    <img src="${p.logo}" alt="${p.nome}" onerror="this.style.display='none'; this.parentElement.classList.add('no-logo');">
+                    <span>${iniziale(p.nome)}</span>
+                </div>
+
+                <div class="partner-card-content">
+                    <div class="partner-card-header">
+                        <h4>${p.nome}</h4>
+                        <span class="badge ok">${p.ok} OK</span>
                     </div>
 
-                    <div class="partner-category-content">
-                        <div class="partner-category-top">
-                            <h4>${partner.nome}</h4>
-                            <span>${partner.ok} OK</span>
-                        </div>
+                    <p>${p.descrizione}</p>
 
-                        <p>${partner.descrizione}</p>
-
-                        <small>${servizi}</small>
-
-                        <div class="partner-card-stats">
-                            <b>${partner.totale}</b> pratiche
-                            <b>${partner.daIncassare}€</b> da incassare
-                            <b>${partner.margine}€</b> margine
-                        </div>
+                    <div class="partner-services">
+                        ${p.servizi.join(" · ")}
                     </div>
 
-                </a>
+                    <div class="partner-stats">
+                        <span><strong>${p.totale}</strong> pratiche</span>
+                        <span><strong>${p.daIncassare}€</strong> da incassare</span>
+                        <span><strong>${p.margine}€</strong> margine</span>
+                    </div>
+                </div>
             `;
+
+            grid.appendChild(card);
 
         });
 
-        section.innerHTML = `
-            <div class="partner-category-header">
-                <div>
-                    <h3>${categoria}</h3>
-                    <p>${partnersCategoria.length} partner collegati a questa categoria</p>
-                </div>
-            </div>
-
-            <div class="partners-category-grid">
-                ${cards}
-            </div>
-        `;
-
-        container.appendChild(section);
+        container.appendChild(blocco);
 
     });
 }
 
-function renderClassificaPartner(partners){
+function renderClassificaPartner(partner){
 
     const tbody = document.getElementById("partnersBody");
 
     tbody.innerHTML = "";
 
-    const ordinati = [...partners].sort((a, b) => {
+    const ordinati = [...partner].sort((a, b) => {
 
         if(b.ok !== a.ok){
             return b.ok - a.ok;
@@ -347,22 +306,22 @@ function renderClassificaPartner(partners){
 
     });
 
-    ordinati.forEach(partner => {
+    ordinati.forEach(p => {
 
         const row = document.createElement("tr");
 
         row.innerHTML = `
-            <td>${partner.nome}</td>
-            <td>${partner.categoria}</td>
-            <td>${partner.totale}</td>
-            <td>${partner.ok}</td>
-            <td>${partner.ko}</td>
-            <td>${partner.storni}</td>
-            <td>${partner.daIncassare}€</td>
-            <td>${partner.incassato}€</td>
-            <td>${partner.margine}€</td>
+            <td>${p.nome}</td>
+            <td>${p.categoria}</td>
+            <td>${p.totale}</td>
+            <td>${p.ok}</td>
+            <td>${p.ko}</td>
+            <td>${p.storni}</td>
+            <td>${p.daIncassare}€</td>
+            <td>${p.incassato}€</td>
+            <td>${p.margine}€</td>
             <td>
-                <a class="mini-btn" href="partner-detail.html?partner=${slugPartner(partner.nome)}">
+                <a class="mini-btn" href="partner-detail.html?partner=${slugPartner(p.nome)}">
                     Apri Scheda
                 </a>
             </td>
@@ -371,13 +330,12 @@ function renderClassificaPartner(partners){
         tbody.appendChild(row);
 
     });
-
 }
 
-function aggiornaMigliorPartner(partners){
+function aggiornaMigliorPartner(partner){
 
-    const migliori = [...partners]
-        .filter(partner => partner.ok > 0)
+    const migliori = [...partner]
+        .filter(p => p.ok > 0)
         .sort((a, b) => {
 
             if(b.ok !== a.ok){
@@ -418,7 +376,7 @@ function aggiornaPaginaPartner(){
 
     aggiornaCards(statistichePartner);
 
-    renderCategoriePartner(statistichePartner);
+    renderPartnerCategorie(statistichePartner);
 
     renderClassificaPartner(statistichePartner);
 
