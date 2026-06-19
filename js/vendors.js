@@ -3,49 +3,49 @@ const VENDITORI_REGISTRATI = [
         nome: "Antonio Attardi",
         zona: "Calabria",
         ruolo: "Venditore",
-        foto: "assets/vendors/antonio-attardi.jpg"
+        foto: "assets/vendors/antonio-attardi.png"
     },
     {
         nome: "Davide Marino",
         zona: "Calabria",
         ruolo: "Venditore",
-        foto: "assets/vendors/davide-marino.jpg"
+        foto: "assets/vendors/davide-marino.png"
     },
     {
         nome: "Fabio Magnago",
         zona: "Lombardia",
         ruolo: "Venditore",
-        foto: "assets/vendors/fabio-magnago.jpg"
+        foto: "assets/vendors/fabio-magnago.png"
     },
     {
         nome: "Gabriele Straniero",
         zona: "Calabria",
         ruolo: "Venditore",
-        foto: "assets/vendors/gabriele-straniero.jpg"
+        foto: "assets/vendors/gabriele-straniero.png"
     },
     {
         nome: "Giuseppe Maresca",
         zona: "Calabria",
         ruolo: "Venditore",
-        foto: "assets/vendors/giuseppe-maresca.jpg"
+        foto: "assets/vendors/giuseppe-maresca.png"
     },
     {
         nome: "Lamine Tall",
         zona: "Lombardia",
         ruolo: "Direzione / Venditore",
-        foto: "assets/vendors/lamine-tall.jpg"
+        foto: "assets/vendors/lamine-tall.png"
     },
     {
         nome: "Morena Caccavo",
         zona: "Lombardia",
         ruolo: "Venditore",
-        foto: "assets/vendors/morena-caccavo.jpg"
+        foto: "assets/vendors/morena-caccavo.png"
     },
     {
         nome: "Studio Cian",
         zona: "Lombardia",
         ruolo: "Studio Partner",
-        foto: "assets/vendors/studio-cian.jpg"
+        foto: "assets/vendors/studio-cian.png"
     }
 ];
 
@@ -78,6 +78,33 @@ function caricaContratti(){
     }
 
     return [];
+}
+
+function caricaStatiVenditori(){
+    const stati = JSON.parse(localStorage.getItem("statiVenditoriTopHouse"));
+
+    if(stati && typeof stati === "object"){
+        return stati;
+    }
+
+    return {};
+}
+
+function statoVenditore(nome){
+    const stati = caricaStatiVenditori();
+
+    return stati[nome] || "Attivo";
+}
+
+function badgeStatoVenditore(nome){
+
+    const stato = statoVenditore(nome);
+
+    if(stato === "Attivo"){
+        return `<span class="badge ok">Attivo</span>`;
+    }
+
+    return `<span class="badge pending">Non attivo</span>`;
 }
 
 function calcolaMargine(contratto){
@@ -123,6 +150,7 @@ function creaStatisticheVenditori(contratti){
             zona: venditore.zona,
             ruolo: venditore.ruolo,
             foto: venditore.foto,
+            stato: statoVenditore(venditore.nome),
             totale: 0,
             ok: 0,
             ko: 0,
@@ -152,6 +180,7 @@ function creaStatisticheVenditori(contratti){
                 zona: registrato.zona,
                 ruolo: registrato.ruolo,
                 foto: registrato.foto,
+                stato: statoVenditore(nomeVenditore),
                 totale: 0,
                 ok: 0,
                 ko: 0,
@@ -236,6 +265,10 @@ function renderClassificaVenditori(venditori){
 
     const ordinati = [...venditori].sort((a, b) => {
 
+        if(a.stato !== b.stato){
+            return a.stato === "Attivo" ? -1 : 1;
+        }
+
         if(b.ok !== a.ok){
             return b.ok - a.ok;
         }
@@ -250,6 +283,7 @@ function renderClassificaVenditori(venditori){
 
         row.innerHTML = `
             <td>${venditore.nome}</td>
+            <td>${badgeStatoVenditore(venditore.nome)}</td>
             <td>${venditore.zona}</td>
             <td>${venditore.totale}</td>
             <td>${venditore.ok}</td>
@@ -275,7 +309,7 @@ function renderClassificaVenditori(venditori){
 function aggiornaMigliorVenditore(venditori){
 
     const migliori = [...venditori]
-        .filter(venditore => venditore.ok > 0)
+        .filter(venditore => venditore.ok > 0 && venditore.stato === "Attivo")
         .sort((a, b) => {
 
             if(b.ok !== a.ok){
@@ -328,6 +362,8 @@ function renderVenditoriRegistrati(){
             <div>
                 <h4>${venditore.nome}</h4>
                 <p>${venditore.zona} · ${venditore.ruolo}</p>
+                ${badgeStatoVenditore(venditore.nome)}
+                <br><br>
                 <span>Apri scheda venditore</span>
             </div>
         `;
