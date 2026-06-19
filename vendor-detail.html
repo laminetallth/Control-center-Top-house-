@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scheda Venditore - Top House Gestionale</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+
+        <div class="logo-section">
+
+            <div class="logo-mark">
+                <img src="assets/logo-tophouse.png" alt="Top House Logo">
+            </div>
+
+            <h2>TOP HOUSE</h2>
+            <p>GESTIONALE</p>
+
+        </div>
+
+        <ul class="menu">
+
+            <li>
+                <a href="index.html">🏠 Dashboard</a>
+            </li>
+
+            <li>
+                <a href="contracts.html">📄 Contratti</a>
+            </li>
+
+            <li class="active">
+                <a href="vendors.html">👥 Venditori</a>
+            </li>
+
+            <li>
+                <a href="partners.html">🤝 Partner</a>
+            </li>
+
+            <li>
+                <a href="#">💰 Provvigioni</a>
+            </li>
+
+            <li>
+                <a href="investments.html">📈 Investimenti</a>
+            </li>
+
+            <li>
+                <a href="cashflow.html">🏦 Cash Flow</a>
+            </li>
+
+            <li>
+                <a href="#">📊 KPI</a>
+            </li>
+
+            <li>
+                <a href="reports.html">📑 Report</a>
+            </li>
+
+            <li>
+                <a href="#">📁 Documenti</a>
+            </li>
+
+            <li>
+                <a href="#">⚙️ Impostazioni</a>
+            </li>
+
+        </ul>
+
+    </aside>
+
+    <main class="main">
+
+        <div class="header">
+
+            <div>
+                <h1>Scheda Venditore</h1>
+                <span>Risultati, contratti e report personale</span>
+            </div>
+
+            <select class="month-select" id="monthFilter">
+                <option value="">Tutte le mensilità</option>
+                <option value="2026-01">Gennaio 2026</option>
+                <option value="2026-02">Febbraio 2026</option>
+                <option value="2026-03">Marzo 2026</option>
+                <option value="2026-04">Aprile 2026</option>
+                <option value="2026-05">Maggio 2026</option>
+                <option value="2026-06" selected>Giugno 2026</option>
+                <option value="2026-07">Luglio 2026</option>
+                <option value="2026-08">Agosto 2026</option>
+                <option value="2026-09">Settembre 2026</option>
+                <option value="2026-10">Ottobre 2026</option>
+                <option value="2026-11">Novembre 2026</option>
+                <option value="2026-12">Dicembre 2026</option>
+            </select>
+
+        </div>
+
+        <section class="vendor-profile-layout">
+
+            <div class="box vendor-profile-card">
+
+                <div class="vendor-photo" id="vendorPhotoBox">
+                    <img id="vendorPhoto" src="" alt="">
+                    <span id="vendorInitials">-</span>
+                </div>
+
+                <h2 id="vendorName">-</h2>
+
+                <p id="vendorRole">Venditore</p>
+
+                <div class="vendor-info-list">
+                    <div>
+                        <strong>Regione / Zona</strong>
+                        <span id="vendorArea">-</span>
+                    </div>
+
+                    <div>
+                        <strong>Stato</strong>
+                        <span class="badge ok">Attivo</span>
+                    </div>
+                </div>
+
+                <a href="vendors.html" class="mini-btn dark">← Torna ai venditori</a>
+
+            </div>
+
+            <div class="vendor-profile-main">
+
+                <section class="cards">
+
+                    <div class="card">
+                        <h4>Contratti Totali</h4>
+                        <p id="totaleContratti">0</p>
+                    </div>
+
+                    <div class="card">
+                        <h4>Contratti OK</h4>
+                        <p id="totaleOk">0</p>
+                    </div>
+
+                    <div class="card">
+                        <h4>KO</h4>
+                        <p id="totaleKo">0</p>
+                    </div>
+
+                    <div class="card">
+                        <h4>Storni</h4>
+                        <p id="totaleStorni">0</p>
+                    </div>
+
+                    <div class="card">
+                        <h4>Provvigioni Maturate</h4>
+                        <p id="provvigioniMaturate">0€</p>
+                    </div>
+
+                    <div class="card">
+                        <h4>Da Pagare</h4>
+                        <p id="daPagare">0€</p>
+                    </div>
+
+                    <div class="card">
+                        <h4>Margine Generato</h4>
+                        <p id="margineGenerato">0€</p>
+                    </div>
+
+                </section>
+
+            </div>
+
+        </section>
+
+        <section class="grid">
+
+            <div class="box">
+
+                <h3>📊 Andamento Mensile</h3>
+
+                <div id="monthlyChart" class="monthly-chart"></div>
+
+            </div>
+
+            <div class="box">
+
+                <h3>📌 Riepilogo</h3>
+
+                <ul class="tasks">
+                    <li><strong>Mese selezionato:</strong> <span id="selectedMonthLabel">-</span></li>
+                    <li><strong>Percentuale OK:</strong> <span id="okRate">0%</span></li>
+                    <li><strong>Pratiche negative:</strong> <span id="negativeCount">0</span></li>
+                    <li><strong>Report disponibili:</strong> Excel / PDF</li>
+                </ul>
+
+            </div>
+
+        </section>
+
+        <section class="box full-box">
+
+            <div class="section-title">
+                <div>
+                    <h3>📋 Contratti del Venditore</h3>
+                    <p>Dettaglio pratiche filtrate per venditore e mensilità selezionata.</p>
+                </div>
+
+                <div class="table-actions">
+                    <button onclick="exportVendorExcel()">Esporta Excel</button>
+                    <button onclick="printVendorReport()">Stampa / Salva PDF</button>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+
+                <table class="contracts-table">
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Data Inserimento</th>
+                            <th>Data Esito</th>
+                            <th>Nome</th>
+                            <th>Cognome</th>
+                            <th>Partner</th>
+                            <th>Gestore</th>
+                            <th>Servizio</th>
+                            <th>Stato</th>
+                            <th>Gettone Partner</th>
+                            <th>Gettone Venditore</th>
+                            <th>Margine Top House</th>
+                            <th>Pagamento Venditore</th>
+                            <th>Note</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="vendorContractsBody">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="js/vendor-detail.js"></script>
+
+</body>
+
+</html>
