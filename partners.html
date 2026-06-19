@@ -1,1 +1,212 @@
+<!DOCTYPE html>
+<html lang="it">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Partner - Top House Gestionale</title>
+
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+
+        <div class="logo-section">
+
+            <div class="logo-mark">
+                <img src="assets/logo-tophouse.png" alt="Top House Logo">
+            </div>
+
+            <h2>TOP HOUSE</h2>
+            <p>GESTIONALE</p>
+
+        </div>
+
+        <ul class="menu">
+
+            <li>
+                <a href="index.html">🏠 Dashboard</a>
+            </li>
+
+            <li>
+                <a href="contracts.html">📄 Contratti</a>
+            </li>
+
+            <li>
+                <a href="vendors.html">👥 Venditori</a>
+            </li>
+
+            <li class="active">
+                <a href="partners.html">🤝 Partner</a>
+            </li>
+
+            <li>
+                <a href="#">💰 Provvigioni</a>
+            </li>
+
+            <li>
+                <a href="investments.html">📈 Investimenti</a>
+            </li>
+
+            <li>
+                <a href="cashflow.html">🏦 Cash Flow</a>
+            </li>
+
+            <li>
+                <a href="#">📊 KPI</a>
+            </li>
+
+            <li>
+                <a href="reports.html">📑 Report</a>
+            </li>
+
+            <li>
+                <a href="#">📁 Documenti</a>
+            </li>
+
+            <li>
+                <a href="#">⚙️ Impostazioni</a>
+            </li>
+
+        </ul>
+
+    </aside>
+
+    <main class="main">
+
+        <div class="header">
+
+            <div>
+                <h1>Partner</h1>
+                <span>Performance, incassi, margini e schede partner</span>
+            </div>
+
+            <select class="month-select" id="monthFilter">
+                <option value="">Tutte le mensilità</option>
+                <option value="2026-01">Gennaio 2026</option>
+                <option value="2026-02">Febbraio 2026</option>
+                <option value="2026-03">Marzo 2026</option>
+                <option value="2026-04">Aprile 2026</option>
+                <option value="2026-05">Maggio 2026</option>
+                <option value="2026-06" selected>Giugno 2026</option>
+                <option value="2026-07">Luglio 2026</option>
+                <option value="2026-08">Agosto 2026</option>
+                <option value="2026-09">Settembre 2026</option>
+                <option value="2026-10">Ottobre 2026</option>
+                <option value="2026-11">Novembre 2026</option>
+                <option value="2026-12">Dicembre 2026</option>
+            </select>
+
+        </div>
+
+        <section class="cards">
+
+            <div class="card">
+                <h4>Partner Registrati</h4>
+                <p id="totalePartnerRegistrati">0</p>
+            </div>
+
+            <div class="card">
+                <h4>Contratti OK</h4>
+                <p id="totaleOk">0</p>
+            </div>
+
+            <div class="card">
+                <h4>KO</h4>
+                <p id="totaleKo">0</p>
+            </div>
+
+            <div class="card">
+                <h4>Storni</h4>
+                <p id="totaleStorni">0</p>
+            </div>
+
+            <div class="card">
+                <h4>Da Incassare Partner</h4>
+                <p id="daIncassarePartner">0€</p>
+            </div>
+
+            <div class="card">
+                <h4>Incassato Partner</h4>
+                <p id="incassatoPartner">0€</p>
+            </div>
+
+            <div class="card">
+                <h4>Margine Maturato</h4>
+                <p id="margineMaturato">0€</p>
+            </div>
+
+        </section>
+
+        <section class="grid">
+
+            <div class="box">
+
+                <h3>🏆 Classifica Partner</h3>
+
+                <div class="table-wrapper">
+
+                    <table class="contracts-table">
+
+                        <thead>
+                            <tr>
+                                <th>Partner</th>
+                                <th>Categoria</th>
+                                <th>Totali</th>
+                                <th>OK</th>
+                                <th>KO</th>
+                                <th>Storni</th>
+                                <th>Da Incassare</th>
+                                <th>Incassato</th>
+                                <th>Margine</th>
+                                <th>Scheda</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="partnersBody">
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            </div>
+
+            <div class="box">
+
+                <h3>⭐ Partner più attivo</h3>
+
+                <ul class="tasks">
+                    <li><strong>Nome:</strong> <span id="bestPartnerName">-</span></li>
+                    <li><strong>Categoria:</strong> <span id="bestPartnerCategory">-</span></li>
+                    <li><strong>Contratti OK:</strong> <span id="bestPartnerOk">0</span></li>
+                    <li><strong>Da incassare:</strong> <span id="bestPartnerReceivable">0€</span></li>
+                    <li><strong>Margine generato:</strong> <span id="bestPartnerMargin">0€</span></li>
+                </ul>
+
+            </div>
+
+        </section>
+
+        <section class="box full-box">
+
+            <div class="section-title">
+                <div>
+                    <h3>📋 Partner Registrati</h3>
+                    <p>Clicca su “Apri scheda” per vedere contratti, incassi, grafici e report.</p>
+                </div>
+            </div>
+
+            <div class="vendors-grid" id="registeredPartnersGrid"></div>
+
+        </section>
+
+    </main>
+
+    <script src="js/partners.js"></script>
+
+</body>
+
+</html>
