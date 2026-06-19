@@ -80,7 +80,7 @@
 
             <div>
                 <h1>Scheda Partner</h1>
-                <span>Risultati, incassi, contratti e report partner</span>
+                <span>Risultati, grafici, contratti e report partner</span>
             </div>
 
             <select class="month-select" id="monthFilter">
@@ -115,6 +115,11 @@
                 <p id="partnerCategory">Partner</p>
 
                 <div class="vendor-info-list">
+                    <div>
+                        <strong>Categoria</strong>
+                        <span id="partnerCategoryLabel">-</span>
+                    </div>
+
                     <div>
                         <strong>Zona</strong>
                         <span id="partnerArea">-</span>
@@ -179,9 +184,20 @@
 
             <div class="box">
 
-                <h3>📊 Andamento Mensile</h3>
+                <div class="analysis-header">
+                    <div>
+                        <h3 id="analysisTitle">📊 Analisi Partner</h3>
+                        <p id="analysisSubtitle">Scegli quale grafico visualizzare.</p>
+                    </div>
 
-                <div id="monthlyChart" class="monthly-chart"></div>
+                    <select id="chartMode" class="chart-mode-select">
+                        <option value="andamento">Andamento mensile</option>
+                        <option value="gestori">Gestori</option>
+                        <option value="venditori">Venditori</option>
+                    </select>
+                </div>
+
+                <div id="analysisChart" class="analysis-chart-area"></div>
 
             </div>
 
@@ -193,6 +209,7 @@
                     <li><strong>Mese selezionato:</strong> <span id="selectedMonthLabel">-</span></li>
                     <li><strong>Percentuale OK:</strong> <span id="okRate">0%</span></li>
                     <li><strong>Pratiche negative:</strong> <span id="negativeCount">0</span></li>
+                    <li><strong>Servizi collegati:</strong> <span id="partnerServices">-</span></li>
                     <li><strong>Report disponibili:</strong> Excel / PDF</li>
                 </ul>
 
