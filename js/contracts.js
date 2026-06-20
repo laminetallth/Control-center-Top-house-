@@ -10,13 +10,13 @@ const VENDITORI_REGISTRATI = [
 ];
 
 const PARTNER_REGISTRATI = [
-    "EKO",
     "Greenword",
-    "New costruction",
     "Onova",
     "S4",
     "Union",
+    "EKO",
     "WLD Impianti",
+    "New costruction",
     "Vita Group"
 ];
 
@@ -37,23 +37,7 @@ const GESTORI_REGISTRATI = [
     "STREAM",
     "UNION",
     "UNOENERGY",
-    "VIVIENERGIA",
-    "Non applicabile"
-];
-
-const SERVIZI_REGISTRATI = [
-    "Luce",
-    "Gas",
-    "Luce + Gas",
-    "Fotovoltaico",
-    "Caldaia",
-    "Wall box",
-    "Pompa di calore",
-    "Climatizzatore",
-    "Infissi",
-    "Allarmi",
-    "Depuratore acqua",
-    "Altro"
+    "VIVIENERGIA"
 ];
 
 const CONTRATTI_DEMO = [
@@ -81,7 +65,7 @@ const CONTRATTI_DEMO = [
         nome: "Giulia",
         cognome: "Bianchi",
         venditore: "Studio Cian",
-        partner: "Greenword",
+        partner: "Onova",
         gestore: "ENGIE",
         servizio: "Gas",
         stato: "KO",
@@ -99,8 +83,8 @@ const CONTRATTI_DEMO = [
         cognome: "Neri",
         venditore: "Antonio Attardi",
         partner: "EKO",
-        gestore: "Non applicabile",
-        servizio: "Fotovoltaico",
+        gestore: "ACEA",
+        servizio: "Luce + Gas",
         stato: "Storno",
         gettonePartner: 0,
         gettoneVenditore: 0,
@@ -118,10 +102,44 @@ function numero(valore){
     return Number(valore || 0);
 }
 
+function escapeHtml(valore){
+    return testo(valore)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
 function abbinaDaLista(valore, lista){
     const valorePulito = testo(valore).toLowerCase();
+
     const trovato = lista.find(elemento => elemento.toLowerCase() === valorePulito);
+
     return trovato || testo(valore);
+}
+
+function normalizzaPartner(partner){
+
+    const valore = testo(partner).toLowerCase();
+
+    if(valore === "greenworld"){
+        return "Greenword";
+    }
+
+    if(valore === "new construction"){
+        return "New costruction";
+    }
+
+    if(valore === "wld"){
+        return "WLD Impianti";
+    }
+
+    if(valore === "vita group" || valore === "vitagroup"){
+        return "Vita Group";
+    }
+
+    return abbinaDaLista(partner, PARTNER_REGISTRATI);
 }
 
 function normalizzaContratto(c, index){
@@ -132,9 +150,9 @@ function normalizzaContratto(c, index){
         nome: testo(c.nome),
         cognome: testo(c.cognome),
         venditore: abbinaDaLista(c.venditore, VENDITORI_REGISTRATI),
-        partner: abbinaDaLista(c.partner, PARTNER_REGISTRATI),
+        partner: normalizzaPartner(c.partner),
         gestore: abbinaDaLista(c.gestore, GESTORI_REGISTRATI),
-        servizio: abbinaDaLista(c.servizio, SERVIZI_REGISTRATI),
+        servizio: testo(c.servizio),
         stato: testo(c.stato) || "Inserito",
         gettonePartner: numero(c.gettonePartner),
         gettoneVenditore: numero(c.gettoneVenditore),
@@ -161,12 +179,15 @@ const monthFilter = document.getElementById("monthFilter");
 const vendorFilter = document.getElementById("vendorFilter");
 const partnerFilter = document.getElementById("partnerFilter");
 const managerFilter = document.getElementById("managerFilter");
-const serviceFilter = document.getElementById("serviceFilter");
 const statusFilter = document.getElementById("statusFilter");
 const paymentVendorFilter = document.getElementById("paymentVendorFilter");
 
 function salvaStorage(){
     localStorage.setItem("contrattiTopHouse", JSON.stringify(contratti));
+}
+
+function praticaValidaPerCompensi(contratto){
+    return contratto.stato === "OK" || contratto.stato === "Pagato";
 }
 
 function statoBadge(stato){
@@ -187,29 +208,33 @@ function statoBadge(stato){
         return `<span class="badge paid">Pagato</span>`;
     }
 
-    return `<span class="badge pending">${stato}</span>`;
+    return `<span class="badge pending">${escapeHtml(stato)}</span>`;
 }
 
 function pagamentoBadge(pagamento){
 
     if(pagamento === "Incassato" || pagamento === "Pagato"){
-        return `<span class="badge ok">${pagamento}</span>`;
+        return `<span class="badge ok">${escapeHtml(pagamento)}</span>`;
     }
 
     if(pagamento === "Da incassare" || pagamento === "Da pagare"){
-        return `<span class="badge storno">${pagamento}</span>`;
+        return `<span class="badge storno">${escapeHtml(pagamento)}</span>`;
     }
 
-    return `<span class="badge pending">${pagamento}</span>`;
+    if(pagamento === "Non dovuto"){
+        return `<span class="badge pending">${escapeHtml(pagamento)}</span>`;
+    }
+
+    return `<span class="badge pending">${escapeHtml(pagamento)}</span>`;
 }
 
 function calcolaMargine(contratto){
 
-    if(contratto.stato !== "OK" && contratto.stato !== "Pagato"){
+    if(!praticaValidaPerCompensi(contratto)){
         return 0;
     }
 
-    return Number(contratto.gettonePartner || 0) - Number(contratto.gettoneVenditore || 0);
+    return numero(contratto.gettonePartner) - numero(contratto.gettoneVenditore);
 }
 
 function getListaFiltrata(){
@@ -219,7 +244,6 @@ function getListaFiltrata(){
     const venditoreSelezionato = testo(vendorFilter.value);
     const partnerSelezionato = testo(partnerFilter.value);
     const gestoreSelezionato = testo(managerFilter.value);
-    const servizioSelezionato = testo(serviceFilter.value);
     const statoSelezionato = testo(statusFilter.value);
     const pagamentoVenditoreSelezionato = testo(paymentVendorFilter.value);
 
@@ -259,10 +283,6 @@ function getListaFiltrata(){
             gestoreSelezionato === "" ||
             c.gestore === gestoreSelezionato;
 
-        const matchServizio =
-            servizioSelezionato === "" ||
-            c.servizio === servizioSelezionato;
-
         const matchStato =
             statoSelezionato === "" ||
             c.stato === statoSelezionato;
@@ -276,7 +296,6 @@ function getListaFiltrata(){
                matchVenditore &&
                matchPartner &&
                matchGestore &&
-               matchServizio &&
                matchStato &&
                matchPagamentoVenditore;
 
@@ -320,21 +339,21 @@ function renderContratti(){
                 </div>
             </td>
             <td>${contratto.id}</td>
-            <td>${contratto.dataInserimento}</td>
-            <td>${contratto.dataEsito}</td>
-            <td>${contratto.nome}</td>
-            <td>${contratto.cognome}</td>
-            <td>${contratto.venditore}</td>
-            <td>${contratto.partner}</td>
-            <td>${contratto.gestore}</td>
-            <td>${contratto.servizio}</td>
+            <td>${escapeHtml(contratto.dataInserimento)}</td>
+            <td>${escapeHtml(contratto.dataEsito)}</td>
+            <td>${escapeHtml(contratto.nome)}</td>
+            <td>${escapeHtml(contratto.cognome)}</td>
+            <td>${escapeHtml(contratto.venditore)}</td>
+            <td>${escapeHtml(contratto.partner)}</td>
+            <td>${escapeHtml(contratto.gestore)}</td>
+            <td>${escapeHtml(contratto.servizio)}</td>
             <td>${statoBadge(contratto.stato)}</td>
             <td>${contratto.gettonePartner}€</td>
             <td>${contratto.gettoneVenditore}€</td>
             <td>${margine}€</td>
             <td>${pagamentoBadge(contratto.pagamentoPartner)}</td>
             <td>${pagamentoBadge(contratto.pagamentoVenditore)}</td>
-            <td>${contratto.note}</td>
+            <td>${escapeHtml(contratto.note)}</td>
         `;
 
         tbody.appendChild(row);
@@ -348,7 +367,7 @@ function aggiornaStatistiche(lista){
 
     const totale = lista.length;
 
-    const ok = lista.filter(c => c.stato === "OK" || c.stato === "Pagato").length;
+    const ok = lista.filter(c => praticaValidaPerCompensi(c)).length;
 
     const ko = lista.filter(c => c.stato === "KO").length;
 
@@ -356,20 +375,20 @@ function aggiornaStatistiche(lista){
 
     const daIncassarePartner = lista
         .filter(c =>
-            (c.stato === "OK" || c.stato === "Pagato") &&
+            praticaValidaPerCompensi(c) &&
             c.pagamentoPartner === "Da incassare"
         )
-        .reduce((totale, c) => totale + Number(c.gettonePartner || 0), 0);
+        .reduce((totale, c) => totale + numero(c.gettonePartner), 0);
 
     const daPagareVenditori = lista
         .filter(c =>
-            (c.stato === "OK" || c.stato === "Pagato") &&
+            praticaValidaPerCompensi(c) &&
             c.pagamentoVenditore === "Da pagare"
         )
-        .reduce((totale, c) => totale + Number(c.gettoneVenditore || 0), 0);
+        .reduce((totale, c) => totale + numero(c.gettoneVenditore), 0);
 
-    const margineTopHouse = lista
-        .filter(c => c.stato === "OK" || c.stato === "Pagato")
+    const margineMaturato = lista
+        .filter(c => praticaValidaPerCompensi(c))
         .reduce((totale, c) => totale + calcolaMargine(c), 0);
 
     document.getElementById("totaleContratti").innerText = totale;
@@ -378,7 +397,7 @@ function aggiornaStatistiche(lista){
     document.getElementById("totaleStorni").innerText = storni;
     document.getElementById("daIncassarePartner").innerText = daIncassarePartner + "€";
     document.getElementById("totaleVenditori").innerText = daPagareVenditori + "€";
-    document.getElementById("margineTopHouse").innerText = margineTopHouse + "€";
+    document.getElementById("margineTopHouse").innerText = margineMaturato + "€";
 }
 
 function popolaFiltriFissi(){
@@ -386,25 +405,19 @@ function popolaFiltriFissi(){
     vendorFilter.innerHTML = `<option value="">Tutti i venditori</option>`;
 
     VENDITORI_REGISTRATI.forEach(venditore => {
-        vendorFilter.innerHTML += `<option value="${venditore}">${venditore}</option>`;
+        vendorFilter.innerHTML += `<option value="${escapeHtml(venditore)}">${escapeHtml(venditore)}</option>`;
     });
 
     partnerFilter.innerHTML = `<option value="">Tutti i partner</option>`;
 
     PARTNER_REGISTRATI.forEach(partner => {
-        partnerFilter.innerHTML += `<option value="${partner}">${partner}</option>`;
+        partnerFilter.innerHTML += `<option value="${escapeHtml(partner)}">${escapeHtml(partner)}</option>`;
     });
 
     managerFilter.innerHTML = `<option value="">Tutti i gestori</option>`;
 
     GESTORI_REGISTRATI.forEach(gestore => {
-        managerFilter.innerHTML += `<option value="${gestore}">${gestore}</option>`;
-    });
-
-    serviceFilter.innerHTML = `<option value="">Tutti i servizi</option>`;
-
-    SERVIZI_REGISTRATI.forEach(servizio => {
-        serviceFilter.innerHTML += `<option value="${servizio}">${servizio}</option>`;
+        managerFilter.innerHTML += `<option value="${escapeHtml(gestore)}">${escapeHtml(gestore)}</option>`;
     });
 }
 
@@ -525,7 +538,6 @@ function resetFiltri(){
     vendorFilter.value = "";
     partnerFilter.value = "";
     managerFilter.value = "";
-    serviceFilter.value = "";
     statusFilter.value = "";
     paymentVendorFilter.value = "";
 
@@ -534,14 +546,10 @@ function resetFiltri(){
 
 searchInput.addEventListener("input", renderContratti);
 
-monthFilter.addEventListener("change", function(){
-    renderContratti();
-});
-
+monthFilter.addEventListener("change", renderContratti);
 vendorFilter.addEventListener("change", renderContratti);
 partnerFilter.addEventListener("change", renderContratti);
 managerFilter.addEventListener("change", renderContratti);
-serviceFilter.addEventListener("change", renderContratti);
 statusFilter.addEventListener("change", renderContratti);
 paymentVendorFilter.addEventListener("change", renderContratti);
 
@@ -553,26 +561,26 @@ async function exportReport(){
     const dataExport = new Date().toLocaleDateString("it-IT");
 
     const totale = lista.length;
-    const ok = lista.filter(c => c.stato === "OK" || c.stato === "Pagato").length;
+    const ok = lista.filter(c => praticaValidaPerCompensi(c)).length;
     const ko = lista.filter(c => c.stato === "KO").length;
     const storni = lista.filter(c => c.stato === "Storno").length;
 
     const daIncassarePartner = lista
         .filter(c =>
-            (c.stato === "OK" || c.stato === "Pagato") &&
+            praticaValidaPerCompensi(c) &&
             c.pagamentoPartner === "Da incassare"
         )
-        .reduce((totale, c) => totale + Number(c.gettonePartner || 0), 0);
+        .reduce((totale, c) => totale + numero(c.gettonePartner), 0);
 
     const daPagareVenditori = lista
         .filter(c =>
-            (c.stato === "OK" || c.stato === "Pagato") &&
+            praticaValidaPerCompensi(c) &&
             c.pagamentoVenditore === "Da pagare"
         )
-        .reduce((totale, c) => totale + Number(c.gettoneVenditore || 0), 0);
+        .reduce((totale, c) => totale + numero(c.gettoneVenditore), 0);
 
-    const margineTopHouse = lista
-        .filter(c => c.stato === "OK" || c.stato === "Pagato")
+    const margineMaturato = lista
+        .filter(c => praticaValidaPerCompensi(c))
         .reduce((totale, c) => totale + calcolaMargine(c), 0);
 
     let logoBase64 = "";
@@ -611,21 +619,21 @@ async function exportReport(){
             righeContratti += `
                 <tr>
                     <td>${c.id}</td>
-                    <td>${c.dataInserimento}</td>
-                    <td>${c.dataEsito}</td>
-                    <td>${c.nome}</td>
-                    <td>${c.cognome}</td>
-                    <td>${c.venditore}</td>
-                    <td>${c.partner}</td>
-                    <td>${c.gestore}</td>
-                    <td>${c.servizio}</td>
-                    <td>${c.stato}</td>
+                    <td>${escapeHtml(c.dataInserimento)}</td>
+                    <td>${escapeHtml(c.dataEsito)}</td>
+                    <td>${escapeHtml(c.nome)}</td>
+                    <td>${escapeHtml(c.cognome)}</td>
+                    <td>${escapeHtml(c.venditore)}</td>
+                    <td>${escapeHtml(c.partner)}</td>
+                    <td>${escapeHtml(c.gestore)}</td>
+                    <td>${escapeHtml(c.servizio)}</td>
+                    <td>${escapeHtml(c.stato)}</td>
                     <td>${c.gettonePartner}€</td>
                     <td>${c.gettoneVenditore}€</td>
                     <td>${margine}€</td>
-                    <td>${c.pagamentoPartner}</td>
-                    <td>${c.pagamentoVenditore}</td>
-                    <td>${c.note}</td>
+                    <td>${escapeHtml(c.pagamentoPartner)}</td>
+                    <td>${escapeHtml(c.pagamentoVenditore)}</td>
+                    <td>${escapeHtml(c.note)}</td>
                 </tr>
             `;
 
@@ -659,13 +667,4 @@ async function exportReport(){
                     margin-bottom:12px;
                     background:white;
                     padding:10px;
-                    border-radius:12px;
-                }
-
-                .title{
-                    font-size:30px;
-                    font-weight:800;
-                    margin-bottom:6px;
-                }
-
-                
+                    bor
