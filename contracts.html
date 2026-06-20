@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contratti - Top House Gestionale</title>
 
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=1400">
 </head>
 
 <body>
@@ -16,7 +16,7 @@
         <div class="logo-section">
 
             <div class="logo-mark">
-                <img src="assets/logo-tophouse.png" alt="Top House Logo">
+                <img src="assets/logo-casa.png" alt="Top House Logo">
             </div>
 
             <h2>TOP HOUSE</h2>
@@ -80,7 +80,7 @@
 
             <div>
                 <h1>Contratti</h1>
-                <span>Registro pratiche, esiti, gettoni, servizi e partner</span>
+                <span>Registro pratiche, esiti, gettoni e pagamenti</span>
             </div>
 
             <select class="month-select" id="monthFilter">
@@ -134,7 +134,7 @@
             </div>
 
             <div class="card">
-                <h4>Margine Maturato Top House</h4>
+                <h4>Margine Maturato</h4>
                 <p id="margineTopHouse">0€</p>
             </div>
 
@@ -145,7 +145,7 @@
             <div class="section-title">
                 <div>
                     <h3 id="formTitle">➕ Nuovo Contratto</h3>
-                    <p>Per Greenword seleziona Greenword come partner e poi scegli il gestore reale del contratto.</p>
+                    <p>Inserisci qui la pratica caricata dal venditore.</p>
                 </div>
             </div>
 
@@ -192,20 +192,14 @@
                     <label>Partner</label>
                     <select id="partner" required>
                         <option value="">Seleziona partner</option>
-
-                        <optgroup label="Luce / Gas">
-                            <option value="Greenword">Greenword</option>
-                            <option value="Onova">Onova</option>
-                            <option value="S4">S4</option>
-                            <option value="Union">Union</option>
-                        </optgroup>
-
-                        <optgroup label="Casa / Impianti">
-                            <option value="EKO">EKO</option>
-                            <option value="New costruction">New costruction</option>
-                            <option value="WLD Impianti">WLD Impianti</option>
-                            <option value="Vita Group">Vita Group</option>
-                        </optgroup>
+                        <option value="Greenword">Greenword</option>
+                        <option value="Onova">Onova</option>
+                        <option value="S4">S4</option>
+                        <option value="Union">Union</option>
+                        <option value="EKO">EKO</option>
+                        <option value="WLD Impianti">WLD Impianti</option>
+                        <option value="New costruction">New costruction</option>
+                        <option value="Vita Group">Vita Group</option>
                     </select>
                 </div>
 
@@ -230,7 +224,6 @@
                         <option value="UNION">UNION</option>
                         <option value="UNOENERGY">UNOENERGY</option>
                         <option value="VIVIENERGIA">VIVIENERGIA</option>
-                        <option value="Non applicabile">Non applicabile</option>
                     </select>
                 </div>
 
@@ -238,24 +231,17 @@
                     <label>Servizio</label>
                     <select id="servizio" required>
                         <option value="">Seleziona servizio</option>
-
-                        <optgroup label="Energia">
-                            <option value="Luce">Luce</option>
-                            <option value="Gas">Gas</option>
-                            <option value="Luce + Gas">Luce + Gas</option>
-                        </optgroup>
-
-                        <optgroup label="Casa / Impianti">
-                            <option value="Fotovoltaico">Fotovoltaico</option>
-                            <option value="Caldaia">Caldaia</option>
-                            <option value="Wall box">Wall box</option>
-                            <option value="Pompa di calore">Pompa di calore</option>
-                            <option value="Climatizzatore">Climatizzatore</option>
-                            <option value="Infissi">Infissi</option>
-                            <option value="Allarmi">Allarmi</option>
-                            <option value="Depuratore acqua">Depuratore acqua</option>
-                        </optgroup>
-
+                        <option value="Luce">Luce</option>
+                        <option value="Gas">Gas</option>
+                        <option value="Luce + Gas">Luce + Gas</option>
+                        <option value="Fotovoltaico">Fotovoltaico</option>
+                        <option value="Infissi">Infissi</option>
+                        <option value="Allarmi">Allarmi</option>
+                        <option value="Depuratori">Depuratori</option>
+                        <option value="Climatizzatore">Climatizzatore</option>
+                        <option value="Caldaia">Caldaia</option>
+                        <option value="Pompa di calore">Pompa di calore</option>
+                        <option value="Wall box">Wall box</option>
                         <option value="Altro">Altro</option>
                     </select>
                 </div>
@@ -317,13 +303,13 @@
             <div class="section-title">
                 <div>
                     <h3>📋 Registro Contratti</h3>
-                    <p>Filtra per mese, venditore, partner, gestore, servizio, stato e pagamento.</p>
+                    <p>Filtra per mese, venditore, partner, gestore, stato e pagamento.</p>
                 </div>
             </div>
 
             <div class="table-actions filters-area">
 
-                <input type="text" id="searchInput" placeholder="Cerca cliente, venditore, partner, gestore, servizio...">
+                <input type="text" id="searchInput" placeholder="Cerca cliente, venditore, partner, gestore...">
 
                 <select id="vendorFilter">
                     <option value="">Tutti i venditori</option>
@@ -335,10 +321,6 @@
 
                 <select id="managerFilter">
                     <option value="">Tutti i gestori</option>
-                </select>
-
-                <select id="serviceFilter">
-                    <option value="">Tutti i servizi</option>
                 </select>
 
                 <select id="statusFilter">
@@ -383,15 +365,14 @@
                             <th>Stato</th>
                             <th>Gettone Partner</th>
                             <th>Gettone Venditore</th>
-                            <th>Margine Maturato Top House</th>
+                            <th>Margine Maturato</th>
                             <th>Pagamento Partner</th>
                             <th>Pagamento Venditore</th>
                             <th>Note</th>
                         </tr>
                     </thead>
 
-                    <tbody id="contractsBody">
-                    </tbody>
+                    <tbody id="contractsBody"></tbody>
 
                 </table>
 
@@ -401,8 +382,8 @@
 
     </main>
 
-    <script src="js/contracts.js"></script>
+    <script src="js/contracts.js?v=1400"></script>
 
 </body>
 
-                    </html>
+    </html>
