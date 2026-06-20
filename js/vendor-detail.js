@@ -1,38 +1,38 @@
 const VENDITORI_REGISTRATI = [
     {
         nome: "Antonio Attardi",
-        zona: "Calabria",
+        zona: "Lombardia",
         ruolo: "Venditore",
         foto: "assets/vendors/antonio-attardi.png"
     },
     {
         nome: "Davide Marino",
-        zona: "Calabria",
+        zona: "Praia a Mare",
         ruolo: "Venditore",
         foto: "assets/vendors/davide-marino.png"
     },
     {
         nome: "Fabio Magnago",
-        zona: "Lombardia",
+        zona: "Empoli",
         ruolo: "Venditore",
         foto: "assets/vendors/fabio-magnago.png"
     },
     {
         nome: "Gabriele Straniero",
-        zona: "Calabria",
-        ruolo: "Venditore",
+        zona: "Italia",
+        ruolo: "Direttore zona Italia",
         foto: "assets/vendors/gabriele-straniero.png"
     },
     {
         nome: "Giuseppe Maresca",
-        zona: "Calabria",
+        zona: "Empoli",
         ruolo: "Venditore",
         foto: "assets/vendors/giuseppe-maresca.png"
     },
     {
         nome: "Lamine Tall",
         zona: "Lombardia",
-        ruolo: "Direzione / Venditore",
+        ruolo: "Venditore",
         foto: "assets/vendors/lamine-tall.png"
     },
     {
@@ -43,8 +43,8 @@ const VENDITORI_REGISTRATI = [
     },
     {
         nome: "Studio Cian",
-        zona: "Lombardia",
-        ruolo: "Studio Partner",
+        zona: "Cassano Magnago",
+        ruolo: "Venditore",
         foto: "assets/vendors/studio-cian.png"
     }
 ];
@@ -190,11 +190,16 @@ function aggiornaProfilo(){
     vendorInfoList.innerHTML = `
         <div>
             <strong>Regione / Zona</strong>
-            <span id="vendorArea">${venditore.zona || "-"}</span>
+            <span>${venditore.zona || "-"}</span>
         </div>
 
         <div>
-            <strong>Stato venditore</strong>
+            <strong>Ruolo</strong>
+            <span>${venditore.ruolo || "Venditore"}</span>
+        </div>
+
+        <div>
+            <strong>Stato collaboratore</strong>
             <select id="vendorStatusSelect" style="padding:8px 12px; border-radius:12px; border:1px solid #ddd; font-weight:bold;">
                 <option value="Attivo">Attivo</option>
                 <option value="Non attivo">Non attivo</option>
@@ -208,7 +213,7 @@ function aggiornaProfilo(){
 
     statusSelect.addEventListener("change", function(){
         salvaStatoVenditore(venditore.nome, statusSelect.value);
-        alert("Stato venditore aggiornato: " + statusSelect.value);
+        alert("Stato aggiornato: " + statusSelect.value);
     });
 }
 
@@ -266,7 +271,7 @@ function renderContratti(lista){
 
         row.innerHTML = `
             <td colspan="14" style="text-align:center; padding:30px; color:#6b7280; font-weight:bold;">
-                Nessun contratto trovato per questo venditore.
+                Nessun contratto trovato per questo collaboratore.
             </td>
         `;
 
@@ -385,6 +390,227 @@ function aggiornaPagina(){
     renderContratti(lista);
 
     renderGraficoMensile();
+}
+
+async function exportVendorExcel(){
+
+    const lista = filtraContrattiVenditore();
+
+    const meseSelezionato = monthFilter.options[monthFilter.selectedIndex].text;
+    const dataExport = new Date().toLocaleDateString("it-IT");
+
+    const totale = lista.length;
+    const ok = lista.filter(c => c.stato === "OK" || c.stato === "Pagato").length;
+    const ko = lista.filter(c => c.stato === "KO").length;
+    const storni = lista.filter(c => c.stato === "Storno").length;
+
+    const provvigioni = lista
+        .filter(c => c.stato === "OK" || c.stato === "Pagato")
+        .reduce((totale, c) => totale + numero(c.gettoneVenditore), 0);
+
+    const daPagare = lista
+        .filter(c =>
+            (c.stato === "OK" || c.stato === "Pagato") &&
+            c.pagamentoVenditore === "Da pagare"
+        )
+        .reduce((totale, c) => totale + numero(c.gettoneVenditore), 0);
+
+    const margine = lista
+        .filter(c => c.stato === "OK" || c.stato === "Pagato")
+        .reduce((totale, c) => totale + calcolaMargine(c), 0);
+
+    let righe = "";
+
+    if(lista.length === 0){
+
+        righe = `
+            <tr>
+                <td colspan="14" class="empty">
+                    Nessun contratto trovato.
+                </td>
+            </tr>
+        `;
+
+    }else{
+
+        lista.forEach(c => {
+
+            const margineContratto = calcolaMargine(c);
+
+            righe += `
+                <tr>
+                    <td>${c.id || ""}</td>
+                    <td>${c.dataInserimento || ""}</td>
+                    <td>${c.dataEsito || ""}</td>
+                    <td>${c.nome || ""}</td>
+                    <td>${c.cognome || ""}</td>
+                    <td>${c.partner || ""}</td>
+                    <td>${c.gestore || ""}</td>
+                    <td>${c.servizio || ""}</td>
+                    <td>${c.stato || ""}</td>
+                    <td>${c.gettonePartner || 0}€</td>
+                    <td>${c.gettoneVenditore || 0}€</td>
+                    <td>${margineContratto}€</td>
+                    <td>${c.pagamentoVenditore || ""}</td>
+                    <td>${c.note || ""}</td>
+                </tr>
+            `;
+
+        });
+
+    }
+
+    const html = `
+        <html>
+        <head>
+            <meta charset="UTF-8">
+
+            <style>
+                body{
+                    font-family:Arial, Helvetica, sans-serif;
+                    color:#081120;
+                }
+
+                .header-report{
+                    background:linear-gradient(90deg,#d90429,#ff7b00);
+                    color:white;
+                    padding:24px;
+                    border-radius:18px;
+                    margin-bottom:24px;
+                }
+
+                .title{
+                    font-size:30px;
+                    font-weight:800;
+                }
+
+                .subtitle{
+                    font-size:16px;
+                    margin-top:6px;
+                }
+
+                .summary{
+                    width:100%;
+                    border-collapse:collapse;
+                    margin-bottom:24px;
+                }
+
+                .summary td{
+                    background:#f8fafc;
+                    border:1px solid #e5e7eb;
+                    padding:16px;
+                    font-size:15px;
+                    font-weight:bold;
+                }
+
+                .summary .value{
+                    color:#ff7b00;
+                    font-size:22px;
+                    font-weight:800;
+                }
+
+                table{
+                    width:100%;
+                    border-collapse:collapse;
+                }
+
+                th{
+                    background:#081120;
+                    color:white;
+                    padding:12px;
+                    border:1px solid #d1d5db;
+                    text-align:left;
+                }
+
+                td{
+                    padding:10px;
+                    border:1px solid #e5e7eb;
+                }
+
+                tr:nth-child(even) td{
+                    background:#f9fafb;
+                }
+
+                .section-title{
+                    font-size:22px;
+                    font-weight:800;
+                    margin:24px 0 12px 0;
+                }
+
+                .empty{
+                    text-align:center;
+                    padding:28px;
+                    color:#6b7280;
+                    font-weight:bold;
+                }
+            </style>
+        </head>
+
+        <body>
+
+            <div class="header-report">
+                <div class="title">TOP HOUSE - Report Collaboratore</div>
+                <div class="subtitle">
+                    Nome: ${venditore.nome} | Ruolo: ${venditore.ruolo} | Zona: ${venditore.zona} | Mensilità: ${meseSelezionato} | Esportato il: ${dataExport}
+                </div>
+            </div>
+
+            <table class="summary">
+                <tr>
+                    <td>Contratti Totali<br><span class="value">${totale}</span></td>
+                    <td>Contratti OK<br><span class="value">${ok}</span></td>
+                    <td>KO<br><span class="value">${ko}</span></td>
+                    <td>Storni<br><span class="value">${storni}</span></td>
+                    <td>Provvigioni<br><span class="value">${provvigioni}€</span></td>
+                    <td>Da Pagare<br><span class="value">${daPagare}€</span></td>
+                    <td>Margine Top House<br><span class="value">${margine}€</span></td>
+                </tr>
+            </table>
+
+            <div class="section-title">Dettaglio Contratti</div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Data Inserimento</th>
+                        <th>Data Esito</th>
+                        <th>Nome</th>
+                        <th>Cognome</th>
+                        <th>Partner</th>
+                        <th>Gestore</th>
+                        <th>Servizio</th>
+                        <th>Stato</th>
+                        <th>Gettone Partner</th>
+                        <th>Gettone Venditore</th>
+                        <th>Margine Top House</th>
+                        <th>Pagamento Venditore</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    ${righe}
+                </tbody>
+            </table>
+
+        </body>
+        </html>
+    `;
+
+    const blob = new Blob([html], {
+        type: "application/vnd.ms-excel;charset=utf-8;"
+    });
+
+    const link = document.createElement("a");
+
+    const meseFile = monthFilter.value || "tutte-mensilita";
+    const nomeFile = venditore.nome.toLowerCase().replaceAll(" ", "-");
+
+    link.href = URL.createObjectURL(blob);
+    link.download = `report-collaboratore-${nomeFile}-${meseFile}.xls`;
+
+    link.click();
 }
 
 function printVendorReport(){
