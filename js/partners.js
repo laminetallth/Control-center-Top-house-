@@ -36,16 +36,16 @@ const PARTNER_REGISTRATI = [
     },
     {
         nome: "WLD Impianti",
-        categoria: "Casa / Impianti",
-        descrizione: "Partner impianti e lavori tecnici",
-        servizi: ["Impianti", "Fotovoltaico", "Wall Box"],
+        categoria: "Allarmi / Sicurezza",
+        descrizione: "Partner specializzato in sistemi di allarme e sicurezza",
+        servizi: ["Allarmi"],
         logo: "assets/partners/logo-wldimpianti.png"
     },
     {
         nome: "New costruction",
         categoria: "Casa / Infissi",
-        descrizione: "Partner per infissi e lavori casa",
-        servizi: ["Infissi", "Ristrutturazioni"],
+        descrizione: "Partner specializzato in infissi",
+        servizi: ["Infissi"],
         logo: "assets/partners/logo-newcostruction.png"
     },
     {
