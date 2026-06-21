@@ -32,7 +32,7 @@ const VENDITORI_REGISTRATI = [
     {
         nome: "Lamine Tall",
         zona: "Lombardia",
-        ruolo: "Responsabile Amministrativo Provedure e BO",
+        ruolo: "Responsabile Amministrativo Procedure e BO",
         foto: "assets/vendors/lamine-tall.png"
     },
     {
