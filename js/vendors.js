@@ -20,7 +20,7 @@ const VENDITORI_REGISTRATI = [
     {
         nome: "Gabriele Straniero",
         zona: "Italia",
-        ruolo: "Direttore zona Italia",
+        ruolo: "Direttore Commerciale e Vendite",
         foto: "assets/vendors/gabriele-straniero.png"
     },
     {
@@ -32,7 +32,7 @@ const VENDITORI_REGISTRATI = [
     {
         nome: "Lamine Tall",
         zona: "Lombardia",
-        ruolo: "Venditore",
+        ruolo: "Responsabile Amministrativo Provedure e BO",
         foto: "assets/vendors/lamine-tall.png"
     },
     {
