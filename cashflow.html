@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Investimenti - Top House Gestionale</title>
+    <title>Cash Flow - Top House Gestionale</title>
 
     <link rel="stylesheet" href="css/style.css?v=1700">
 </head>
@@ -46,11 +46,11 @@
                 <a href="#">💰 Provvigioni</a>
             </li>
 
-            <li class="active">
+            <li>
                 <a href="investments.html">📈 Investimenti</a>
             </li>
 
-            <li>
+            <li class="active">
                 <a href="cashflow.html">🏦 Cash Flow</a>
             </li>
 
@@ -79,8 +79,8 @@
         <div class="header">
 
             <div>
-                <h1>Investimenti</h1>
-                <span>Controllo spese, investimenti e ritorno economico</span>
+                <h1>Cash Flow</h1>
+                <span>Entrate, uscite, incassi partner e pagamenti venditori</span>
             </div>
 
             <select class="month-select" id="monthFilter">
@@ -104,23 +104,28 @@
         <section class="cards">
 
             <div class="card">
-                <h4>Investimenti Totali</h4>
+                <h4>Da Incassare Partner</h4>
+                <p id="daIncassarePartner">0€</p>
+            </div>
+
+            <div class="card">
+                <h4>Incassato Partner</h4>
+                <p id="incassatoPartner">0€</p>
+            </div>
+
+            <div class="card">
+                <h4>Da Pagare Venditori</h4>
+                <p id="daPagareVenditori">0€</p>
+            </div>
+
+            <div class="card">
+                <h4>Pagato Venditori</h4>
+                <p id="pagatoVenditori">0€</p>
+            </div>
+
+            <div class="card">
+                <h4>Investimenti</h4>
                 <p id="totaleInvestimenti">0€</p>
-            </div>
-
-            <div class="card">
-                <h4>Marketing</h4>
-                <p id="totaleMarketing">0€</p>
-            </div>
-
-            <div class="card">
-                <h4>Software / Strumenti</h4>
-                <p id="totaleSoftware">0€</p>
-            </div>
-
-            <div class="card">
-                <h4>Materiale / Gadget</h4>
-                <p id="totaleMateriale">0€</p>
             </div>
 
             <div class="card">
@@ -129,8 +134,43 @@
             </div>
 
             <div class="card">
-                <h4>Saldo dopo Investimenti</h4>
-                <p id="saldoInvestimenti">0€</p>
+                <h4>Saldo Reale Incassato</h4>
+                <p id="saldoReale">0€</p>
+            </div>
+
+        </section>
+
+        <section class="grid">
+
+            <div class="box">
+
+                <div class="section-title">
+                    <div>
+                        <h3>🏦 Situazione economica</h3>
+                        <p>Il saldo reale considera solo incassi partner già incassati, pagamenti venditori già pagati e investimenti.</p>
+                    </div>
+                </div>
+
+                <ul class="tasks">
+                    <li><strong>Entrate reali:</strong> <span id="entrateReali">0€</span></li>
+                    <li><strong>Uscite reali:</strong> <span id="usciteReali">0€</span></li>
+                    <li><strong>Saldo reale:</strong> <span id="saldoRealeList">0€</span></li>
+                    <li><strong>Margine potenziale/maturato:</strong> <span id="marginePotenziale">0€</span></li>
+                </ul>
+
+            </div>
+
+            <div class="box">
+
+                <h3>📌 Cosa controllare</h3>
+
+                <ul class="tasks">
+                    <li>Partner con importi da incassare</li>
+                    <li>Venditori con provvigioni da pagare</li>
+                    <li>Investimenti del mese</li>
+                    <li>Margine maturato rispetto al saldo reale</li>
+                </ul>
+
             </div>
 
         </section>
@@ -139,74 +179,34 @@
 
             <div class="section-title">
                 <div>
-                    <h3>➕ Nuovo Investimento</h3>
-                    <p>Inserisci spese aziendali, marketing, eventi, strumenti e materiale.</p>
-                </div>
-            </div>
-
-            <form class="contract-form" id="investmentForm">
-
-                <div class="form-field">
-                    <label>Data</label>
-                    <input type="date" id="investmentDate" required>
-                </div>
-
-                <div class="form-field">
-                    <label>Categoria</label>
-                    <select id="investmentCategory" required>
-                        <option value="">Seleziona categoria</option>
-                        <option value="Marketing">Marketing</option>
-                        <option value="Software">Software / Strumenti</option>
-                        <option value="Materiale">Materiale / Gadget</option>
-                        <option value="Evento">Evento</option>
-                        <option value="Trasporti">Trasporti</option>
-                        <option value="Altro">Altro</option>
-                    </select>
-                </div>
-
-                <div class="form-field">
-                    <label>Descrizione</label>
-                    <input type="text" id="investmentDescription" placeholder="Es. Magliette evento Praia a Mare" required>
-                </div>
-
-                <div class="form-field">
-                    <label>Importo €</label>
-                    <input type="number" id="investmentAmount" placeholder="Es. 1000" min="0" required>
-                </div>
-
-                <button type="submit" class="save-btn">Salva Investimento</button>
-
-            </form>
-
-        </section>
-
-        <section class="box full-box">
-
-            <div class="section-title">
-                <div>
-                    <h3>📋 Registro Investimenti</h3>
-                    <p>Lista delle spese registrate.</p>
-                </div>
-
-                <div class="table-actions">
-                    <button class="danger" onclick="resetInvestimenti()">Svuota Investimenti</button>
+                    <h3>📋 Pratiche economiche</h3>
+                    <p>Contratti validi che generano incassi, pagamenti e margine.</p>
                 </div>
             </div>
 
             <div class="table-wrapper">
 
-                <table>
+                <table class="contracts-table">
+
                     <thead>
                         <tr>
-                            <th>Azioni</th>
+                            <th>ID</th>
                             <th>Data</th>
-                            <th>Categoria</th>
-                            <th>Descrizione</th>
-                            <th>Importo</th>
+                            <th>Cliente</th>
+                            <th>Venditore</th>
+                            <th>Partner</th>
+                            <th>Gestore</th>
+                            <th>Stato</th>
+                            <th>Gettone Partner</th>
+                            <th>Pagamento Partner</th>
+                            <th>Gettone Venditore</th>
+                            <th>Pagamento Venditore</th>
+                            <th>Margine</th>
                         </tr>
                     </thead>
 
-                    <tbody id="investmentsBody"></tbody>
+                    <tbody id="cashflowBody"></tbody>
+
                 </table>
 
             </div>
@@ -224,8 +224,8 @@
             return Number(valore || 0);
         }
 
-        function caricaInvestimenti(){
-            const dati = JSON.parse(localStorage.getItem("investimentiTopHouse"));
+        function caricaContratti(){
+            const dati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
 
             if(Array.isArray(dati)){
                 return dati;
@@ -234,12 +234,8 @@
             return [];
         }
 
-        function salvaInvestimenti(){
-            localStorage.setItem("investimentiTopHouse", JSON.stringify(investimenti));
-        }
-
-        function caricaContratti(){
-            const dati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
+        function caricaInvestimenti(){
+            const dati = JSON.parse(localStorage.getItem("investimentiTopHouse"));
 
             if(Array.isArray(dati)){
                 return dati;
@@ -252,22 +248,12 @@
             return c.stato === "OK" || c.stato === "Pagato";
         }
 
-        function calcolaMargine(c){
+        function margine(c){
             if(!praticaValida(c)){
                 return 0;
             }
 
             return numero(c.gettonePartner) - numero(c.gettoneVenditore);
-        }
-
-        function filtraMeseInvestimenti(lista){
-            const mese = document.getElementById("monthFilter").value;
-
-            if(mese === ""){
-                return lista;
-            }
-
-            return lista.filter(i => testo(i.data).slice(0, 7) === mese);
         }
 
         function filtraMeseContratti(lista){
@@ -280,82 +266,66 @@
             return lista.filter(c => testo(c.dataInserimento).slice(0, 7) === mese);
         }
 
-        let investimenti = caricaInvestimenti();
+        function filtraMeseInvestimenti(lista){
+            const mese = document.getElementById("monthFilter").value;
 
-        document.getElementById("investmentForm").addEventListener("submit", function(e){
-            e.preventDefault();
-
-            const nuovo = {
-                id: Date.now(),
-                data: document.getElementById("investmentDate").value,
-                categoria: document.getElementById("investmentCategory").value,
-                descrizione: document.getElementById("investmentDescription").value,
-                importo: numero(document.getElementById("investmentAmount").value)
-            };
-
-            investimenti.push(nuovo);
-            salvaInvestimenti();
-
-            e.target.reset();
-            aggiornaPagina();
-        });
-
-        function eliminaInvestimento(id){
-            if(!confirm("Vuoi eliminare questo investimento?")){
-                return;
+            if(mese === ""){
+                return lista;
             }
 
-            investimenti = investimenti.filter(i => i.id !== id);
-            salvaInvestimenti();
-            aggiornaPagina();
-        }
-
-        function resetInvestimenti(){
-            if(!confirm("Vuoi svuotare tutti gli investimenti?")){
-                return;
-            }
-
-            investimenti = [];
-            salvaInvestimenti();
-            aggiornaPagina();
+            return lista.filter(i => testo(i.data).slice(0, 7) === mese);
         }
 
         function aggiornaPagina(){
 
-            const lista = filtraMeseInvestimenti(investimenti);
-            const contratti = filtraMeseContratti(caricaContratti());
+            const contratti = filtraMeseContratti(caricaContratti()).filter(c => praticaValida(c));
+            const investimenti = filtraMeseInvestimenti(caricaInvestimenti());
 
-            const totale = lista.reduce((tot, i) => tot + numero(i.importo), 0);
+            const daIncassarePartner = contratti
+                .filter(c => c.pagamentoPartner === "Da incassare")
+                .reduce((tot, c) => tot + numero(c.gettonePartner), 0);
 
-            const marketing = lista
-                .filter(i => i.categoria === "Marketing")
+            const incassatoPartner = contratti
+                .filter(c => c.pagamentoPartner === "Incassato")
+                .reduce((tot, c) => tot + numero(c.gettonePartner), 0);
+
+            const daPagareVenditori = contratti
+                .filter(c => c.pagamentoVenditore === "Da pagare")
+                .reduce((tot, c) => tot + numero(c.gettoneVenditore), 0);
+
+            const pagatoVenditori = contratti
+                .filter(c => c.pagamentoVenditore === "Pagato")
+                .reduce((tot, c) => tot + numero(c.gettoneVenditore), 0);
+
+            const totaleInvestimenti = investimenti
                 .reduce((tot, i) => tot + numero(i.importo), 0);
 
-            const software = lista
-                .filter(i => i.categoria === "Software")
-                .reduce((tot, i) => tot + numero(i.importo), 0);
+            const margineMaturato = contratti
+                .reduce((tot, c) => tot + margine(c), 0);
 
-            const materiale = lista
-                .filter(i => i.categoria === "Materiale")
-                .reduce((tot, i) => tot + numero(i.importo), 0);
+            const entrateReali = incassatoPartner;
+            const usciteReali = pagatoVenditori + totaleInvestimenti;
+            const saldoReale = entrateReali - usciteReali;
 
-            const margine = contratti
-                .filter(c => praticaValida(c))
-                .reduce((tot, c) => tot + calcolaMargine(c), 0);
+            document.getElementById("daIncassarePartner").innerText = daIncassarePartner + "€";
+            document.getElementById("incassatoPartner").innerText = incassatoPartner + "€";
+            document.getElementById("daPagareVenditori").innerText = daPagareVenditori + "€";
+            document.getElementById("pagatoVenditori").innerText = pagatoVenditori + "€";
+            document.getElementById("totaleInvestimenti").innerText = totaleInvestimenti + "€";
+            document.getElementById("margineMaturato").innerText = margineMaturato + "€";
+            document.getElementById("saldoReale").innerText = saldoReale + "€";
 
-            document.getElementById("totaleInvestimenti").innerText = totale + "€";
-            document.getElementById("totaleMarketing").innerText = marketing + "€";
-            document.getElementById("totaleSoftware").innerText = software + "€";
-            document.getElementById("totaleMateriale").innerText = materiale + "€";
-            document.getElementById("margineMaturato").innerText = margine + "€";
-            document.getElementById("saldoInvestimenti").innerText = (margine - totale) + "€";
+            document.getElementById("entrateReali").innerText = entrateReali + "€";
+            document.getElementById("usciteReali").innerText = usciteReali + "€";
+            document.getElementById("saldoRealeList").innerText = saldoReale + "€";
+            document.getElementById("marginePotenziale").innerText = margineMaturato + "€";
 
-            renderTabella(lista);
+            renderTabella(contratti);
         }
 
         function renderTabella(lista){
 
-            const tbody = document.getElementById("investmentsBody");
+            const tbody = document.getElementById("cashflowBody");
 
             tbody.innerHTML = "";
 
@@ -363,8 +333,8 @@
 
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="5" style="text-align:center; padding:30px; color:#6b7280; font-weight:bold;">
-                            Nessun investimento registrato.
+                        <td colspan="12" style="text-align:center; padding:30px; color:#6b7280; font-weight:bold;">
+                            Nessuna pratica economica valida nel periodo selezionato.
                         </td>
                     </tr>
                 `;
@@ -372,18 +342,23 @@
                 return;
             }
 
-            lista.forEach(i => {
+            lista.forEach(c => {
 
                 const row = document.createElement("tr");
 
                 row.innerHTML = `
-                    <td>
-                        <button class="delete-btn" onclick="eliminaInvestimento(${i.id})">Elimina</button>
-                    </td>
-                    <td>${i.data}</td>
-                    <td>${i.categoria}</td>
-                    <td>${i.descrizione}</td>
-                    <td>${i.importo}€</td>
+                    <td>${c.id || ""}</td>
+                    <td>${c.dataInserimento || ""}</td>
+                    <td>${c.nome || ""} ${c.cognome || ""}</td>
+                    <td>${c.venditore || ""}</td>
+                    <td>${c.partner || ""}</td>
+                    <td>${c.gestore || ""}</td>
+                    <td>${c.stato || ""}</td>
+                    <td>${numero(c.gettonePartner)}€</td>
+                    <td>${c.pagamentoPartner || ""}</td>
+                    <td>${numero(c.gettoneVenditore)}€</td>
+                    <td>${c.pagamentoVenditore || ""}</td>
+                    <td>${margine(c)}€</td>
                 `;
 
                 tbody.appendChild(row);
