@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Partner - Top House Gestionale</title>
 
-    <link rel="stylesheet" href="css/style.css?v=1100">
+    <link rel="stylesheet" href="css/style.css?v=1700">
 </head>
 
 <body>
@@ -16,7 +16,7 @@
         <div class="logo-section">
 
             <div class="logo-mark">
-                <img src="assets/logo-tophouse.png" alt="Top House Logo">
+                <img src="assets/logo-casa.png" alt="Top House Logo">
             </div>
 
             <h2>TOP HOUSE</h2>
@@ -80,7 +80,7 @@
 
             <div>
                 <h1>Partner</h1>
-                <span>Partner divisi per categoria, servizi, incassi e performance</span>
+                <span>Controllo partner, pratiche, incassi e marginalità</span>
             </div>
 
             <select class="month-select" id="monthFilter">
@@ -140,64 +140,66 @@
 
         </section>
 
-        <section class="box full-box">
-
-            <div class="section-title">
-                <div>
-                    <h3>📂 Partner per Categoria</h3>
-                    <p>Luce/Gas, casa, impianti, infissi, allarmi e depuratori acqua.</p>
-                </div>
-            </div>
-
-            <div id="partnerCategories"></div>
-
-        </section>
-
         <section class="grid">
 
             <div class="box">
 
-                <h3>🏆 Classifica Partner</h3>
-
-                <div class="table-wrapper">
-
-                    <table class="contracts-table">
-
-                        <thead>
-                            <tr>
-                                <th>Partner</th>
-                                <th>Categoria</th>
-                                <th>Totali</th>
-                                <th>OK</th>
-                                <th>KO</th>
-                                <th>Storni</th>
-                                <th>Da Incassare</th>
-                                <th>Incassato</th>
-                                <th>Margine</th>
-                                <th>Scheda</th>
-                            </tr>
-                        </thead>
-
-                        <tbody id="partnersBody">
-                        </tbody>
-
-                    </table>
-
+                <div class="section-title">
+                    <div>
+                        <h3>🤝 Partner per Categoria</h3>
+                        <p>Partner divisi per area di lavoro e servizi collegati.</p>
+                    </div>
                 </div>
+
+                <div id="partnerCategories"></div>
 
             </div>
 
             <div class="box">
 
-                <h3>⭐ Partner più attivo</h3>
+                <h3>🥇 Partner più attivo</h3>
 
                 <ul class="tasks">
                     <li><strong>Nome:</strong> <span id="bestPartnerName">-</span></li>
                     <li><strong>Categoria:</strong> <span id="bestPartnerCategory">-</span></li>
                     <li><strong>Contratti OK:</strong> <span id="bestPartnerOk">0</span></li>
                     <li><strong>Da incassare:</strong> <span id="bestPartnerReceivable">0€</span></li>
-                    <li><strong>Margine generato:</strong> <span id="bestPartnerMargin">0€</span></li>
+                    <li><strong>Margine:</strong> <span id="bestPartnerMargin">0€</span></li>
                 </ul>
+
+            </div>
+
+        </section>
+
+        <section class="box full-box">
+
+            <div class="section-title">
+                <div>
+                    <h3>📊 Classifica Partner</h3>
+                    <p>Risultati calcolati sui contratti del mese selezionato.</p>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Partner</th>
+                            <th>Categoria</th>
+                            <th>Totali</th>
+                            <th>OK</th>
+                            <th>KO</th>
+                            <th>Storni</th>
+                            <th>Da Incassare</th>
+                            <th>Incassato</th>
+                            <th>Margine</th>
+                            <th>Scheda</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="partnersBody"></tbody>
+                </table>
 
             </div>
 
@@ -205,7 +207,7 @@
 
     </main>
 
-    <script src="js/partners.js?v=1100"></script>
+    <script src="js/partners.js?v=1700"></script>
 
 </body>
 
