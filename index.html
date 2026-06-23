@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Top House Gestionale</title>
+    <title>Dashboard - Top House Gestionale</title>
 
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=1600">
 </head>
 
 <body>
@@ -16,7 +16,7 @@
         <div class="logo-section">
 
             <div class="logo-mark">
-                <img src="assets/logo-tophouse.png" alt="Top House Logo">
+                <img src="assets/logo-casa.png" alt="Top House Logo">
             </div>
 
             <h2>TOP HOUSE</h2>
@@ -80,7 +80,7 @@
 
             <div>
                 <h1>Dashboard</h1>
-                <span>Panoramica generale aziendale</span>
+                <span>Panoramica generale del gestionale TOP HOUSE</span>
             </div>
 
             <select class="month-select" id="monthFilter">
@@ -104,43 +104,38 @@
         <section class="cards">
 
             <a href="contracts.html" class="card card-link">
-                <h4>Contratti Mese</h4>
-                <p id="totaleContratti">0</p>
+                <h4>Totale Contratti</h4>
+                <p id="dashTotaleContratti">0</p>
             </a>
 
             <a href="contracts.html" class="card card-link">
                 <h4>Contratti OK</h4>
-                <p id="totaleOk">0</p>
+                <p id="dashContrattiOk">0</p>
             </a>
 
             <a href="contracts.html" class="card card-link">
                 <h4>KO</h4>
-                <p id="totaleKo">0</p>
+                <p id="dashKo">0</p>
             </a>
 
             <a href="contracts.html" class="card card-link">
                 <h4>Storni</h4>
-                <p id="totaleStorni">0</p>
+                <p id="dashStorni">0</p>
             </a>
 
-            <a href="partners.html" class="card card-link">
+            <a href="cashflow.html" class="card card-link">
                 <h4>Da Incassare Partner</h4>
-                <p id="daIncassarePartner">0€</p>
+                <p id="dashDaIncassare">0€</p>
             </a>
 
             <a href="vendors.html" class="card card-link">
                 <h4>Da Pagare Venditori</h4>
-                <p id="daPagareVenditori">0€</p>
+                <p id="dashDaPagare">0€</p>
             </a>
 
-            <a href="contracts.html" class="card card-link">
+            <a href="reports.html" class="card card-link">
                 <h4>Margine Maturato</h4>
-                <p id="margineMaturato">0€</p>
-            </a>
-
-            <a href="partners.html" class="card card-link">
-                <h4>Incassato Partner</h4>
-                <p id="incassatoPartner">0€</p>
+                <p id="dashMargine">0€</p>
             </a>
 
         </section>
@@ -149,99 +144,66 @@
 
             <div class="box">
 
-                <h3>🏆 Migliori Venditori</h3>
+                <div class="section-title">
+                    <div>
+                        <h3>📌 Collegamenti rapidi</h3>
+                        <p>Apri velocemente le sezioni principali.</p>
+                    </div>
+                </div>
 
-                <div class="table-wrapper">
-
-                    <table>
-
-                        <thead>
-                            <tr>
-                                <th>Venditore</th>
-                                <th>Contratti OK</th>
-                                <th>Provvigioni</th>
-                                <th>Margine</th>
-                            </tr>
-                        </thead>
-
-                        <tbody id="topVendorsBody">
-                        </tbody>
-
-                    </table>
-
+                <div class="dashboard-actions">
+                    <a href="contracts.html">➕ Nuovo Contratto</a>
+                    <a href="vendors.html">👥 Venditori</a>
+                    <a href="partners.html">🤝 Partner</a>
+                    <a href="cashflow.html">🏦 Cash Flow</a>
+                    <a href="investments.html">📈 Investimenti</a>
+                    <a href="reports.html">📑 Report</a>
                 </div>
 
             </div>
 
             <div class="box">
 
-                <h3>⚠️ Attività da Gestire</h3>
+                <h3>✅ Attività rapide</h3>
 
-                <ul class="tasks" id="activityList">
-                    <li>Nessuna attività critica rilevata.</li>
+                <ul class="tasks">
+                    <li>Controllare pratiche da pagare ai venditori</li>
+                    <li>Verificare incassi partner</li>
+                    <li>Controllare KO e storni del mese</li>
+                    <li>Esportare report mensile</li>
                 </ul>
 
             </div>
 
         </section>
 
-        <section class="grid">
+        <section class="box full-box">
 
-            <div class="box">
+            <div class="section-title">
+                <div>
+                    <h3>📋 Ultimi contratti</h3>
+                    <p>Le ultime pratiche inserite nel gestionale.</p>
+                </div>
+            </div>
 
-                <h3>💰 Cash Flow Mensile</h3>
+            <div class="table-wrapper">
 
                 <table>
-
                     <thead>
                         <tr>
-                            <th>Voce</th>
-                            <th>Importo</th>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Venditore</th>
+                            <th>Partner</th>
+                            <th>Gestore</th>
+                            <th>Servizio</th>
                             <th>Stato</th>
+                            <th>Margine</th>
                         </tr>
                     </thead>
 
-                    <tbody>
-                        <tr>
-                            <td>Da Incassare Partner</td>
-                            <td id="cashDaIncassare">0€</td>
-                            <td>🟠 Da monitorare</td>
-                        </tr>
-
-                        <tr>
-                            <td>Incassato Partner</td>
-                            <td id="cashIncassato">0€</td>
-                            <td>🟢 Entrata confermata</td>
-                        </tr>
-
-                        <tr>
-                            <td>Da Pagare Venditori</td>
-                            <td id="cashDaPagare">0€</td>
-                            <td>🟠 Uscita prevista</td>
-                        </tr>
-
-                        <tr>
-                            <td>Margine Maturato Top House</td>
-                            <td id="cashMargine">0€</td>
-                            <td>🟢 Margine stimato</td>
-                        </tr>
-                    </tbody>
-
+                    <tbody id="latestContractsBody"></tbody>
                 </table>
-
-            </div>
-
-            <div class="box">
-
-                <h3>📈 Riepilogo Aziendale</h3>
-
-                <ul class="tasks">
-                    <li><strong>Mese selezionato:</strong> <span id="meseSelezionatoLabel">-</span></li>
-                    <li><strong>Percentuale OK:</strong> <span id="percentualeOk">0%</span></li>
-                    <li><strong>Pratiche negative:</strong> <span id="praticheNegative">0</span></li>
-                    <li><strong>Miglior venditore:</strong> <span id="migliorVenditore">-</span></li>
-                    <li><strong>Miglior partner:</strong> <span id="migliorPartner">-</span></li>
-                </ul>
 
             </div>
 
@@ -249,7 +211,150 @@
 
     </main>
 
-    <script src="js/dashboard.js"></script>
+    <script>
+        function testo(valore){
+            return String(valore || "").trim();
+        }
+
+        function numero(valore){
+            return Number(valore || 0);
+        }
+
+        function caricaContratti(){
+            const dati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
+
+            if(Array.isArray(dati)){
+                return dati;
+            }
+
+            return [];
+        }
+
+        function praticaValida(c){
+            return c.stato === "OK" || c.stato === "Pagato";
+        }
+
+        function margine(c){
+            if(!praticaValida(c)){
+                return 0;
+            }
+
+            return numero(c.gettonePartner) - numero(c.gettoneVenditore);
+        }
+
+        function filtraMese(contratti){
+            const mese = document.getElementById("monthFilter").value;
+
+            if(mese === ""){
+                return contratti;
+            }
+
+            return contratti.filter(c => testo(c.dataInserimento).slice(0, 7) === mese);
+        }
+
+        function aggiornaDashboard(){
+
+            const contratti = filtraMese(caricaContratti());
+
+            const totale = contratti.length;
+
+            const ok = contratti.filter(c => praticaValida(c)).length;
+
+            const ko = contratti.filter(c => c.stato === "KO").length;
+
+            const storni = contratti.filter(c => c.stato === "Storno").length;
+
+            const daIncassare = contratti
+                .filter(c => praticaValida(c) && c.pagamentoPartner === "Da incassare")
+                .reduce((tot, c) => tot + numero(c.gettonePartner), 0);
+
+            const daPagare = contratti
+                .filter(c => praticaValida(c) && c.pagamentoVenditore === "Da pagare")
+                .reduce((tot, c) => tot + numero(c.gettoneVenditore), 0);
+
+            const margineTotale = contratti
+                .filter(c => praticaValida(c))
+                .reduce((tot, c) => tot + margine(c), 0);
+
+            document.getElementById("dashTotaleContratti").innerText = totale;
+            document.getElementById("dashContrattiOk").innerText = ok;
+            document.getElementById("dashKo").innerText = ko;
+            document.getElementById("dashStorni").innerText = storni;
+            document.getElementById("dashDaIncassare").innerText = daIncassare + "€";
+            document.getElementById("dashDaPagare").innerText = daPagare + "€";
+            document.getElementById("dashMargine").innerText = margineTotale + "€";
+
+            renderUltimiContratti(contratti);
+        }
+
+        function badge(stato){
+            if(stato === "OK"){
+                return '<span class="badge ok">OK</span>';
+            }
+
+            if(stato === "Pagato"){
+                return '<span class="badge paid">Pagato</span>';
+            }
+
+            if(stato === "KO"){
+                return '<span class="badge ko">KO</span>';
+            }
+
+            if(stato === "Storno"){
+                return '<span class="badge storno">Storno</span>';
+            }
+
+            return '<span class="badge pending">' + stato + '</span>';
+        }
+
+        function renderUltimiContratti(contratti){
+
+            const tbody = document.getElementById("latestContractsBody");
+
+            tbody.innerHTML = "";
+
+            const ultimi = [...contratti]
+                .sort((a, b) => Number(b.id || 0) - Number(a.id || 0))
+                .slice(0, 8);
+
+            if(ultimi.length === 0){
+
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align:center; padding:30px; color:#6b7280; font-weight:bold;">
+                            Nessun contratto presente.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+            ultimi.forEach(c => {
+
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${c.id || ""}</td>
+                    <td>${c.nome || ""} ${c.cognome || ""}</td>
+                    <td>${c.venditore || ""}</td>
+                    <td>${c.partner || ""}</td>
+                    <td>${c.gestore || ""}</td>
+                    <td>${c.servizio || ""}</td>
+                    <td>${badge(c.stato || "Inserito")}</td>
+                    <td>${margine(c)}€</td>
+                `;
+
+                tbody.appendChild(row);
+
+            });
+
+        }
+
+        document.getElementById("monthFilter").addEventListener("change", aggiornaDashboard);
+
+        aggiornaDashboard();
+    </script>
 
 </body>
 
