@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Provvigioni - Top House Gestionale</title>
+
+    <link rel="stylesheet" href="css/style.css?v=1900">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+
+        <div class="logo-section">
+
+            <div class="logo-mark">
+                <img src="assets/logo-casa.png" alt="Top House Logo">
+            </div>
+
+            <h2>TOP HOUSE</h2>
+            <p>GESTIONALE</p>
+
+        </div>
+
+        <ul class="menu">
+
+            <li>
+                <a href="index.html">🏠 Dashboard</a>
+            </li>
+
+            <li>
+                <a href="contracts.html">📄 Contratti</a>
+            </li>
+
+            <li>
+                <a href="vendors.html">👥 Venditori</a>
+            </li>
+
+            <li>
+                <a href="partners.html">🤝 Partner</a>
+            </li>
+
+            <li class="active">
+                <a href="commissions.html">💰 Provvigioni</a>
+            </li>
+
+            <li>
+                <a href="investments.html">📈 Investimenti</a>
+            </li>
+
+            <li>
+                <a href="cashflow.html">🏦 Cash Flow</a>
+            </li>
+
+            <li>
+                <a href="#">📊 KPI</a>
+            </li>
+
+            <li>
+                <a href="reports.html">📑 Report</a>
+            </li>
+
+            <li>
+                <a href="#">📁 Documenti</a>
+            </li>
+
+            <li>
+                <a href="#">⚙️ Impostazioni</a>
+            </li>
+
+        </ul>
+
+    </aside>
+
+    <main class="main">
+
+        <div class="header">
+
+            <div>
+                <h1>Provvigioni</h1>
+                <span>Controllo pagamenti venditori, importi maturati e pratiche da saldare</span>
+            </div>
+
+            <select class="month-select" id="monthFilter">
+                <option value="">Tutte le mensilità</option>
+                <option value="2026-01">Gennaio 2026</option>
+                <option value="2026-02">Febbraio 2026</option>
+                <option value="2026-03">Marzo 2026</option>
+                <option value="2026-04">Aprile 2026</option>
+                <option value="2026-05">Maggio 2026</option>
+                <option value="2026-06" selected>Giugno 2026</option>
+                <option value="2026-07">Luglio 2026</option>
+                <option value="2026-08">Agosto 2026</option>
+                <option value="2026-09">Settembre 2026</option>
+                <option value="2026-10">Ottobre 2026</option>
+                <option value="2026-11">Novembre 2026</option>
+                <option value="2026-12">Dicembre 2026</option>
+            </select>
+
+        </div>
+
+        <section class="cards">
+
+            <div class="card">
+                <h4>Pratiche Pagabili</h4>
+                <p id="pratichePagabili">0</p>
+            </div>
+
+            <div class="card">
+                <h4>Provvigioni Maturate</h4>
+                <p id="provvigioniMaturate">0€</p>
+            </div>
+
+            <div class="card">
+                <h4>Da Pagare</h4>
+                <p id="daPagareVenditori">0€</p>
+            </div>
+
+            <div class="card">
+                <h4>Già Pagato</h4>
+                <p id="pagatoVenditori">0€</p>
+            </div>
+
+            <div class="card">
+                <h4>Venditori da Pagare</h4>
+                <p id="venditoriDaPagare">0</p>
+            </div>
+
+            <div class="card">
+                <h4>Non Dovuto</h4>
+                <p id="nonDovuto">0€</p>
+            </div>
+
+            <div class="card">
+                <h4>Margine Maturato</h4>
+                <p id="margineMaturato">0€</p>
+            </div>
+
+        </section>
+
+        <section class="grid">
+
+            <div class="box">
+
+                <div class="section-title">
+                    <div>
+                        <h3>🏆 Riepilogo Venditori</h3>
+                        <p>Quanto matura ogni venditore nel mese selezionato.</p>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Venditore</th>
+                                <th>Pratiche</th>
+                                <th>Provvigioni</th>
+                                <th>Da Pagare</th>
+                                <th>Pagato</th>
+                                <th>Non Dovuto</th>
+                                <th>Scheda</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="vendorsCommissionsBody"></tbody>
+                    </table>
+
+                </div>
+
+            </div>
+
+            <div class="box">
+
+                <h3>📌 Controllo Mensile</h3>
+
+                <ul class="tasks">
+                    <li><strong>Venditore più alto:</strong> <span id="topVendorName">-</span></li>
+                    <li><strong>Provvigione più alta:</strong> <span id="topVendorAmount">0€</span></li>
+                    <li><strong>Pratiche da saldare:</strong> <span id="praticheDaSaldare">0</span></li>
+                    <li><strong>Mese selezionato:</strong> <span id="selectedMonthLabel">-</span></li>
+                </ul>
+
+                <br>
+
+                <button class="mini-btn" onclick="exportCommissionsExcel()">Esporta Excel</button>
+
+            </div>
+
+        </section>
+
+        <section class="box full-box">
+
+            <div class="section-title">
+                <div>
+                    <h3>📋 Registro Provvigioni</h3>
+                    <p>Lista delle pratiche OK o Pagate che generano controllo provvigionale.</p>
+                </div>
+            </div>
+
+            <div class="table-actions filters-area">
+
+                <input type="text" id="searchInput" placeholder="Cerca cliente, venditore, partner, gestore...">
+
+                <select id="vendorFilter">
+                    <option value="">Tutti i venditori</option>
+                </select>
+
+                <select id="paymentFilter">
+                    <option value="">Tutti i pagamenti</option>
+                    <option value="Da pagare">Da pagare</option>
+                    <option value="Pagato">Pagato</option>
+                    <option value="Non dovuto">Non dovuto</option>
+                </select>
+
+                <button onclick="resetCommissionFilters()">Reset Filtri</button>
+
+            </div>
+
+            <div class="table-wrapper">
+
+                <table class="contracts-table">
+
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Data Inserimento</th>
+                            <th>Cliente</th>
+                            <th>Venditore</th>
+                            <th>Partner</th>
+                            <th>Gestore</th>
+                            <th>Servizio</th>
+                            <th>Stato</th>
+                            <th>Gettone Venditore</th>
+                            <th>Pagamento Venditore</th>
+                            <th>Gettone Partner</th>
+                            <th>Margine</th>
+                            <th>Note</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="commissionsBody"></tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="js/commissions.js?v=1900"></script>
+
+</body>
+
+</html>
