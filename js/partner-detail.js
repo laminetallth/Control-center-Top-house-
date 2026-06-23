@@ -4,78 +4,57 @@ const PARTNER_REGISTRATI = [
         categoria: "Luce / Gas",
         descrizione: "Partner multi-gestore per luce e gas",
         servizi: ["Luce", "Gas", "Luce + Gas"],
-        zona: "Italia",
-        foto: "assets/partners/greenword.jpg"
+        logo: "assets/partners/logo-greenword.png"
     },
     {
         nome: "Onova",
         categoria: "Luce / Gas",
         descrizione: "Partner diretto energia",
         servizi: ["Luce", "Gas", "Luce + Gas"],
-        zona: "Italia",
-        foto: "assets/partners/onova.jpg"
+        logo: "assets/partners/logo-onova.png"
     },
     {
         nome: "S4",
         categoria: "Luce / Gas",
         descrizione: "Partner diretto energia",
         servizi: ["Luce", "Gas", "Luce + Gas"],
-        zona: "Italia",
-        foto: "assets/partners/s4.jpg"
+        logo: "assets/partners/logo-s4.png"
     },
     {
         nome: "Union",
         categoria: "Luce / Gas",
         descrizione: "Partner diretto energia",
         servizi: ["Luce", "Gas", "Luce + Gas"],
-        zona: "Italia",
-        foto: "assets/partners/union.jpg"
+        logo: "assets/partners/logo-union.png"
     },
     {
         nome: "EKO",
         categoria: "Casa / Impianti",
-        descrizione: "Fotovoltaico, caldaie, wall box, pompe di calore e climatizzatori",
-        servizi: ["Fotovoltaico", "Caldaia", "Wall box", "Pompa di calore", "Climatizzatore"],
-        zona: "Italia",
-        foto: "assets/partners/eko.jpg"
-    },
-    {
-        nome: "New costruction",
-        categoria: "Infissi",
-        descrizione: "Partner dedicato agli infissi",
-        servizi: ["Infissi"],
-        zona: "Italia",
-        foto: "assets/partners/new-costruction.jpg"
+        descrizione: "Partner servizi casa e impianti",
+        servizi: ["Fotovoltaico", "Pompe di calore", "Climatizzatori"],
+        logo: "assets/partners/logo-eko.png"
     },
     {
         nome: "WLD Impianti",
-        categoria: "Allarmi",
-        descrizione: "Partner dedicato agli allarmi",
+        categoria: "Allarmi / Sicurezza",
+        descrizione: "Partner specializzato in sistemi di allarme e sicurezza",
         servizi: ["Allarmi"],
-        zona: "Italia",
-        foto: "assets/partners/wld-impianti.jpg"
+        logo: "assets/partners/logo-wldimpianti.png"
+    },
+    {
+        nome: "New costruction",
+        categoria: "Casa / Infissi",
+        descrizione: "Partner specializzato in infissi",
+        servizi: ["Infissi"],
+        logo: "assets/partners/logo-newcostruction.png"
     },
     {
         nome: "Vita Group",
-        categoria: "Depuratori acqua",
-        descrizione: "Partner dedicato ai depuratori acqua",
-        servizi: ["Depuratore acqua"],
-        zona: "Italia",
-        foto: "assets/partners/vita-group.jpg"
+        categoria: "Acqua / Depuratori",
+        descrizione: "Partner per depuratori acqua e servizi casa",
+        servizi: ["Depuratori", "Acqua", "Casa"],
+        logo: "assets/partners/logo-vitagroup.png"
     }
-];
-
-const COLORI_GRAFICO = [
-    "#d90429",
-    "#ff7b00",
-    "#081120",
-    "#f97316",
-    "#dc2626",
-    "#64748b",
-    "#111827",
-    "#fb923c",
-    "#b91c1c",
-    "#475569"
 ];
 
 function testo(valore){
@@ -86,59 +65,89 @@ function numero(valore){
     return Number(valore || 0);
 }
 
+function escapeHtml(valore){
+    return testo(valore)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
 function getParametro(nome){
     const params = new URLSearchParams(window.location.search);
     return params.get(nome) || "";
 }
 
-function iniziali(nome){
-    return testo(nome)
-        .split(" ")
-        .map(parte => parte.charAt(0))
-        .join("")
-        .slice(0, 2)
-        .toUpperCase();
+function iniziale(nome){
+    return testo(nome).charAt(0).toUpperCase();
 }
 
 function caricaContratti(){
-    try{
-        const dati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
+    const dati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
 
-        if(Array.isArray(dati)){
-            return dati;
-        }
-
-        return [];
-    }catch(error){
-        return [];
+    if(Array.isArray(dati)){
+        return dati;
     }
+
+    return [];
+}
+
+function praticaValida(contratto){
+    return contratto.stato === "OK" || contratto.stato === "Pagato";
 }
 
 function calcolaMargine(contratto){
 
-    if(contratto.stato !== "OK" && contratto.stato !== "Pagato"){
+    if(!praticaValida(contratto)){
         return 0;
     }
 
     return numero(contratto.gettonePartner) - numero(contratto.gettoneVenditore);
 }
 
+function normalizzaNomePartner(nome){
+
+    const valore = testo(nome).toLowerCase();
+
+    if(valore === "greenworld"){
+        return "Greenword";
+    }
+
+    if(valore === "new construction"){
+        return "New costruction";
+    }
+
+    if(valore === "wld"){
+        return "WLD Impianti";
+    }
+
+    if(valore === "vita group" || valore === "vitagroup"){
+        return "Vita Group";
+    }
+
+    const trovato = PARTNER_REGISTRATI.find(p => p.nome.toLowerCase() === valore);
+
+    return trovato ? trovato.nome : testo(nome);
+}
+
 function trovaPartner(nome){
-    return PARTNER_REGISTRATI.find(p => p.nome === nome) || {
-        nome: nome,
-        categoria: "Altro",
-        descrizione: "Partner non classificato",
-        servizi: [],
-        zona: "-",
-        foto: ""
+
+    const nomeNormalizzato = normalizzaNomePartner(nome);
+
+    return PARTNER_REGISTRATI.find(p => p.nome === nomeNormalizzato) || {
+        nome: nomeNormalizzato || "Partner non trovato",
+        categoria: "-",
+        descrizione: "Partner non registrato",
+        servizi: ["Altro"],
+        logo: ""
     };
 }
 
-const nomePartner = decodeURIComponent(getParametro("partner"));
-const partner = trovaPartner(nomePartner);
+const nomePartnerUrl = decodeURIComponent(getParametro("partner"));
+const partner = trovaPartner(nomePartnerUrl);
 
 const monthFilter = document.getElementById("monthFilter");
-const chartMode = document.getElementById("chartMode");
 
 function filtraContrattiPartner(){
 
@@ -148,7 +157,7 @@ function filtraContrattiPartner(){
 
     return tuttiContratti.filter(contratto => {
 
-        const matchPartner = testo(contratto.partner) === nomePartner;
+        const matchPartner = normalizzaNomePartner(contratto.partner) === partner.nome;
 
         const meseContratto = testo(contratto.dataInserimento).slice(0, 7);
 
@@ -166,49 +175,51 @@ function filtraContrattiPartnerSenzaMese(){
     const tuttiContratti = caricaContratti();
 
     return tuttiContratti.filter(contratto => {
-        return testo(contratto.partner) === nomePartner;
+        return normalizzaNomePartner(contratto.partner) === partner.nome;
     });
 }
 
 function aggiornaProfilo(){
 
-    document.getElementById("partnerName").innerText = partner.nome || "-";
-    document.getElementById("partnerCategory").innerText = partner.descrizione || "Partner";
-    document.getElementById("partnerCategoryLabel").innerText = partner.categoria || "-";
-    document.getElementById("partnerArea").innerText = partner.zona || "-";
-    document.getElementById("partnerInitials").innerText = iniziali(partner.nome);
-    document.getElementById("partnerServices").innerText = partner.servizi.join(" · ") || "-";
+    document.getElementById("partnerName").innerText = partner.nome;
+    document.getElementById("partnerCategory").innerText = partner.categoria;
+    document.getElementById("partnerCategoryInfo").innerText = partner.categoria;
+    document.getElementById("partnerDescription").innerText = partner.descrizione;
+    document.getElementById("partnerInitial").innerText = iniziale(partner.nome);
 
-    const photo = document.getElementById("partnerPhoto");
-    const photoBox = document.getElementById("partnerPhotoBox");
+    const logoBox = document.getElementById("partnerLogoBox");
+    const logo = document.getElementById("partnerLogo");
 
-    if(partner.foto){
-        photo.src = partner.foto;
-        photo.alt = partner.nome;
+    if(partner.logo){
+        logo.src = partner.logo;
+        logo.alt = partner.nome;
 
-        photo.onerror = function(){
-            photo.style.display = "none";
-            photoBox.classList.add("no-photo");
+        logo.onerror = function(){
+            logo.style.display = "none";
+            logoBox.classList.add("no-logo");
         };
     }else{
-        photo.style.display = "none";
-        photoBox.classList.add("no-photo");
+        logo.style.display = "none";
+        logoBox.classList.add("no-logo");
     }
 
-    if(partner.nome === "Greenword"){
-        chartMode.value = "gestori";
-        document.getElementById("analysisSubtitle").innerText = "Greenword è multi-gestore: puoi analizzare gestori, venditori o andamento mensile.";
-    }else{
-        chartMode.value = "andamento";
-        document.getElementById("analysisSubtitle").innerText = "Puoi cambiare grafico scegliendo andamento, gestori o venditori.";
-    }
+    const servicesBox = document.getElementById("partnerServices");
+
+    servicesBox.innerHTML = "";
+
+    partner.servizi.forEach(servizio => {
+        const span = document.createElement("span");
+        span.className = "service-tag";
+        span.innerText = servizio;
+        servicesBox.appendChild(span);
+    });
 }
 
 function aggiornaCards(lista){
 
     const totale = lista.length;
 
-    const ok = lista.filter(c => c.stato === "OK" || c.stato === "Pagato").length;
+    const ok = lista.filter(c => praticaValida(c)).length;
 
     const ko = lista.filter(c => c.stato === "KO").length;
 
@@ -216,34 +227,38 @@ function aggiornaCards(lista){
 
     const daIncassare = lista
         .filter(c =>
-            (c.stato === "OK" || c.stato === "Pagato") &&
+            praticaValida(c) &&
             c.pagamentoPartner === "Da incassare"
         )
         .reduce((totale, c) => totale + numero(c.gettonePartner), 0);
 
     const incassato = lista
         .filter(c =>
-            (c.stato === "OK" || c.stato === "Pagato") &&
+            praticaValida(c) &&
             c.pagamentoPartner === "Incassato"
         )
         .reduce((totale, c) => totale + numero(c.gettonePartner), 0);
 
     const margine = lista
-        .filter(c => c.stato === "OK" || c.stato === "Pagato")
+        .filter(c => praticaValida(c))
         .reduce((totale, c) => totale + calcolaMargine(c), 0);
 
     const okRate = totale > 0 ? Math.round((ok / totale) * 100) : 0;
+    const negativeCount = ko + storni;
+    const saldoPartner = incassato - daIncassare;
 
     document.getElementById("totaleContratti").innerText = totale;
     document.getElementById("totaleOk").innerText = ok;
     document.getElementById("totaleKo").innerText = ko;
     document.getElementById("totaleStorni").innerText = storni;
-    document.getElementById("daIncassare").innerText = daIncassare + "€";
-    document.getElementById("incassato").innerText = incassato + "€";
-    document.getElementById("margineGenerato").innerText = margine + "€";
+    document.getElementById("daIncassarePartner").innerText = daIncassare + "€";
+    document.getElementById("incassatoPartner").innerText = incassato + "€";
+    document.getElementById("margineMaturato").innerText = margine + "€";
 
     document.getElementById("okRate").innerText = okRate + "%";
-    document.getElementById("negativeCount").innerText = ko + storni;
+    document.getElementById("negativeCount").innerText = negativeCount;
+
+    document.getElementById("partnerBalance").innerText = saldoPartner + "€";
 
     const selectedText = monthFilter.options[monthFilter.selectedIndex].text;
     document.getElementById("selectedMonthLabel").innerText = selectedText;
@@ -277,135 +292,25 @@ function renderContratti(lista){
         const row = document.createElement("tr");
 
         row.innerHTML = `
-            <td>${contratto.id || ""}</td>
-            <td>${contratto.dataInserimento || ""}</td>
-            <td>${contratto.dataEsito || ""}</td>
-            <td>${contratto.nome || ""}</td>
-            <td>${contratto.cognome || ""}</td>
-            <td>${contratto.venditore || ""}</td>
-            <td>${contratto.gestore || ""}</td>
-            <td>${contratto.servizio || ""}</td>
-            <td>${contratto.stato || ""}</td>
-            <td>${contratto.gettonePartner || 0}€</td>
-            <td>${contratto.gettoneVenditore || 0}€</td>
+            <td>${escapeHtml(contratto.id)}</td>
+            <td>${escapeHtml(contratto.dataInserimento)}</td>
+            <td>${escapeHtml(contratto.dataEsito)}</td>
+            <td>${escapeHtml(contratto.nome)}</td>
+            <td>${escapeHtml(contratto.cognome)}</td>
+            <td>${escapeHtml(contratto.venditore)}</td>
+            <td>${escapeHtml(contratto.gestore)}</td>
+            <td>${escapeHtml(contratto.servizio)}</td>
+            <td>${escapeHtml(contratto.stato)}</td>
+            <td>${numero(contratto.gettonePartner)}€</td>
+            <td>${escapeHtml(contratto.pagamentoPartner)}</td>
+            <td>${numero(contratto.gettoneVenditore)}€</td>
             <td>${margine}€</td>
-            <td>${contratto.pagamentoPartner || ""}</td>
-            <td>${contratto.note || ""}</td>
+            <td>${escapeHtml(contratto.note)}</td>
         `;
 
         tbody.appendChild(row);
 
     });
-}
-
-function raggruppa(lista, campo){
-
-    const gruppi = {};
-
-    lista.forEach(contratto => {
-
-        const chiave = testo(contratto[campo]) || "Non indicato";
-
-        if(!gruppi[chiave]){
-            gruppi[chiave] = {
-                nome: chiave,
-                valore: 0,
-                ok: 0,
-                ko: 0,
-                storni: 0
-            };
-        }
-
-        gruppi[chiave].valore += 1;
-
-        if(contratto.stato === "OK" || contratto.stato === "Pagato"){
-            gruppi[chiave].ok += 1;
-        }
-
-        if(contratto.stato === "KO"){
-            gruppi[chiave].ko += 1;
-        }
-
-        if(contratto.stato === "Storno"){
-            gruppi[chiave].storni += 1;
-        }
-
-    });
-
-    return Object.values(gruppi).sort((a, b) => b.valore - a.valore);
-}
-
-function renderGraficoTorta(dati, titolo, sottotitolo){
-
-    const container = document.getElementById("analysisChart");
-
-    if(dati.length === 0){
-
-        container.innerHTML = `
-            <div class="empty-chart">
-                Nessun dato disponibile per il grafico selezionato.
-            </div>
-        `;
-
-        return;
-    }
-
-    const totale = dati.reduce((somma, voce) => somma + voce.valore, 0);
-
-    let inizio = 0;
-
-    const gradienti = dati.map((voce, index) => {
-
-        const percentuale = (voce.valore / totale) * 100;
-        const fine = inizio + percentuale;
-        const colore = COLORI_GRAFICO[index % COLORI_GRAFICO.length];
-
-        const pezzo = `${colore} ${inizio}% ${fine}%`;
-
-        inizio = fine;
-
-        return pezzo;
-
-    });
-
-    const legenda = dati.map((voce, index) => {
-
-        const colore = COLORI_GRAFICO[index % COLORI_GRAFICO.length];
-        const percentuale = Math.round((voce.valore / totale) * 100);
-
-        return `
-            <li>
-                <span class="legend-dot" style="background:${colore};"></span>
-                <div>
-                    <strong>${voce.nome}</strong>
-                    <small>${voce.valore} pratiche · ${percentuale}% · OK ${voce.ok} · KO ${voce.ko} · S ${voce.storni}</small>
-                </div>
-            </li>
-        `;
-
-    }).join("");
-
-    container.innerHTML = `
-        <div class="pie-layout">
-
-            <div class="pie-circle" style="background:conic-gradient(${gradienti.join(",")});">
-                <div class="pie-center">
-                    <strong>${totale}</strong>
-                    <span>pratiche</span>
-                </div>
-            </div>
-
-            <div class="pie-info">
-                <h4>${titolo}</h4>
-                <p>${sottotitolo}</p>
-
-                <ul class="pie-legend">
-                    ${legenda}
-                </ul>
-            </div>
-
-        </div>
-    `;
 }
 
 function creaDatiMensili(){
@@ -435,9 +340,15 @@ function creaDatiMensili(){
 
         return {
             mese: mese.label,
-            ok: contrattiMese.filter(c => c.stato === "OK" || c.stato === "Pagato").length,
+            ok: contrattiMese.filter(c => praticaValida(c)).length,
             ko: contrattiMese.filter(c => c.stato === "KO").length,
-            storni: contrattiMese.filter(c => c.stato === "Storno").length
+            storni: contrattiMese.filter(c => c.stato === "Storno").length,
+            incassato: contrattiMese
+                .filter(c =>
+                    praticaValida(c) &&
+                    c.pagamentoPartner === "Incassato"
+                )
+                .reduce((totale, c) => totale + numero(c.gettonePartner), 0)
         };
 
     });
@@ -445,7 +356,7 @@ function creaDatiMensili(){
 
 function renderGraficoMensile(){
 
-    const container = document.getElementById("analysisChart");
+    const container = document.getElementById("monthlyChart");
 
     const dati = creaDatiMensili();
 
@@ -454,65 +365,28 @@ function renderGraficoMensile(){
         ...dati.map(d => d.ok + d.ko + d.storni)
     );
 
-    let items = "";
+    container.innerHTML = "";
 
     dati.forEach(dato => {
 
         const totale = dato.ok + dato.ko + dato.storni;
         const altezza = Math.max(8, Math.round((totale / maxValore) * 150));
 
-        items += `
-            <div class="chart-item">
-                <div class="chart-bar" style="height:${altezza}px;">
-                    <span>${totale}</span>
-                </div>
-                <strong>${dato.mese}</strong>
-                <small>OK ${dato.ok} · KO ${dato.ko} · S ${dato.storni}</small>
+        const item = document.createElement("div");
+
+        item.className = "chart-item";
+
+        item.innerHTML = `
+            <div class="chart-bar" style="height:${altezza}px;">
+                <span>${totale}</span>
             </div>
+            <strong>${dato.mese}</strong>
+            <small>OK ${dato.ok} · KO ${dato.ko} · S ${dato.storni}</small>
         `;
 
+        container.appendChild(item);
+
     });
-
-    container.innerHTML = `
-        <div class="monthly-chart">
-            ${items}
-        </div>
-    `;
-}
-
-function renderAnalisi(){
-
-    const lista = filtraContrattiPartner();
-
-    const modalita = chartMode.value;
-
-    if(modalita === "gestori"){
-
-        const dati = raggruppa(lista, "gestore");
-
-        renderGraficoTorta(
-            dati,
-            "Distribuzione per Gestore",
-            "Mostra con quali gestori stai lavorando di più nel periodo selezionato."
-        );
-
-        return;
-    }
-
-    if(modalita === "venditori"){
-
-        const dati = raggruppa(lista, "venditore");
-
-        renderGraficoTorta(
-            dati,
-            "Distribuzione per Venditore",
-            "Mostra quali venditori stanno lavorando di più con questo partner."
-        );
-
-        return;
-    }
-
-    renderGraficoMensile();
 }
 
 function aggiornaPagina(){
@@ -523,7 +397,7 @@ function aggiornaPagina(){
 
     renderContratti(lista);
 
-    renderAnalisi();
+    renderGraficoMensile();
 }
 
 async function exportPartnerExcel(){
@@ -534,42 +408,27 @@ async function exportPartnerExcel(){
     const dataExport = new Date().toLocaleDateString("it-IT");
 
     const totale = lista.length;
-    const ok = lista.filter(c => c.stato === "OK" || c.stato === "Pagato").length;
+    const ok = lista.filter(c => praticaValida(c)).length;
     const ko = lista.filter(c => c.stato === "KO").length;
     const storni = lista.filter(c => c.stato === "Storno").length;
 
     const daIncassare = lista
         .filter(c =>
-            (c.stato === "OK" || c.stato === "Pagato") &&
+            praticaValida(c) &&
             c.pagamentoPartner === "Da incassare"
         )
         .reduce((totale, c) => totale + numero(c.gettonePartner), 0);
 
     const incassato = lista
         .filter(c =>
-            (c.stato === "OK" || c.stato === "Pagato") &&
+            praticaValida(c) &&
             c.pagamentoPartner === "Incassato"
         )
         .reduce((totale, c) => totale + numero(c.gettonePartner), 0);
 
     const margine = lista
-        .filter(c => c.stato === "OK" || c.stato === "Pagato")
+        .filter(c => praticaValida(c))
         .reduce((totale, c) => totale + calcolaMargine(c), 0);
-
-    let logoBase64 = "";
-
-    try{
-        const response = await fetch("assets/logo-tophouse.png");
-        const blob = await response.blob();
-
-        logoBase64 = await new Promise(resolve => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(blob);
-        });
-    }catch(error){
-        logoBase64 = "";
-    }
 
     let righe = "";
 
@@ -591,20 +450,20 @@ async function exportPartnerExcel(){
 
             righe += `
                 <tr>
-                    <td>${c.id || ""}</td>
-                    <td>${c.dataInserimento || ""}</td>
-                    <td>${c.dataEsito || ""}</td>
-                    <td>${c.nome || ""}</td>
-                    <td>${c.cognome || ""}</td>
-                    <td>${c.venditore || ""}</td>
-                    <td>${c.gestore || ""}</td>
-                    <td>${c.servizio || ""}</td>
-                    <td>${c.stato || ""}</td>
-                    <td>${c.gettonePartner || 0}€</td>
-                    <td>${c.gettoneVenditore || 0}€</td>
+                    <td>${escapeHtml(c.id)}</td>
+                    <td>${escapeHtml(c.dataInserimento)}</td>
+                    <td>${escapeHtml(c.dataEsito)}</td>
+                    <td>${escapeHtml(c.nome)}</td>
+                    <td>${escapeHtml(c.cognome)}</td>
+                    <td>${escapeHtml(c.venditore)}</td>
+                    <td>${escapeHtml(c.gestore)}</td>
+                    <td>${escapeHtml(c.servizio)}</td>
+                    <td>${escapeHtml(c.stato)}</td>
+                    <td>${numero(c.gettonePartner)}€</td>
+                    <td>${escapeHtml(c.pagamentoPartner)}</td>
+                    <td>${numero(c.gettoneVenditore)}€</td>
                     <td>${margineContratto}€</td>
-                    <td>${c.pagamentoPartner || ""}</td>
-                    <td>${c.note || ""}</td>
+                    <td>${escapeHtml(c.note)}</td>
                 </tr>
             `;
 
@@ -629,14 +488,6 @@ async function exportPartnerExcel(){
                     padding:24px;
                     border-radius:18px;
                     margin-bottom:24px;
-                }
-
-                .logo{
-                    max-height:80px;
-                    margin-bottom:12px;
-                    background:white;
-                    padding:10px;
-                    border-radius:12px;
                 }
 
                 .title{
@@ -709,14 +560,76 @@ async function exportPartnerExcel(){
         <body>
 
             <div class="header-report">
-
-                ${logoBase64 ? `<img src="${logoBase64}" class="logo">` : ""}
-
                 <div class="title">TOP HOUSE - Report Partner</div>
                 <div class="subtitle">
-                    Partner: ${partner.nome} | Categoria: ${partner.categoria} | Mensilità: ${meseSelezionato} | Esportato il: ${dataExport}
+                    Partner: ${escapeHtml(partner.nome)} | Categoria: ${escapeHtml(partner.categoria)} | Mensilità: ${escapeHtml(meseSelezionato)} | Esportato il: ${escapeHtml(dataExport)}
                 </div>
             </div>
 
             <table class="summary">
-            
+                <tr>
+                    <td>Contratti Totali<br><span class="value">${totale}</span></td>
+                    <td>Contratti OK<br><span class="value">${ok}</span></td>
+                    <td>KO<br><span class="value">${ko}</span></td>
+                    <td>Storni<br><span class="value">${storni}</span></td>
+                    <td>Da Incassare<br><span class="value">${daIncassare}€</span></td>
+                    <td>Incassato<br><span class="value">${incassato}€</span></td>
+                    <td>Margine Maturato<br><span class="value">${margine}€</span></td>
+                </tr>
+            </table>
+
+            <div class="section-title">Dettaglio Contratti</div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Data Inserimento</th>
+                        <th>Data Esito</th>
+                        <th>Nome</th>
+                        <th>Cognome</th>
+                        <th>Venditore</th>
+                        <th>Gestore</th>
+                        <th>Servizio</th>
+                        <th>Stato</th>
+                        <th>Gettone Partner</th>
+                        <th>Pagamento Partner</th>
+                        <th>Gettone Venditore</th>
+                        <th>Margine</th>
+                        <th>Note</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    ${righe}
+                </tbody>
+            </table>
+
+        </body>
+        </html>
+    `;
+
+    const blob = new Blob([html], {
+        type: "application/vnd.ms-excel;charset=utf-8;"
+    });
+
+    const link = document.createElement("a");
+
+    const meseFile = monthFilter.value || "tutte-mensilita";
+    const nomeFile = partner.nome.toLowerCase().replaceAll(" ", "-");
+
+    link.href = URL.createObjectURL(blob);
+    link.download = `report-partner-${nomeFile}-${meseFile}.xls`;
+
+    link.click();
+}
+
+function printPartnerReport(){
+    window.print();
+}
+
+monthFilter.addEventListener("change", aggiornaPagina);
+
+aggiornaProfilo();
+
+aggiornaPagina();
