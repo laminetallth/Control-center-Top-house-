@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Venditori - Top House Gestionale</title>
 
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=1600">
 </head>
 
 <body>
@@ -16,7 +16,7 @@
         <div class="logo-section">
 
             <div class="logo-mark">
-                <img src="assets/logo-tophouse.png" alt="Top House Logo">
+                <img src="assets/logo-casa.png" alt="Top House Logo">
             </div>
 
             <h2>TOP HOUSE</h2>
@@ -80,7 +80,7 @@
 
             <div>
                 <h1>Venditori</h1>
-                <span>Performance, provvigioni e schede venditore</span>
+                <span>Controllo collaboratori, provvigioni, risultati e marginalità</span>
             </div>
 
             <select class="month-select" id="monthFilter">
@@ -144,12 +144,16 @@
 
             <div class="box">
 
-                <h3>🏆 Classifica Venditori</h3>
+                <div class="section-title">
+                    <div>
+                        <h3>🏆 Classifica Venditori</h3>
+                        <p>Risultati calcolati sui contratti del mese selezionato.</p>
+                    </div>
+                </div>
 
                 <div class="table-wrapper">
 
-                    <table class="contracts-table">
-
+                    <table>
                         <thead>
                             <tr>
                                 <th>Venditore</th>
@@ -167,9 +171,7 @@
                             </tr>
                         </thead>
 
-                        <tbody id="vendorsBody">
-                        </tbody>
-
+                        <tbody id="vendorsBody"></tbody>
                     </table>
 
                 </div>
@@ -178,14 +180,14 @@
 
             <div class="box">
 
-                <h3>⭐ Miglior Venditore</h3>
+                <h3>🥇 Miglior Venditore</h3>
 
                 <ul class="tasks">
                     <li><strong>Nome:</strong> <span id="bestVendorName">-</span></li>
                     <li><strong>Zona:</strong> <span id="bestVendorArea">-</span></li>
                     <li><strong>Contratti OK:</strong> <span id="bestVendorOk">0</span></li>
                     <li><strong>Provvigioni:</strong> <span id="bestVendorCommission">0€</span></li>
-                    <li><strong>Margine generato:</strong> <span id="bestVendorMargin">0€</span></li>
+                    <li><strong>Margine:</strong> <span id="bestVendorMargin">0€</span></li>
                 </ul>
 
             </div>
@@ -196,8 +198,8 @@
 
             <div class="section-title">
                 <div>
-                    <h3>📋 Venditori Registrati</h3>
-                    <p>Clicca su “Apri Scheda” per vedere foto, risultati, grafici e report contratti.</p>
+                    <h3>👥 Venditori Registrati</h3>
+                    <p>Apri la scheda personale di ogni collaboratore.</p>
                 </div>
             </div>
 
@@ -207,7 +209,7 @@
 
     </main>
 
-    <script src="js/vendors.js"></script>
+    <script src="js/vendors.js?v=1600"></script>
 
 </body>
 
