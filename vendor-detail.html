@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scheda Venditore - Top House Gestionale</title>
 
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=1600">
 </head>
 
 <body>
@@ -16,7 +16,7 @@
         <div class="logo-section">
 
             <div class="logo-mark">
-                <img src="assets/logo-tophouse.png" alt="Top House Logo">
+                <img src="assets/logo-casa.png" alt="Top House Logo">
             </div>
 
             <h2>TOP HOUSE</h2>
@@ -80,7 +80,7 @@
 
             <div>
                 <h1>Scheda Venditore</h1>
-                <span>Risultati, contratti e report personale</span>
+                <span>Dettaglio collaboratore, contratti, provvigioni e risultati</span>
             </div>
 
             <select class="month-select" id="monthFilter">
@@ -111,20 +111,9 @@
                 </div>
 
                 <h2 id="vendorName">-</h2>
+                <p id="vendorRole">-</p>
 
-                <p id="vendorRole">Venditore</p>
-
-                <div class="vendor-info-list">
-                    <div>
-                        <strong>Regione / Zona</strong>
-                        <span id="vendorArea">-</span>
-                    </div>
-
-                    <div>
-                        <strong>Stato</strong>
-                        <span class="badge ok">Attivo</span>
-                    </div>
-                </div>
+                <div class="vendor-info-list"></div>
 
                 <a href="vendors.html" class="mini-btn dark">← Torna ai venditori</a>
 
@@ -171,30 +160,40 @@
 
                 </section>
 
-            </div>
+                <section class="grid">
 
-        </section>
+                    <div class="box">
 
-        <section class="grid">
+                        <div class="section-title">
+                            <div>
+                                <h3>📊 Andamento Mensile</h3>
+                                <p>Totale pratiche per mese.</p>
+                            </div>
+                        </div>
 
-            <div class="box">
+                        <div class="monthly-chart" id="monthlyChart"></div>
 
-                <h3>📊 Andamento Mensile</h3>
+                    </div>
 
-                <div id="monthlyChart" class="monthly-chart"></div>
+                    <div class="box">
 
-            </div>
+                        <h3>📌 Riepilogo</h3>
 
-            <div class="box">
+                        <ul class="tasks">
+                            <li><strong>Zona:</strong> <span id="vendorArea">-</span></li>
+                            <li><strong>Mese selezionato:</strong> <span id="selectedMonthLabel">-</span></li>
+                            <li><strong>Percentuale OK:</strong> <span id="okRate">0%</span></li>
+                            <li><strong>Pratiche negative:</strong> <span id="negativeCount">0</span></li>
+                        </ul>
 
-                <h3>📌 Riepilogo</h3>
+                        <br>
 
-                <ul class="tasks">
-                    <li><strong>Mese selezionato:</strong> <span id="selectedMonthLabel">-</span></li>
-                    <li><strong>Percentuale OK:</strong> <span id="okRate">0%</span></li>
-                    <li><strong>Pratiche negative:</strong> <span id="negativeCount">0</span></li>
-                    <li><strong>Report disponibili:</strong> Excel / PDF</li>
-                </ul>
+                        <button class="mini-btn" onclick="exportVendorExcel()">Esporta Excel</button>
+                        <button class="mini-btn dark" onclick="printVendorReport()">Stampa / Salva PDF</button>
+
+                    </div>
+
+                </section>
 
             </div>
 
@@ -205,12 +204,7 @@
             <div class="section-title">
                 <div>
                     <h3>📋 Contratti del Venditore</h3>
-                    <p>Dettaglio pratiche filtrate per venditore e mensilità selezionata.</p>
-                </div>
-
-                <div class="table-actions">
-                    <button onclick="exportVendorExcel()">Esporta Excel</button>
-                    <button onclick="printVendorReport()">Stampa / Salva PDF</button>
+                    <p>Lista pratiche collegate al collaboratore.</p>
                 </div>
             </div>
 
@@ -231,14 +225,13 @@
                             <th>Stato</th>
                             <th>Gettone Partner</th>
                             <th>Gettone Venditore</th>
-                            <th>Margine Top House</th>
+                            <th>Margine</th>
                             <th>Pagamento Venditore</th>
                             <th>Note</th>
                         </tr>
                     </thead>
 
-                    <tbody id="vendorContractsBody">
-                    </tbody>
+                    <tbody id="vendorContractsBody"></tbody>
 
                 </table>
 
@@ -248,7 +241,7 @@
 
     </main>
 
-    <script src="js/vendor-detail.js"></script>
+    <script src="js/vendor-detail.js?v=1600"></script>
 
 </body>
 
