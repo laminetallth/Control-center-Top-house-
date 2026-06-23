@@ -6,7 +6,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scheda Partner - Top House Gestionale</title>
 
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css?v=1800">
+
+    <style>
+        .partner-profile-logo{
+            width:170px;
+            height:170px;
+            border-radius:36px;
+            margin:0 auto 20px auto;
+            background:white;
+            border:1px solid #e5e7eb;
+            overflow:hidden;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:18px;
+            box-shadow:0 10px 25px rgba(0,0,0,.10);
+        }
+
+        .partner-profile-logo img{
+            width:100%;
+            height:100%;
+            object-fit:contain;
+            display:block;
+        }
+
+        .partner-profile-logo span{
+            display:none;
+            width:100%;
+            height:100%;
+            border-radius:24px;
+            background:linear-gradient(135deg,#d90429,#ff7b00);
+            color:white;
+            font-size:46px;
+            font-weight:800;
+            align-items:center;
+            justify-content:center;
+        }
+
+        .partner-profile-logo.no-logo{
+            background:transparent;
+            border:none;
+            padding:0;
+        }
+
+        .partner-profile-logo.no-logo img{
+            display:none;
+        }
+
+        .partner-profile-logo.no-logo span{
+            display:flex;
+        }
+
+        .service-tags{
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+            justify-content:center;
+            margin-top:14px;
+        }
+
+        .service-tag{
+            background:#f8fafc;
+            color:#081120;
+            border:1px solid #e5e7eb;
+            border-radius:30px;
+            padding:7px 12px;
+            font-size:13px;
+            font-weight:bold;
+        }
+    </style>
 </head>
 
 <body>
@@ -16,7 +85,7 @@
         <div class="logo-section">
 
             <div class="logo-mark">
-                <img src="assets/logo-tophouse.png" alt="Top House Logo">
+                <img src="assets/logo-casa.png" alt="Top House Logo">
             </div>
 
             <h2>TOP HOUSE</h2>
@@ -80,7 +149,7 @@
 
             <div>
                 <h1>Scheda Partner</h1>
-                <span>Risultati, grafici, contratti e report partner</span>
+                <span>Dettaglio partner, contratti, incassi e margine generato</span>
             </div>
 
             <select class="month-select" id="monthFilter">
@@ -105,30 +174,33 @@
 
             <div class="box vendor-profile-card">
 
-                <div class="vendor-photo" id="partnerPhotoBox">
-                    <img id="partnerPhoto" src="" alt="">
-                    <span id="partnerInitials">-</span>
+                <div class="partner-profile-logo" id="partnerLogoBox">
+                    <img id="partnerLogo" src="" alt="">
+                    <span id="partnerInitial">-</span>
                 </div>
 
                 <h2 id="partnerName">-</h2>
+                <p id="partnerCategory">-</p>
 
-                <p id="partnerCategory">Partner</p>
+                <div class="service-tags" id="partnerServices"></div>
 
                 <div class="vendor-info-list">
+
                     <div>
                         <strong>Categoria</strong>
-                        <span id="partnerCategoryLabel">-</span>
+                        <span id="partnerCategoryInfo">-</span>
                     </div>
 
                     <div>
-                        <strong>Zona</strong>
-                        <span id="partnerArea">-</span>
+                        <strong>Descrizione</strong>
+                        <span id="partnerDescription">-</span>
                     </div>
 
                     <div>
-                        <strong>Stato</strong>
+                        <strong>Stato partner</strong>
                         <span class="badge ok">Attivo</span>
                     </div>
+
                 </div>
 
                 <a href="partners.html" class="mini-btn dark">← Torna ai partner</a>
@@ -161,57 +233,55 @@
 
                     <div class="card">
                         <h4>Da Incassare</h4>
-                        <p id="daIncassare">0€</p>
+                        <p id="daIncassarePartner">0€</p>
                     </div>
 
                     <div class="card">
                         <h4>Incassato</h4>
-                        <p id="incassato">0€</p>
+                        <p id="incassatoPartner">0€</p>
                     </div>
 
                     <div class="card">
                         <h4>Margine Maturato</h4>
-                        <p id="margineGenerato">0€</p>
+                        <p id="margineMaturato">0€</p>
                     </div>
 
                 </section>
 
-            </div>
+                <section class="grid">
 
-        </section>
+                    <div class="box">
 
-        <section class="grid">
+                        <div class="section-title">
+                            <div>
+                                <h3>📊 Andamento Mensile</h3>
+                                <p>Totale pratiche collegate al partner per mese.</p>
+                            </div>
+                        </div>
 
-            <div class="box">
+                        <div class="monthly-chart" id="monthlyChart"></div>
 
-                <div class="analysis-header">
-                    <div>
-                        <h3 id="analysisTitle">📊 Analisi Partner</h3>
-                        <p id="analysisSubtitle">Scegli quale grafico visualizzare.</p>
                     </div>
 
-                    <select id="chartMode" class="chart-mode-select">
-                        <option value="andamento">Andamento mensile</option>
-                        <option value="gestori">Gestori</option>
-                        <option value="venditori">Venditori</option>
-                    </select>
-                </div>
+                    <div class="box">
 
-                <div id="analysisChart" class="analysis-chart-area"></div>
+                        <h3>📌 Riepilogo</h3>
 
-            </div>
+                        <ul class="tasks">
+                            <li><strong>Mese selezionato:</strong> <span id="selectedMonthLabel">-</span></li>
+                            <li><strong>Percentuale OK:</strong> <span id="okRate">0%</span></li>
+                            <li><strong>Pratiche negative:</strong> <span id="negativeCount">0</span></li>
+                            <li><strong>Saldo partner:</strong> <span id="partnerBalance">0€</span></li>
+                        </ul>
 
-            <div class="box">
+                        <br>
 
-                <h3>📌 Riepilogo</h3>
+                        <button class="mini-btn" onclick="exportPartnerExcel()">Esporta Excel</button>
+                        <button class="mini-btn dark" onclick="printPartnerReport()">Stampa / Salva PDF</button>
 
-                <ul class="tasks">
-                    <li><strong>Mese selezionato:</strong> <span id="selectedMonthLabel">-</span></li>
-                    <li><strong>Percentuale OK:</strong> <span id="okRate">0%</span></li>
-                    <li><strong>Pratiche negative:</strong> <span id="negativeCount">0</span></li>
-                    <li><strong>Servizi collegati:</strong> <span id="partnerServices">-</span></li>
-                    <li><strong>Report disponibili:</strong> Excel / PDF</li>
-                </ul>
+                    </div>
+
+                </section>
 
             </div>
 
@@ -222,12 +292,7 @@
             <div class="section-title">
                 <div>
                     <h3>📋 Contratti del Partner</h3>
-                    <p>Dettaglio pratiche filtrate per partner e mensilità selezionata.</p>
-                </div>
-
-                <div class="table-actions">
-                    <button onclick="exportPartnerExcel()">Esporta Excel</button>
-                    <button onclick="printPartnerReport()">Stampa / Salva PDF</button>
+                    <p>Lista pratiche collegate al partner selezionato.</p>
                 </div>
             </div>
 
@@ -247,15 +312,14 @@
                             <th>Servizio</th>
                             <th>Stato</th>
                             <th>Gettone Partner</th>
-                            <th>Gettone Venditore</th>
-                            <th>Margine Maturato</th>
                             <th>Pagamento Partner</th>
+                            <th>Gettone Venditore</th>
+                            <th>Margine</th>
                             <th>Note</th>
                         </tr>
                     </thead>
 
-                    <tbody id="partnerContractsBody">
-                    </tbody>
+                    <tbody id="partnerContractsBody"></tbody>
 
                 </table>
 
@@ -265,7 +329,7 @@
 
     </main>
 
-    <script src="js/partner-detail.js"></script>
+    <script src="js/partner-detail.js?v=1800"></script>
 
 </body>
 
