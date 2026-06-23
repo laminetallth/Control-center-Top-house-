@@ -1,1 +1,473 @@
+<!DOCTYPE html>
+<html lang="it">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Report - Top House Gestionale</title>
+
+    <link rel="stylesheet" href="css/style.css?v=1700">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+
+        <div class="logo-section">
+
+            <div class="logo-mark">
+                <img src="assets/logo-casa.png" alt="Top House Logo">
+            </div>
+
+            <h2>TOP HOUSE</h2>
+            <p>GESTIONALE</p>
+
+        </div>
+
+        <ul class="menu">
+
+            <li>
+                <a href="index.html">🏠 Dashboard</a>
+            </li>
+
+            <li>
+                <a href="contracts.html">📄 Contratti</a>
+            </li>
+
+            <li>
+                <a href="vendors.html">👥 Venditori</a>
+            </li>
+
+            <li>
+                <a href="partners.html">🤝 Partner</a>
+            </li>
+
+            <li>
+                <a href="#">💰 Provvigioni</a>
+            </li>
+
+            <li>
+                <a href="investments.html">📈 Investimenti</a>
+            </li>
+
+            <li>
+                <a href="cashflow.html">🏦 Cash Flow</a>
+            </li>
+
+            <li>
+                <a href="#">📊 KPI</a>
+            </li>
+
+            <li class="active">
+                <a href="reports.html">📑 Report</a>
+            </li>
+
+            <li>
+                <a href="#">📁 Documenti</a>
+            </li>
+
+            <li>
+                <a href="#">⚙️ Impostazioni</a>
+            </li>
+
+        </ul>
+
+    </aside>
+
+    <main class="main">
+
+        <div class="header">
+
+            <div>
+                <h1>Report</h1>
+                <span>Riepilogo completo contratti, venditori, partner e margini</span>
+            </div>
+
+            <select class="month-select" id="monthFilter">
+                <option value="">Tutte le mensilità</option>
+                <option value="2026-01">Gennaio 2026</option>
+                <option value="2026-02">Febbraio 2026</option>
+                <option value="2026-03">Marzo 2026</option>
+                <option value="2026-04">Aprile 2026</option>
+                <option value="2026-05">Maggio 2026</option>
+                <option value="2026-06" selected>Giugno 2026</option>
+                <option value="2026-07">Luglio 2026</option>
+                <option value="2026-08">Agosto 2026</option>
+                <option value="2026-09">Settembre 2026</option>
+                <option value="2026-10">Ottobre 2026</option>
+                <option value="2026-11">Novembre 2026</option>
+                <option value="2026-12">Dicembre 2026</option>
+            </select>
+
+        </div>
+
+        <section class="cards">
+
+            <div class="card">
+                <h4>Totale Contratti</h4>
+                <p id="totaleContratti">0</p>
+            </div>
+
+            <div class="card">
+                <h4>Contratti OK</h4>
+                <p id="totaleOk">0</p>
+            </div>
+
+            <div class="card">
+                <h4>KO</h4>
+                <p id="totaleKo">0</p>
+            </div>
+
+            <div class="card">
+                <h4>Storni</h4>
+                <p id="totaleStorni">0</p>
+            </div>
+
+            <div class="card">
+                <h4>Da Incassare Partner</h4>
+                <p id="daIncassarePartner">0€</p>
+            </div>
+
+            <div class="card">
+                <h4>Da Pagare Venditori</h4>
+                <p id="daPagareVenditori">0€</p>
+            </div>
+
+            <div class="card">
+                <h4>Margine Maturato</h4>
+                <p id="margineMaturato">0€</p>
+            </div>
+
+        </section>
+
+        <section class="grid">
+
+            <div class="box">
+
+                <div class="section-title">
+                    <div>
+                        <h3>📊 Riepilogo Venditori</h3>
+                        <p>Classifica per contratti OK e provvigioni maturate.</p>
+                    </div>
+                </div>
+
+                <div class="table-wrapper">
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Venditore</th>
+                                <th>Totali</th>
+                                <th>OK</th>
+                                <th>KO</th>
+                                <th>Storni</th>
+                                <th>Provvigioni</th>
+                                <th>Margine</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="vendorsReportBody"></tbody>
+                    </table>
+
+                </div>
+
+            </div>
+
+            <div class="box">
+
+                <h3>📌 Azioni Report</h3>
+
+                <div class="dashboard-actions">
+                    <button onclick="window.print()">Stampa / Salva PDF</button>
+                    <a href="contracts.html">Esporta da Contratti</a>
+                    <a href="vendors.html">Vai a Venditori</a>
+                    <a href="partners.html">Vai a Partner</a>
+                </div>
+
+            </div>
+
+        </section>
+
+        <section class="box full-box">
+
+            <div class="section-title">
+                <div>
+                    <h3>🤝 Riepilogo Partner</h3>
+                    <p>Classifica per contratti OK, incassi e margine generato.</p>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Partner</th>
+                            <th>Totali</th>
+                            <th>OK</th>
+                            <th>KO</th>
+                            <th>Storni</th>
+                            <th>Da Incassare</th>
+                            <th>Incassato</th>
+                            <th>Margine</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="partnersReportBody"></tbody>
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        function testo(valore){
+            return String(valore || "").trim();
+        }
+
+        function numero(valore){
+            return Number(valore || 0);
+        }
+
+        function caricaContratti(){
+            const dati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
+
+            if(Array.isArray(dati)){
+                return dati;
+            }
+
+            return [];
+        }
+
+        function praticaValida(c){
+            return c.stato === "OK" || c.stato === "Pagato";
+        }
+
+        function margine(c){
+            if(!praticaValida(c)){
+                return 0;
+            }
+
+            return numero(c.gettonePartner) - numero(c.gettoneVenditore);
+        }
+
+        function filtraMese(lista){
+            const mese = document.getElementById("monthFilter").value;
+
+            if(mese === ""){
+                return lista;
+            }
+
+            return lista.filter(c => testo(c.dataInserimento).slice(0, 7) === mese);
+        }
+
+        function aggiornaReport(){
+
+            const contratti = filtraMese(caricaContratti());
+
+            const totale = contratti.length;
+            const ok = contratti.filter(c => praticaValida(c)).length;
+            const ko = contratti.filter(c => c.stato === "KO").length;
+            const storni = contratti.filter(c => c.stato === "Storno").length;
+
+            const daIncassare = contratti
+                .filter(c => praticaValida(c) && c.pagamentoPartner === "Da incassare")
+                .reduce((tot, c) => tot + numero(c.gettonePartner), 0);
+
+            const daPagare = contratti
+                .filter(c => praticaValida(c) && c.pagamentoVenditore === "Da pagare")
+                .reduce((tot, c) => tot + numero(c.gettoneVenditore), 0);
+
+            const margineTotale = contratti
+                .filter(c => praticaValida(c))
+                .reduce((tot, c) => tot + margine(c), 0);
+
+            document.getElementById("totaleContratti").innerText = totale;
+            document.getElementById("totaleOk").innerText = ok;
+            document.getElementById("totaleKo").innerText = ko;
+            document.getElementById("totaleStorni").innerText = storni;
+            document.getElementById("daIncassarePartner").innerText = daIncassare + "€";
+            document.getElementById("daPagareVenditori").innerText = daPagare + "€";
+            document.getElementById("margineMaturato").innerText = margineTotale + "€";
+
+            renderVenditori(contratti);
+            renderPartner(contratti);
+        }
+
+        function renderVenditori(contratti){
+
+            const tbody = document.getElementById("vendorsReportBody");
+            const stats = {};
+
+            contratti.forEach(c => {
+
+                const nome = testo(c.venditore);
+
+                if(!nome){
+                    return;
+                }
+
+                if(!stats[nome]){
+                    stats[nome] = {
+                        nome: nome,
+                        totale: 0,
+                        ok: 0,
+                        ko: 0,
+                        storni: 0,
+                        provvigioni: 0,
+                        margine: 0
+                    };
+                }
+
+                stats[nome].totale += 1;
+
+                if(praticaValida(c)){
+                    stats[nome].ok += 1;
+                    stats[nome].provvigioni += numero(c.gettoneVenditore);
+                    stats[nome].margine += margine(c);
+                }
+
+                if(c.stato === "KO"){
+                    stats[nome].ko += 1;
+                }
+
+                if(c.stato === "Storno"){
+                    stats[nome].storni += 1;
+                }
+
+            });
+
+            const lista = Object.values(stats).sort((a, b) => b.ok - a.ok);
+
+            tbody.innerHTML = "";
+
+            if(lista.length === 0){
+
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="text-align:center; padding:30px; color:#6b7280; font-weight:bold;">
+                            Nessun dato venditore disponibile.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+            lista.forEach(v => {
+
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${v.nome}</td>
+                    <td>${v.totale}</td>
+                    <td>${v.ok}</td>
+                    <td>${v.ko}</td>
+                    <td>${v.storni}</td>
+                    <td>${v.provvigioni}€</td>
+                    <td>${v.margine}€</td>
+                `;
+
+                tbody.appendChild(row);
+
+            });
+        }
+
+        function renderPartner(contratti){
+
+            const tbody = document.getElementById("partnersReportBody");
+            const stats = {};
+
+            contratti.forEach(c => {
+
+                const nome = testo(c.partner);
+
+                if(!nome){
+                    return;
+                }
+
+                if(!stats[nome]){
+                    stats[nome] = {
+                        nome: nome,
+                        totale: 0,
+                        ok: 0,
+                        ko: 0,
+                        storni: 0,
+                        daIncassare: 0,
+                        incassato: 0,
+                        margine: 0
+                    };
+                }
+
+                stats[nome].totale += 1;
+
+                if(praticaValida(c)){
+                    stats[nome].ok += 1;
+                    stats[nome].margine += margine(c);
+
+                    if(c.pagamentoPartner === "Da incassare"){
+                        stats[nome].daIncassare += numero(c.gettonePartner);
+                    }
+
+                    if(c.pagamentoPartner === "Incassato"){
+                        stats[nome].incassato += numero(c.gettonePartner);
+                    }
+                }
+
+                if(c.stato === "KO"){
+                    stats[nome].ko += 1;
+                }
+
+                if(c.stato === "Storno"){
+                    stats[nome].storni += 1;
+                }
+
+            });
+
+            const lista = Object.values(stats).sort((a, b) => b.ok - a.ok);
+
+            tbody.innerHTML = "";
+
+            if(lista.length === 0){
+
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align:center; padding:30px; color:#6b7280; font-weight:bold;">
+                            Nessun dato partner disponibile.
+                        </td>
+                    </tr>
+                `;
+
+                return;
+            }
+
+            lista.forEach(p => {
+
+                const row = document.createElement("tr");
+
+                row.innerHTML = `
+                    <td>${p.nome}</td>
+                    <td>${p.totale}</td>
+                    <td>${p.ok}</td>
+                    <td>${p.ko}</td>
+                    <td>${p.storni}</td>
+                    <td>${p.daIncassare}€</td>
+                    <td>${p.incassato}€</td>
+                    <td>${p.margine}€</td>
+                `;
+
+                tbody.appendChild(row);
+
+            });
+        }
+
+        document.getElementById("monthFilter").addEventListener("change", aggiornaReport);
+
+        aggiornaReport();
+    </script>
+
+</body>
+
+</html>
