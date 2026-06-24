@@ -1,3 +1,4 @@
+import { readCollection } from "./firebase-data.js";
 const VENDITORI_REGISTRATI = [
     "Antonio Attardi",
     "Davide Marino",
@@ -639,4 +640,5 @@ paymentFilter.addEventListener("change", aggiornaPagina);
 
 popolaVenditori();
 
-aggiornaPagina();
+async function inizializzaFirebase(){ try{ await readCollection("contracts"); }catch(error){ console.error(error); } aggiornaPagina(); }
+inizializzaFirebase();

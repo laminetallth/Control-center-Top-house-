@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Investimenti - Top House Gestionale</title>
 
-    <link rel="stylesheet" href="css/style.css?v=3000">
+    <link rel="stylesheet" href="css/style.css?v=3100">
 </head>
 
 <body>
@@ -20,6 +20,7 @@
             <div>
                 <h1>Investimenti</h1>
                 <span>Controllo spese, investimenti e ritorno economico</span>
+                <p id="firebaseStatus" class="firebase-status">Connessione Firebase in corso...</p>
             </div>
 
             <select class="month-select" id="monthFilter">
@@ -154,9 +155,11 @@
 
     </main>
 
-    <script src="js/menu.js?v=3000"></script>
-    <script type="module" src="js/auth-guard.js?v=3000"></script>
-    <script>
+    <script src="js/menu.js?v=3100"></script>
+    <script type="module" src="js/auth-guard.js?v=3100"></script>
+    <script type="module">
+        import { readCollection, addDocument, deleteDocument } from "./js/firebase-data.js";
+        function setFirebaseStatus(message, type){ const el = document.getElementById("firebaseStatus"); if(el){ el.textContent = message; el.className = `firebase-status ${type || ""}`.trim(); } }
         function testo(valore){
             return String(valore || "").trim();
         }
@@ -223,7 +226,7 @@
 
         let investimenti = caricaInvestimenti();
 
-        document.getElementById("investmentForm").addEventListener("submit", function(e){
+        document.getElementById("investmentForm").addEventListener("submit", async function(e){
             e.preventDefault();
 
             const nuovo = {
@@ -239,16 +242,19 @@
 
             e.target.reset();
             aggiornaPagina();
+            try{ await addDocument("investments", nuovo); setFirebaseStatus("Dati sincronizzati", "online"); }catch(error){ console.error(error); setFirebaseStatus("Errore Firebase", "error"); }
         });
 
-        function eliminaInvestimento(id){
+        async function eliminaInvestimento(id){
             if(!confirm("Vuoi eliminare questo investimento?")){
                 return;
             }
 
+            const old = investimenti.find(i => i.id === id);
             investimenti = investimenti.filter(i => i.id !== id);
             salvaInvestimenti();
             aggiornaPagina();
+            try{ await deleteDocument("investments", old?.firestoreId || old?.localId || id); setFirebaseStatus("Dati sincronizzati", "online"); }catch(error){ console.error(error); setFirebaseStatus("Errore Firebase", "error"); }
         }
 
         function resetInvestimenti(){
@@ -332,8 +338,9 @@
         }
 
         document.getElementById("monthFilter").addEventListener("change", aggiornaPagina);
-
-        aggiornaPagina();
+        window.eliminaInvestimento = eliminaInvestimento; window.resetInvestimenti = resetInvestimenti;
+        async function caricaFirebase(){ try{ investimenti = await readCollection("investments"); salvaInvestimenti(); setFirebaseStatus("Dati sincronizzati", "online"); }catch(error){ console.error(error); setFirebaseStatus("Errore Firebase", "error"); } aggiornaPagina(); }
+        aggiornaPagina(); caricaFirebase();
     </script>
 
 </body>

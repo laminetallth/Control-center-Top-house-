@@ -1,3 +1,4 @@
+import { readCollection } from "./firebase-data.js";
 const MESI = [
     ["2026-01", "Gennaio 2026"], ["2026-02", "Febbraio 2026"], ["2026-03", "Marzo 2026"],
     ["2026-04", "Aprile 2026"], ["2026-05", "Maggio 2026"], ["2026-06", "Giugno 2026"],
