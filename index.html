@@ -77,6 +77,16 @@
                 <p id="dashMargine">0€</p>
             </a>
 
+            <a href="affiliates.html" class="card card-link">
+                <h4>Affiliati Totali</h4>
+                <p id="dashAffiliatiTotali">0</p>
+            </a>
+
+            <a href="affiliates.html" class="card card-link">
+                <h4>Affiliati Attivi</h4>
+                <p id="dashAffiliatiAttivi">0</p>
+            </a>
+
         </section>
 
         <section class="grid">
@@ -94,6 +104,8 @@
                     <a href="contracts.html">➕ Nuovo Contratto</a>
                     <a href="vendors.html">👥 Venditori</a>
                     <a href="partners.html">🤝 Partner</a>
+                    <a href="affiliates.html">🏪 Affiliati</a>
+                    <a href="activities.html">✅ Attività</a>
                     <a href="cashflow.html">🏦 Cash Flow</a>
                     <a href="investments.html">📈 Investimenti</a>
                     <a href="reports.html">📑 Report</a>
@@ -103,13 +115,10 @@
 
             <div class="box">
 
-                <h3>✅ Attività rapide</h3>
+                <h3>✅ Promemoria</h3>
 
-                <ul class="tasks">
-                    <li>Controllare pratiche da pagare ai venditori</li>
-                    <li>Verificare incassi partner</li>
-                    <li>Controllare KO e storni del mese</li>
-                    <li>Esportare report mensile</li>
+                <ul class="tasks" id="dashboardReminders">
+                    <li>Nessun promemoria aperto.</li>
                 </ul>
 
             </div>
@@ -161,13 +170,33 @@
         }
 
         function caricaContratti(){
-            const dati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
+            try{
+                const dati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
 
-            if(Array.isArray(dati)){
-                return dati;
-            }
+                if(Array.isArray(dati)){
+                    return dati;
+                }
+            }catch(error){}
 
             return [];
+        }
+
+        function caricaAffiliati(){
+            try{
+                const dati = JSON.parse(localStorage.getItem("affiliatiTopHouse"));
+                return Array.isArray(dati) ? dati : [];
+            }catch(error){
+                return [];
+            }
+        }
+
+        function caricaAttivita(){
+            try{
+                const dati = JSON.parse(localStorage.getItem("attivitaTopHouse"));
+                return Array.isArray(dati) ? dati : [];
+            }catch(error){
+                return [];
+            }
         }
 
         function praticaValida(c){
@@ -224,6 +253,11 @@
             document.getElementById("dashDaPagare").innerText = daPagare + "€";
             document.getElementById("dashMargine").innerText = margineTotale + "€";
 
+            const affiliati = caricaAffiliati();
+            document.getElementById("dashAffiliatiTotali").innerText = affiliati.length;
+            document.getElementById("dashAffiliatiAttivi").innerText = affiliati.filter(a => a.stato === "Attivo").length;
+
+            renderPromemoria();
             renderUltimiContratti(contratti);
         }
 
@@ -245,6 +279,21 @@
             }
 
             return '<span class="badge pending">' + stato + '</span>';
+        }
+
+        function renderPromemoria(){
+            const lista = caricaAttivita().filter(a => a.stato !== "Completata").slice(0, 5);
+            const box = document.getElementById("dashboardReminders");
+            box.innerHTML = "";
+
+            if(lista.length === 0){
+                box.innerHTML = "<li>Nessun promemoria aperto.</li>";
+                return;
+            }
+
+            lista.forEach(a => {
+                box.innerHTML += `<li><strong>${a.titolo || "Attività"}</strong><br><small>${a.stato || "Da fare"} · ${a.priorita || "Media"} · ${a.scadenza || "Senza scadenza"}</small></li>`;
+            });
         }
 
         function renderUltimiContratti(contratti){

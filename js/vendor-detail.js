@@ -72,13 +72,39 @@ function iniziali(nome){
 }
 
 function caricaContratti(){
-    const dati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
+    try{
+        const dati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
 
-    if(Array.isArray(dati)){
-        return dati;
-    }
+        if(Array.isArray(dati)){
+            return dati;
+        }
+    }catch(error){}
 
     return [];
+}
+
+function caricaAffiliati(){
+    try{
+        const dati = JSON.parse(localStorage.getItem("affiliatiTopHouse"));
+        return Array.isArray(dati) ? dati : [];
+    }catch(error){
+        return [];
+    }
+}
+
+function escapeHtml(valore){
+    return testo(valore).replace(/[&<>'\"]/g, carattere => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        "'":"&#39;",
+        '\"':"&quot;"
+    }[carattere]));
+}
+
+function badgeAffiliato(stato){
+    const classe = testo(stato).toLowerCase().replaceAll(" ", "-");
+    return `<span class="badge ${classe}">${escapeHtml(stato || "-")}</span>`;
 }
 
 function caricaStatiVenditori(){
@@ -214,6 +240,43 @@ function aggiornaProfilo(){
     statusSelect.addEventListener("change", function(){
         salvaStatoVenditore(venditore.nome, statusSelect.value);
         alert("Stato aggiornato: " + statusSelect.value);
+    });
+}
+
+function filtraAffiliatiVenditore(){
+    return caricaAffiliati().filter(affiliato => testo(affiliato.venditore) === nomeVenditore);
+}
+
+function renderAffiliatiVenditore(){
+    const affiliati = filtraAffiliatiVenditore();
+    const tbody = document.getElementById("vendorAffiliatesBody");
+
+    document.getElementById("totaleAffiliati").innerText = affiliati.length;
+    document.getElementById("affiliatiAttivi").innerText = affiliati.filter(a => a.stato === "Attivo").length;
+
+    tbody.innerHTML = "";
+
+    if(affiliati.length === 0){
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" style="text-align:center; padding:30px; color:#6b7280; font-weight:bold;">
+                    Nessun affiliato collegato a questo venditore.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    affiliati.forEach(affiliato => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+            <td>${escapeHtml(affiliato.nomeAttivita)}</td>
+            <td>${escapeHtml(affiliato.citta)}</td>
+            <td>${numero(affiliato.gettoneStipulato)}€</td>
+            <td>${badgeAffiliato(affiliato.stato)}</td>
+            <td>${escapeHtml(affiliato.note)}</td>
+        `;
+        tbody.appendChild(row);
     });
 }
 
@@ -390,6 +453,8 @@ function aggiornaPagina(){
     renderContratti(lista);
 
     renderGraficoMensile();
+
+    renderAffiliatiVenditore();
 }
 
 async function exportVendorExcel(){
