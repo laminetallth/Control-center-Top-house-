@@ -44,6 +44,16 @@ function praticaValida(contratto){
     return contratto.stato === "OK" || contratto.stato === "Pagato";
 }
 
+
+function getContractUnits(contratto){
+    const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
+    if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){
+        return 2;
+    }
+    return 1;
+}
+function sommaUnita(lista){ return lista.reduce((totale, contratto) => totale + getContractUnits(contratto), 0); }
+
 function calcolaMargine(contratto){
 
     if(!praticaValida(contratto)){
@@ -148,7 +158,7 @@ function badgeStato(stato){
 
 function aggiornaCards(lista){
 
-    const pratichePagabili = lista.length;
+    const pratichePagabili = sommaUnita(lista);
 
     const provvigioniMaturate = lista
         .filter(c => c.pagamentoVenditore !== "Non dovuto")
@@ -183,7 +193,8 @@ function aggiornaCards(lista){
         .filter(c =>
             c.pagamentoVenditore === "Da pagare" &&
             numero(c.gettoneVenditore) > 0
-        ).length;
+        )
+        .reduce((totale, c) => totale + getContractUnits(c), 0);
 
     document.getElementById("pratichePagabili").innerText = pratichePagabili;
     document.getElementById("provvigioniMaturate").innerText = provvigioniMaturate + "€";
@@ -232,7 +243,7 @@ function creaStatisticheVenditori(lista){
             };
         }
 
-        statistiche[venditore].pratiche += 1;
+        statistiche[venditore].pratiche += getContractUnits(contratto);
 
         if(contratto.pagamentoVenditore !== "Non dovuto"){
             statistiche[venditore].provvigioni += numero(contratto.gettoneVenditore);
@@ -391,7 +402,7 @@ async function exportCommissionsExcel(){
     const meseSelezionato = monthFilter.options[monthFilter.selectedIndex].text;
     const dataExport = new Date().toLocaleDateString("it-IT");
 
-    const pratichePagabili = lista.length;
+    const pratichePagabili = sommaUnita(lista);
 
     const provvigioniMaturate = lista
         .filter(c => c.pagamentoVenditore !== "Non dovuto")

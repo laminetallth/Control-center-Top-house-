@@ -107,6 +107,16 @@ function badgeStatoVenditore(nome){
     return `<span class="badge off">Non attivo</span>`;
 }
 
+
+function getContractUnits(contratto){
+    const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
+    if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){
+        return 2;
+    }
+    return 1;
+}
+function sommaUnita(lista){ return lista.reduce((totale, contratto) => totale + getContractUnits(contratto), 0); }
+
 function calcolaMargine(contratto){
 
     if(contratto.stato !== "OK" && contratto.stato !== "Pagato"){
@@ -193,11 +203,11 @@ function creaStatisticheVenditori(contratti){
 
         }
 
-        statistiche[nomeVenditore].totale += 1;
+        statistiche[nomeVenditore].totale += getContractUnits(contratto);
 
         if(contratto.stato === "OK" || contratto.stato === "Pagato"){
 
-            statistiche[nomeVenditore].ok += 1;
+            statistiche[nomeVenditore].ok += getContractUnits(contratto);
 
             statistiche[nomeVenditore].provvigioniMaturate += numero(contratto.gettoneVenditore);
 
@@ -214,11 +224,11 @@ function creaStatisticheVenditori(contratti){
         }
 
         if(contratto.stato === "KO"){
-            statistiche[nomeVenditore].ko += 1;
+            statistiche[nomeVenditore].ko += getContractUnits(contratto);
         }
 
         if(contratto.stato === "Storno"){
-            statistiche[nomeVenditore].storni += 1;
+            statistiche[nomeVenditore].storni += getContractUnits(contratto);
         }
 
     });

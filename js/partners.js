@@ -83,6 +83,16 @@ function iniziale(nome){
     return testo(nome).charAt(0).toUpperCase();
 }
 
+
+function getContractUnits(contratto){
+    const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
+    if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){
+        return 2;
+    }
+    return 1;
+}
+function sommaUnita(lista){ return lista.reduce((totale, contratto) => totale + getContractUnits(contratto), 0); }
+
 function calcolaMargine(contratto){
 
     if(contratto.stato !== "OK" && contratto.stato !== "Pagato"){
@@ -168,11 +178,11 @@ function creaStatistichePartner(contratti){
 
         }
 
-        statistiche[nomePartner].totale += 1;
+        statistiche[nomePartner].totale += getContractUnits(contratto);
 
         if(contratto.stato === "OK" || contratto.stato === "Pagato"){
 
-            statistiche[nomePartner].ok += 1;
+            statistiche[nomePartner].ok += getContractUnits(contratto);
 
             statistiche[nomePartner].margine += calcolaMargine(contratto);
 
@@ -187,11 +197,11 @@ function creaStatistichePartner(contratti){
         }
 
         if(contratto.stato === "KO"){
-            statistiche[nomePartner].ko += 1;
+            statistiche[nomePartner].ko += getContractUnits(contratto);
         }
 
         if(contratto.stato === "Storno"){
-            statistiche[nomePartner].storni += 1;
+            statistiche[nomePartner].storni += getContractUnits(contratto);
         }
 
     });

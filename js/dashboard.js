@@ -20,6 +20,16 @@ function caricaContratti(){
     }
 }
 
+
+function getContractUnits(contratto){
+    const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
+    if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){
+        return 2;
+    }
+    return 1;
+}
+function sommaUnita(lista){ return lista.reduce((totale, contratto) => totale + getContractUnits(contratto), 0); }
+
 function calcolaMargine(contratto){
 
     if(contratto.stato !== "OK" && contratto.stato !== "Pagato"){
@@ -45,13 +55,13 @@ function filtraPerMese(contratti){
 
 function aggiornaCards(lista){
 
-    const totale = lista.length;
+    const totale = sommaUnita(lista);
 
-    const ok = lista.filter(c => c.stato === "OK" || c.stato === "Pagato").length;
+    const ok = sommaUnita(lista.filter(c => c.stato === "OK" || c.stato === "Pagato"));
 
-    const ko = lista.filter(c => c.stato === "KO").length;
+    const ko = sommaUnita(lista.filter(c => c.stato === "KO"));
 
-    const storni = lista.filter(c => c.stato === "Storno").length;
+    const storni = sommaUnita(lista.filter(c => c.stato === "Storno"));
 
     const daIncassarePartner = lista
         .filter(c =>
@@ -129,7 +139,7 @@ function creaStatisticheVenditori(lista){
 
         if(contratto.stato === "OK" || contratto.stato === "Pagato"){
 
-            statistiche[venditore].ok += 1;
+            statistiche[venditore].ok += getContractUnits(contratto);
             statistiche[venditore].provvigioni += numero(contratto.gettoneVenditore);
             statistiche[venditore].margine += calcolaMargine(contratto);
 
@@ -217,7 +227,7 @@ function creaStatistichePartner(lista){
 
         if(contratto.stato === "OK" || contratto.stato === "Pagato"){
 
-            statistiche[partner].ok += 1;
+            statistiche[partner].ok += getContractUnits(contratto);
             statistiche[partner].margine += calcolaMargine(contratto);
 
             if(contratto.pagamentoPartner === "Da incassare"){

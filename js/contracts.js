@@ -186,6 +186,15 @@ function salvaStorage(){
     localStorage.setItem("contrattiTopHouse", JSON.stringify(contratti));
 }
 
+
+function getContractUnits(contratto){
+    const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
+    if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){
+        return 2;
+    }
+    return 1;
+}
+
 function praticaValidaPerCompensi(contratto){
     return contratto.stato === "OK" || contratto.stato === "Pagato";
 }
@@ -365,13 +374,13 @@ function renderContratti(){
 
 function aggiornaStatistiche(lista){
 
-    const totale = lista.length;
+    const totale = sommaUnita(lista);
 
-    const ok = lista.filter(c => praticaValidaPerCompensi(c)).length;
+    const ok = sommaUnita(lista.filter(c => praticaValidaPerCompensi(c)));
 
-    const ko = lista.filter(c => c.stato === "KO").length;
+    const ko = sommaUnita(lista.filter(c => c.stato === "KO"));
 
-    const storni = lista.filter(c => c.stato === "Storno").length;
+    const storni = sommaUnita(lista.filter(c => c.stato === "Storno"));
 
     const daIncassarePartner = lista
         .filter(c =>
@@ -553,118 +562,42 @@ managerFilter.addEventListener("change", renderContratti);
 statusFilter.addEventListener("change", renderContratti);
 paymentVendorFilter.addEventListener("change", renderContratti);
 
-async function exportReport(){
 
+function sommaUnita(lista){
+    return lista.reduce((totale, contratto) => totale + getContractUnits(contratto), 0);
+}
+
+function exportReport(){
     const lista = getListaFiltrata();
-
     const meseSelezionato = monthFilter.options[monthFilter.selectedIndex].text;
     const dataExport = new Date().toLocaleDateString("it-IT");
+    const totale = sommaUnita(lista);
+    const ok = sommaUnita(lista.filter(c => praticaValidaPerCompensi(c)));
+    const ko = sommaUnita(lista.filter(c => c.stato === "KO"));
+    const storni = sommaUnita(lista.filter(c => c.stato === "Storno"));
+    const daIncassarePartner = lista.filter(c => praticaValidaPerCompensi(c) && c.pagamentoPartner === "Da incassare").reduce((totale, c) => totale + numero(c.gettonePartner), 0);
+    const daPagareVenditori = lista.filter(c => praticaValidaPerCompensi(c) && c.pagamentoVenditore === "Da pagare").reduce((totale, c) => totale + numero(c.gettoneVenditore), 0);
+    const margineMaturato = lista.filter(c => praticaValidaPerCompensi(c)).reduce((totale, c) => totale + calcolaMargine(c), 0);
+    const righeContratti = lista.map(c => `<tr><td>${c.id}</td><td>${escapeHtml(c.dataInserimento)}</td><td>${escapeHtml(c.dataEsito)}</td><td>${escapeHtml(c.nome)}</td><td>${escapeHtml(c.cognome)}</td><td>${escapeHtml(c.venditore)}</td><td>${escapeHtml(c.partner)}</td><td>${escapeHtml(c.gestore)}</td><td>${escapeHtml(c.servizio)}</td><td>${getContractUnits(c)}</td><td>${escapeHtml(c.stato)}</td><td>${c.gettonePartner}€</td><td>${c.gettoneVenditore}€</td><td>${calcolaMargine(c)}€</td><td>${escapeHtml(c.pagamentoPartner)}</td><td>${escapeHtml(c.pagamentoVenditore)}</td><td>${escapeHtml(c.note)}</td></tr>`).join("") || `<tr><td colspan="17">Nessun contratto trovato.</td></tr>`;
+    const reportHtml = `<html><head><meta charset="UTF-8"></head><body><h1>TOP HOUSE - Report Contratti</h1><p>Mensilità: ${escapeHtml(meseSelezionato)} | Export: ${escapeHtml(dataExport)}</p><table border="1"><tbody><tr><td>Totale contratti</td><td>${totale}</td><td>OK</td><td>${ok}</td><td>KO</td><td>${ko}</td><td>Storni</td><td>${storni}</td><td>Da incassare partner</td><td>${daIncassarePartner}€</td><td>Da pagare venditori</td><td>${daPagareVenditori}€</td><td>Margine</td><td>${margineMaturato}€</td></tr></tbody></table><br><table border="1"><thead><tr><th>ID</th><th>Data Inserimento</th><th>Data Esito</th><th>Nome</th><th>Cognome</th><th>Venditore</th><th>Partner</th><th>Gestore</th><th>Servizio</th><th>Unità</th><th>Stato</th><th>Gettone Partner</th><th>Gettone Venditore</th><th>Margine</th><th>Pagamento Partner</th><th>Pagamento Venditore</th><th>Note</th></tr></thead><tbody>${righeContratti}</tbody></table></body></html>`;
+    const blob = new Blob([reportHtml], { type: "application/vnd.ms-excel;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `contratti-top-house-${monthFilter.value || "tutti"}.xls`;
+    link.click();
+}
 
-    const totale = lista.length;
-    const ok = lista.filter(c => praticaValidaPerCompensi(c)).length;
-    const ko = lista.filter(c => c.stato === "KO").length;
-    const storni = lista.filter(c => c.stato === "Storno").length;
-
-    const daIncassarePartner = lista
-        .filter(c =>
-            praticaValidaPerCompensi(c) &&
-            c.pagamentoPartner === "Da incassare"
-        )
-        .reduce((totale, c) => totale + numero(c.gettonePartner), 0);
-
-    const daPagareVenditori = lista
-        .filter(c =>
-            praticaValidaPerCompensi(c) &&
-            c.pagamentoVenditore === "Da pagare"
-        )
-        .reduce((totale, c) => totale + numero(c.gettoneVenditore), 0);
-
-    const margineMaturato = lista
-        .filter(c => praticaValidaPerCompensi(c))
-        .reduce((totale, c) => totale + calcolaMargine(c), 0);
-
-    let logoBase64 = "";
-
-    try{
-        const response = await fetch("assets/logo-tophouse.png");
-        const blob = await response.blob();
-
-        logoBase64 = await new Promise(resolve => {
-            const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result);
-            reader.readAsDataURL(blob);
-        });
-    }catch(error){
-        logoBase64 = "";
+function resetContratti(){
+    if(!confirm("Vuoi davvero svuotare tutti i contratti?")){
+        return;
     }
+    contratti = [];
+    salvaStorage();
+    renderContratti();
+    resetForm();
+}
 
-    let righeContratti = "";
-
-    if(lista.length === 0){
-
-        righeContratti = `
-            <tr>
-                <td colspan="16" class="empty">
-                    Nessun contratto trovato per i filtri selezionati.
-                </td>
-            </tr>
-        `;
-
-    }else{
-
-        lista.forEach(c => {
-
-            const margine = calcolaMargine(c);
-
-            righeContratti += `
-                <tr>
-                    <td>${c.id}</td>
-                    <td>${escapeHtml(c.dataInserimento)}</td>
-                    <td>${escapeHtml(c.dataEsito)}</td>
-                    <td>${escapeHtml(c.nome)}</td>
-                    <td>${escapeHtml(c.cognome)}</td>
-                    <td>${escapeHtml(c.venditore)}</td>
-                    <td>${escapeHtml(c.partner)}</td>
-                    <td>${escapeHtml(c.gestore)}</td>
-                    <td>${escapeHtml(c.servizio)}</td>
-                    <td>${escapeHtml(c.stato)}</td>
-                    <td>${c.gettonePartner}€</td>
-                    <td>${c.gettoneVenditore}€</td>
-                    <td>${margine}€</td>
-                    <td>${escapeHtml(c.pagamentoPartner)}</td>
-                    <td>${escapeHtml(c.pagamentoVenditore)}</td>
-                    <td>${escapeHtml(c.note)}</td>
-                </tr>
-            `;
-
-        });
-
-    }
-
-    const reportHtml = `
-        <html>
-        <head>
-            <meta charset="UTF-8">
-
-            <style>
-
-                body{
-                    font-family: Arial, Helvetica, sans-serif;
-                    background:#ffffff;
-                    color:#081120;
-                }
-
-                .header-report{
-                    background:linear-gradient(90deg,#d90429,#ff7b00);
-                    color:white;
-                    padding:24px;
-                    border-radius:18px;
-                    margin-bottom:24px;
-                }
-
-                .logo{
-                    max-height:80px;
-                    margin-bottom:12px;
-                    background:white;
-                    padding:10px;
-                    bor
+popolaFiltriFissi();
+salvaStorage();
+renderContratti();
+resetForm();
