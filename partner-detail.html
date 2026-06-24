@@ -233,6 +233,37 @@
 
         </section>
 
+        <section class="box full-box greenword-analysis" id="greenwordAnalysisBox" style="display:none;">
+            <div class="section-title">
+                <div>
+                    <h3>🟢 Analisi Greenword</h3>
+                    <p>Distribuzione contratti Greenword per gestore e venditore.</p>
+                </div>
+
+                <div class="greenword-controls">
+                    <select id="greenwordMonthFilter">
+                        <option value="">Tutti i mesi</option>
+                    </select>
+
+                    <select id="greenwordChartMode">
+                        <option value="gestori">Contratti per gestore</option>
+                        <option value="venditori">Venditori Greenword</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="greenword-chart-layout">
+                <div class="greenword-chart-left">
+                    <div id="greenwordPieChart" class="pie-chart"></div>
+                    <div id="greenwordPieLegend" class="pie-legend"></div>
+                </div>
+
+                <div class="greenword-chart-right">
+                    <div id="greenwordChartSummary"></div>
+                </div>
+            </div>
+        </section>
+
         <section class="box full-box">
 
             <div class="section-title">
