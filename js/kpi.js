@@ -68,7 +68,48 @@ function leggiStorage(chiave){ try{ const dati = JSON.parse(localStorage.getItem
 function meseDaData(data){ return testo(data).slice(0, 7); }
 function filtraContrattiMese(contratti, mese){ return contratti.filter(c => meseDaData(c.dataInserimento) === mese); }
 function filtraInvestimentiMese(investimenti, mese){ return investimenti.filter(i => meseDaData(i.data || i.dataInserimento) === mese); }
-function mesePrecedente(mese){ const i = MESI.findIndex(m => m[0] === mese); return i > 0 ? MESI[i - 1][0] : ""; }
+function mesePrecedente(mese){
+    const [anno, meseNumero] = testo(mese).split("-").map(Number);
+    if(!anno || !meseNumero) return "";
+    const data = new Date(Date.UTC(anno, meseNumero - 2, 1));
+    return data.toISOString().slice(0, 7);
+}
+
+function calculatePercentageChange(current, previous){
+    current = numero(current);
+    previous = numero(previous);
+
+    if(previous === 0 && current === 0){
+        return { value: 0, label: "0%", direction: "neutral" };
+    }
+
+    if(previous === 0 && current > 0){
+        return { value: 100, label: "+100%", direction: "positive" };
+    }
+
+    const change = ((current - previous) / previous) * 100;
+    const rounded = Math.round(change);
+
+    return {
+        value: rounded,
+        label: `${rounded > 0 ? "+" : ""}${rounded}%`,
+        direction: rounded > 0 ? "positive" : rounded < 0 ? "negative" : "neutral"
+    };
+}
+
+function getDelta(current, previous, invert = false){
+    const delta = calculatePercentageChange(current, previous);
+
+    if(delta.direction === "neutral"){
+        return delta;
+    }
+
+    if(invert){
+        delta.direction = delta.direction === "positive" ? "negative" : "positive";
+    }
+
+    return delta;
+}
 
 function popolaMesi(){
     const select = document.getElementById("monthFilter");
@@ -100,14 +141,17 @@ function calcolaMetriche(contratti, investimenti){
     return { totale, ok, commodity, extraCommodity, commodityOk, extraCommodityOk, commodityPerc, extraCommodityPerc, okRate, ko, storni, margine, daIncassare, daPagare, investimenti: investimentiTot, roi, saldo, cashPressure };
 }
 
-function renderCards(m){
+function renderCards(m, precedente){
     const cards = KPI_COMPARISON_CONFIG.concat([
-        { key:"saldo", label:"Saldo Operativo", type:"currency" },
-        { key:"cashPressure", label:"Cash pressure", type:"currency" }
+        { key:"saldo", label:"Saldo Operativo", type:"currency", mood:"up" },
+        { key:"cashPressure", label:"Cash pressure", type:"currency", mood:"down" }
     ]);
-    document.getElementById("mainKpiCards").innerHTML = cards.map(k => `
-        <div class="card kpi-card"><h4>${k.label}</h4><p>${format(m[k.key], k.type)}</p><small>Mese selezionato</small></div>
-    `).join("");
+    document.getElementById("mainKpiCards").innerHTML = cards.map(k => {
+        const delta = getDelta(m[k.key], precedente[k.key], k.mood === "down");
+        return `
+        <div class="card kpi-card"><span class="kpi-corner-delta ${delta.direction}">${delta.label}</span><h4>${k.label}</h4><p>${format(m[k.key], k.type)}</p><small>Mese selezionato</small></div>
+    `;
+    }).join("");
 }
 
 function variazione(attuale, precedente){ if(precedente === 0) return attuale === 0 ? "N/D" : "Nuovo"; return `${Math.round(((attuale - precedente) / Math.abs(precedente)) * 100)}%`; }
@@ -174,7 +218,7 @@ function aggiornaPagina(){
     const attuale = calcolaMetriche(lista, invMese);
     const prev = mesePrecedente(mese);
     const precedente = calcolaMetriche(prev ? filtraContrattiMese(contratti, prev) : [], prev ? filtraInvestimentiMese(investimenti, prev) : []);
-    renderCards(attuale); renderComparison(attuale, precedente);
+    renderCards(attuale, precedente); renderComparison(attuale, precedente);
     const serie = aggregaMesi(contratti, investimenti);
     renderBarChart("contractsTrend", serie, "totale", "number"); renderBarChart("marginTrend", serie, "margine", "currency"); renderBarChart("okRateTrend", serie, "okRate", "percent"); renderBarChart("investmentsTrend", serie, "investimenti", "currency");
     renderServiceMix(lista);
