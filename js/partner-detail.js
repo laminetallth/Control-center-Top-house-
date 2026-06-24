@@ -180,6 +180,7 @@ function trovaPartner(nome){
 
 const nomePartnerUrl = decodeURIComponent(getParametro("partner"));
 const partner = trovaPartner(nomePartnerUrl);
+const isGreenword = String(partner.nome || "").trim().toLowerCase() === "greenword";
 
 const monthFilter = document.getElementById("monthFilter");
 
@@ -424,20 +425,135 @@ function renderGraficoMensile(){
     });
 }
 
-function renderOnovaDistribution(lista){
-    const box = document.getElementById("onovaDistributionBox");
-    const chart = document.getElementById("onovaPieChart");
-    const legend = document.getElementById("onovaPieLegend");
-    if(!box || partner.nome.toLowerCase() !== "onova"){ return; }
-    box.style.display = "block";
-    const commodity = sommaCategoria(lista, "Commodity");
-    const extra = sommaCategoria(lista, "Extra Commodity");
-    const totale = commodity + extra;
-    if(totale === 0){ chart.style.background = "#f3f4f6"; legend.innerHTML = `<div>Nessun dato disponibile per il grafico ONOVA.</div>`; return; }
-    const commodityPerc = Math.round((commodity / totale) * 100);
-    const extraPerc = 100 - commodityPerc;
-    chart.style.background = `conic-gradient(#ff7b00 0 ${commodityPerc}%, #d90429 ${commodityPerc}% 100%)`;
-    legend.innerHTML = `<div><span><span class="legend-dot" style="background:#ff7b00"></span>Commodity</span><span>${commodity} (${commodityPerc}%)</span></div><div><span><span class="legend-dot" style="background:#d90429"></span>Extra Commodity</span><span>${extra} (${extraPerc}%)</span></div>`;
+
+function getGreenwordAnalysisContainer(){
+
+    let container = document.getElementById("greenwordAnalysisBox");
+
+    if(container){
+        return container;
+    }
+
+    const main = document.querySelector(".vendor-profile-main");
+
+    if(!main){
+        return null;
+    }
+
+    container = document.createElement("section");
+    container.className = "box greenword-analysis";
+    container.id = "greenwordAnalysisBox";
+
+    container.innerHTML = `
+        <div class="section-title">
+            <div>
+                <h3>🥧 Analisi Greenword</h3>
+                <p>Ripartizione contratti Greenword per gestore o venditore.</p>
+            </div>
+            <select class="month-select" id="greenwordAnalysisMode">
+                <option value="gestori">Contratti per gestore</option>
+                <option value="venditori">Venditori Greenword</option>
+            </select>
+        </div>
+        <div class="greenword-analysis-layout">
+            <div>
+                <div id="greenwordPieChart" class="pie-chart"></div>
+            </div>
+            <div id="greenwordPieLegend" class="pie-legend"></div>
+        </div>
+    `;
+
+    main.appendChild(container);
+
+    const modeSelect = document.getElementById("greenwordAnalysisMode");
+
+    if(modeSelect){
+        modeSelect.addEventListener("change", () => renderGreenwordAnalysis(filtraContrattiPartner()));
+    }
+
+    return container;
+}
+
+function aggregaPerCampo(lista, campo, esclusioni){
+
+    const gruppi = new Map();
+
+    lista.forEach(contratto => {
+
+        const nome = testo(contratto[campo]) || "Non indicato";
+        const nomeNormalizzato = nome.toLowerCase();
+
+        if(esclusioni.includes(nomeNormalizzato)){
+            return;
+        }
+
+        gruppi.set(nome, (gruppi.get(nome) || 0) + getContractUnits(contratto));
+
+    });
+
+    return Array.from(gruppi.entries())
+        .map(([nome, valore]) => ({ nome, valore }))
+        .sort((a, b) => b.valore - a.valore || a.nome.localeCompare(b.nome));
+}
+
+function renderGreenwordAnalysis(lista){
+
+    if(!isGreenword){
+        const container = document.getElementById("greenwordAnalysisBox");
+
+        if(container){
+            container.remove();
+        }
+
+        return;
+    }
+
+    const container = getGreenwordAnalysisContainer();
+
+    if(!container){
+        return;
+    }
+
+    const chart = document.getElementById("greenwordPieChart");
+    const legend = document.getElementById("greenwordPieLegend");
+    const modeSelect = document.getElementById("greenwordAnalysisMode");
+    const modalita = modeSelect ? modeSelect.value : "gestori";
+    const colori = ["#ff7b00", "#d90429", "#081120", "#16a34a", "#2563eb", "#9333ea", "#f59e0b", "#64748b"];
+
+    const dati = modalita === "venditori"
+        ? aggregaPerCampo(lista, "venditore", [])
+        : aggregaPerCampo(lista, "gestore", ["onova", "union", "s4"]);
+
+    const totale = dati.reduce((somma, voce) => somma + voce.valore, 0);
+
+    if(totale === 0){
+        chart.style.background = "#f3f4f6";
+        legend.innerHTML = `<div>Nessun dato disponibile per ${modalita === "venditori" ? "Venditori Greenword" : "Contratti per gestore"}.</div>`;
+        return;
+    }
+
+    let cursore = 0;
+
+    const gradient = dati.map((voce, indice) => {
+        const percentuale = (voce.valore / totale) * 100;
+        const inizio = cursore;
+        cursore += percentuale;
+        return `${colori[indice % colori.length]} ${inizio}% ${cursore}%`;
+    }).join(", ");
+
+    chart.style.background = `conic-gradient(${gradient})`;
+
+    legend.innerHTML = dati.map((voce, indice) => {
+        const percentuale = Math.round((voce.valore / totale) * 100);
+        const colore = colori[indice % colori.length];
+
+        return `
+            <div>
+                <span><span class="legend-dot" style="background:${colore}"></span>${escapeHtml(voce.nome)}</span>
+                <span>${voce.valore} (${percentuale}%)</span>
+            </div>
+        `;
+    }).join("");
 }
 
 function aggiornaPagina(){
@@ -450,7 +566,12 @@ function aggiornaPagina(){
 
     renderGraficoMensile();
 
-    renderOnovaDistribution(lista);
+
+    if(isGreenword){
+        renderGreenwordAnalysis(lista);
+    }else{
+        renderGreenwordAnalysis([]);
+    }
 }
 
 async function exportPartnerExcel(){
