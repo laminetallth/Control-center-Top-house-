@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Impostazioni - Top House Gestionale</title>
-    <link rel="stylesheet" href="css/style.css?v=2500">
+    <link rel="stylesheet" href="css/style.css?v=3000">
 </head>
 <body>
     <div id="sidebarContainer"></div>
@@ -19,7 +19,8 @@
         <section class="box full-box settings-panel"><div class="section-title"><div><h3>🧹 Pulizia dati</h3><p>Svuota solo la sezione selezionata. Ogni azione richiede conferma.</p></div></div><div class="reset-actions"><button data-reset="contrattiTopHouse">Svuota contratti</button><button data-reset="investimentiTopHouse">Svuota investimenti</button><button data-reset="attivitaTopHouse">Svuota attività</button><button data-reset="documentiTopHouse">Svuota documenti</button><button data-reset="affiliatiTopHouse">Svuota affiliati</button></div></section>
         <section class="box full-box settings-panel security-box"><div class="section-title"><div><h3>🔐 Info sicurezza</h3><p>I dati sono salvati nel browser tramite localStorage.</p></div></div><ul class="tasks"><li>Se cambi dispositivo o browser, i dati non si sincronizzano automaticamente.</li><li>Esporta backup periodici per proteggere il lavoro operativo.</li><li>Importa solo file JSON generati dal gestionale TOP HOUSE.</li><li>In futuro il gestionale potrà evolvere verso Firebase per sincronizzazione e accessi multiutente.</li></ul></section>
     </main>
-    <script src="js/menu.js?v=2500"></script>
-    <script src="js/settings.js?v=2500"></script>
+    <script src="js/menu.js?v=3000"></script>
+    <script type="module" src="js/auth-guard.js?v=3000"></script>
+    <script src="js/settings.js?v=3000"></script>
 </body>
 </html>

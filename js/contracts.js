@@ -1,3 +1,15 @@
+import {
+    db,
+    collection,
+    doc,
+    getDocs,
+    setDoc,
+    deleteDoc,
+    serverTimestamp,
+    query,
+    orderBy
+} from "./firebase-config.js";
+
 const VENDITORI_REGISTRATI = [
     "Antonio Attardi",
     "Davide Marino",
@@ -145,6 +157,8 @@ function normalizzaPartner(partner){
 function normalizzaContratto(c, index){
     return {
         id: Number(c.id || index + 1),
+        firestoreId: testo(c.firestoreId || c.localId || c.id || index + 1),
+        localId: testo(c.localId || c.id || index + 1),
         dataInserimento: testo(c.dataInserimento),
         dataEsito: testo(c.dataEsito),
         nome: testo(c.nome),
@@ -162,11 +176,8 @@ function normalizzaContratto(c, index){
     };
 }
 
-let contrattiSalvati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
-
-let contratti = Array.isArray(contrattiSalvati)
-    ? contrattiSalvati.map(normalizzaContratto)
-    : CONTRATTI_DEMO.map(normalizzaContratto);
+const contrattiLocaliIniziali = getContrattiLocali();
+let contratti = [];
 
 const form = document.getElementById("contractForm");
 const tbody = document.getElementById("contractsBody");
@@ -174,6 +185,10 @@ const searchInput = document.getElementById("searchInput");
 const saveButton = document.getElementById("saveButton");
 const formTitle = document.getElementById("formTitle");
 const cancelEditButton = document.getElementById("cancelEditButton");
+const firebaseStatus = document.getElementById("firebaseStatus");
+const migrateLocalContractsBtn = document.getElementById("migrateLocalContractsBtn");
+const archiveLocalContractsBtn = document.getElementById("archiveLocalContractsBtn");
+const contractsCollection = collection(db, "contracts");
 
 const monthFilter = document.getElementById("monthFilter");
 const vendorFilter = document.getElementById("vendorFilter");
@@ -185,6 +200,42 @@ const categoryFilter = document.getElementById("categoryFilter");
 
 function salvaStorage(){
     localStorage.setItem("contrattiTopHouse", JSON.stringify(contratti));
+}
+
+function setFirebaseStatus(message, type){
+    if(!firebaseStatus){ return; }
+    firebaseStatus.textContent = message;
+    firebaseStatus.className = `firebase-status ${type || ""}`.trim();
+}
+
+function getFirestoreId(contratto){
+    return testo(contratto.firestoreId || contratto.localId || contratto.id);
+}
+
+function contrattoPerFirestore(contratto){
+    const normalizzato = normalizzaContratto(contratto, 0);
+    return {
+        ...normalizzato,
+        firestoreId: getFirestoreId(contratto),
+        localId: testo(contratto.localId || contratto.id),
+        updatedAt: serverTimestamp()
+    };
+}
+
+function getContrattiLocali(){
+    try{
+        const dati = JSON.parse(localStorage.getItem("contrattiTopHouse"));
+        return Array.isArray(dati) ? dati.map(normalizzaContratto) : [];
+    }catch(error){
+        return [];
+    }
+}
+
+function aggiornaAzioniMigrazione(){
+    const locali = contrattiLocaliIniziali.length ? contrattiLocaliIniziali : getContrattiLocali();
+    const mostra = locali.length > 0;
+    if(migrateLocalContractsBtn){ migrateLocalContractsBtn.style.display = mostra ? "inline-block" : "none"; }
+    if(archiveLocalContractsBtn){ archiveLocalContractsBtn.style.display = mostra ? "inline-block" : "none"; }
 }
 
 
@@ -464,7 +515,7 @@ function popolaFiltriFissi(){
     });
 }
 
-form.addEventListener("submit", function(e){
+form.addEventListener("submit", async function(e){
 
     e.preventDefault();
 
@@ -488,15 +539,18 @@ form.addEventListener("submit", function(e){
         note: document.getElementById("note").value
     };
 
-    if(editId){
-        contratti = contratti.map(c => c.id === Number(editId) ? normalizzaContratto(datiContratto, 0) : c);
-    }else{
-        contratti.push(normalizzaContratto(datiContratto, contratti.length));
+    try{
+        const normalizzato = normalizzaContratto(datiContratto, contratti.length);
+        const firestoreId = editId ? getFirestoreId(contratti.find(c => c.id === Number(editId)) || normalizzato) : String(normalizzato.id);
+        const payload = contrattoPerFirestore({ ...normalizzato, firestoreId, localId: firestoreId });
+        if(!editId){ payload.createdAt = serverTimestamp(); }
+        await setDoc(doc(db, "contracts", firestoreId), payload, { merge: true });
+        await caricaContrattiDaFirestore();
+        resetForm();
+    }catch(error){
+        console.error(error);
+        setFirebaseStatus("Errore Firebase: contratto non salvato", "error");
     }
-
-    salvaStorage();
-    renderContratti();
-    resetForm();
 });
 
 function generaNuovoId(){
@@ -542,7 +596,7 @@ function modificaContratto(id){
     });
 }
 
-function eliminaContratto(id){
+async function eliminaContratto(id){
 
     const conferma = confirm("Vuoi davvero eliminare questo contratto?");
 
@@ -550,11 +604,15 @@ function eliminaContratto(id){
         return;
     }
 
-    contratti = contratti.filter(c => c.id !== id);
-
-    salvaStorage();
-    renderContratti();
-    resetForm();
+    try{
+        const contratto = contratti.find(c => c.id === id);
+        await deleteDoc(doc(db, "contracts", getFirestoreId(contratto || { id })));
+        await caricaContrattiDaFirestore();
+        resetForm();
+    }catch(error){
+        console.error(error);
+        setFirebaseStatus("Errore Firebase: contratto non eliminato", "error");
+    }
 }
 
 function annullaModifica(){
@@ -623,17 +681,94 @@ function exportReport(){
     link.click();
 }
 
-function resetContratti(){
+async function resetContratti(){
     if(!confirm("Vuoi davvero svuotare tutti i contratti?")){
         return;
     }
-    contratti = [];
-    salvaStorage();
-    renderContratti();
-    resetForm();
+    try{
+        await Promise.all(contratti.map(c => deleteDoc(doc(db, "contracts", getFirestoreId(c)))));
+        await caricaContrattiDaFirestore();
+        resetForm();
+    }catch(error){
+        console.error(error);
+        setFirebaseStatus("Errore Firebase: contratti non svuotati", "error");
+    }
 }
 
+async function caricaContrattiDaFirestore(){
+    try{
+        const snapshot = await getDocs(query(contractsCollection, orderBy("id")));
+        contratti = snapshot.docs.map((documento, index) => normalizzaContratto({
+            ...documento.data(),
+            firestoreId: documento.id,
+            localId: documento.data().localId || documento.id
+        }, index));
+        if(contratti.length || !contrattiLocaliIniziali.length){
+            salvaStorage();
+        }
+        renderContratti();
+        aggiornaAzioniMigrazione();
+        setFirebaseStatus(contratti.length ? "Online Firebase" : "Nessun contratto caricato", contratti.length ? "online" : "empty");
+    }catch(error){
+        console.error(error);
+        contratti = getContrattiLocali();
+        renderContratti();
+        aggiornaAzioniMigrazione();
+        setFirebaseStatus("Errore Firebase: dati locali visualizzati", "error");
+    }
+}
+
+async function migraContrattiLocali(){
+    const locali = contrattiLocaliIniziali.length ? contrattiLocaliIniziali : getContrattiLocali();
+    if(!locali.length){
+        setFirebaseStatus("Nessun contratto locale da migrare", "empty");
+        return;
+    }
+    let caricati = 0;
+    try{
+        const snapshot = await getDocs(contractsCollection);
+        const esistenti = new Set(snapshot.docs.map(documento => documento.id));
+        for(const contratto of locali){
+            const firestoreId = getFirestoreId(contratto);
+            if(esistenti.has(firestoreId)){ continue; }
+            await setDoc(doc(db, "contracts", firestoreId), {
+                ...contrattoPerFirestore({ ...contratto, firestoreId, localId: firestoreId }),
+                createdAt: serverTimestamp()
+            }, { merge: true });
+            caricati += 1;
+        }
+        await caricaContrattiDaFirestore();
+        setFirebaseStatus(`Migrazione completata: ${caricati} contratti caricati su Firebase`, "online");
+    }catch(error){
+        console.error(error);
+        setFirebaseStatus("Errore Firebase durante la migrazione", "error");
+    }
+}
+
+function archiviaContrattiLocali(){
+    if(!confirm("Vuoi archiviare i dati locali dopo la migrazione? Verranno copiati in una chiave di archivio e rimossi dalla chiave operativa locale.")){
+        return;
+    }
+    const dati = localStorage.getItem("contrattiTopHouse");
+    if(dati){
+        localStorage.setItem(`contrattiTopHouse_archivio_${new Date().toISOString()}`, dati);
+        localStorage.removeItem("contrattiTopHouse");
+    }
+    aggiornaAzioniMigrazione();
+}
+
+if(migrateLocalContractsBtn){ migrateLocalContractsBtn.addEventListener("click", migraContrattiLocali); }
+if(archiveLocalContractsBtn){ archiveLocalContractsBtn.addEventListener("click", archiviaContrattiLocali); }
+
+window.modificaContratto = modificaContratto;
+window.eliminaContratto = eliminaContratto;
+window.annullaModifica = annullaModifica;
+window.exportReport = exportReport;
+window.resetFiltri = resetFiltri;
+window.resetContratti = resetContratti;
+
 popolaFiltriFissi();
-salvaStorage();
 renderContratti();
 resetForm();
+aggiornaAzioniMigrazione();
+caricaContrattiDaFirestore();
