@@ -1,3 +1,4 @@
+import { readCollection } from "./firebase-data.js";
 const VENDITORI_REGISTRATI = [
     {
         nome: "Antonio Attardi",
@@ -439,4 +440,5 @@ function aggiornaPaginaVenditori(){
 
 document.getElementById("monthFilter").addEventListener("change", aggiornaPaginaVenditori);
 
-aggiornaPaginaVenditori();
+async function inizializzaFirebase(){ try{ await readCollection("contracts"); await readCollection("vendorStatuses"); }catch(error){ console.error(error); } aggiornaPaginaVenditori(); }
+inizializzaFirebase();

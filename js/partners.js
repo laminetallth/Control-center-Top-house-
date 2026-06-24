@@ -1,3 +1,4 @@
+import { readCollection } from "./firebase-data.js";
 const PARTNER_REGISTRATI = [
     {
         nome: "Greenword",
@@ -419,4 +420,5 @@ function aggiornaPaginaPartner(){
 
 document.getElementById("monthFilter").addEventListener("change", aggiornaPaginaPartner);
 
-aggiornaPaginaPartner();
+async function inizializzaFirebase(){ try{ await readCollection("contracts"); }catch(error){ console.error(error); } aggiornaPaginaPartner(); }
+inizializzaFirebase();

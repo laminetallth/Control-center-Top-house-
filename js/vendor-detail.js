@@ -1,3 +1,4 @@
+import { readCollection, saveVendorStatuses } from "./firebase-data.js";
 const VENDITORI_REGISTRATI = [
     {
         nome: "Antonio Attardi",
@@ -117,13 +118,14 @@ function caricaStatiVenditori(){
     return {};
 }
 
-function salvaStatoVenditore(nome, stato){
+async function salvaStatoVenditore(nome, stato){
 
     const stati = caricaStatiVenditori();
 
     stati[nome] = stato;
 
     localStorage.setItem("statiVenditoriTopHouse", JSON.stringify(stati));
+    try{ await saveVendorStatuses(stati); }catch(error){ console.error(error); }
 }
 
 function statoVenditore(nome){
@@ -527,6 +529,5 @@ function printVendorReport(){
 
 monthFilter.addEventListener("change", aggiornaPagina);
 
-aggiornaProfilo();
-
-aggiornaPagina();
+async function inizializzaFirebase(){ try{ await readCollection("contracts"); await readCollection("affiliates"); await readCollection("vendorStatuses"); }catch(error){ console.error(error); } aggiornaProfilo(); aggiornaPagina(); }
+inizializzaFirebase();
