@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contratti - Top House Gestionale</title>
 
-    <link rel="stylesheet" href="css/style.css?v=2400">
+    <link rel="stylesheet" href="css/style.css?v=2500">
 </head>
 
 <body>
@@ -45,6 +45,16 @@
             <div class="card">
                 <h4>Totale Contratti</h4>
                 <p id="totaleContratti">0</p>
+            </div>
+
+            <div class="card">
+                <h4>Commodity</h4>
+                <p id="totaleCommodity">0</p>
+            </div>
+
+            <div class="card">
+                <h4>Extra Commodity</h4>
+                <p id="totaleExtraCommodity">0</p>
             </div>
 
             <div class="card">
@@ -258,6 +268,12 @@
                     <option value="">Tutti i partner</option>
                 </select>
 
+                <select id="categoryFilter">
+                    <option value="">Tutte le categorie</option>
+                    <option value="Commodity">Commodity</option>
+                    <option value="Extra Commodity">Extra Commodity</option>
+                </select>
+
                 <select id="managerFilter">
                     <option value="">Tutti i gestori</option>
                 </select>
@@ -301,6 +317,7 @@
                             <th>Partner</th>
                             <th>Gestore</th>
                             <th>Servizio</th>
+                            <th>Categoria</th>
                             <th>Stato</th>
                             <th>Gettone Partner</th>
                             <th>Gettone Venditore</th>
@@ -321,8 +338,8 @@
 
     </main>
 
-    <script src="js/menu.js?v=2400"></script>
-    <script src="js/contracts.js?v=2400"></script>
+    <script src="js/menu.js?v=2500"></script>
+    <script src="js/contracts.js?v=2500"></script>
 
 </body>
 

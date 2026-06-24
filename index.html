@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Top House Gestion</title>
 
-    <link rel="stylesheet" href="css/style.css?v=2400">
+    <link rel="stylesheet" href="css/style.css?v=2500">
 </head>
 
 <body>
@@ -45,6 +45,16 @@
             <a href="contracts.html" class="card card-link">
                 <h4>Totale Contratti</h4>
                 <p id="dashTotaleContratti">0</p>
+            </a>
+
+            <a href="contracts.html" class="card card-link">
+                <h4>Commodity</h4>
+                <p id="dashCommodity">0</p>
+            </a>
+
+            <a href="contracts.html" class="card card-link">
+                <h4>Extra Commodity</h4>
+                <p id="dashExtraCommodity">0</p>
             </a>
 
             <a href="contracts.html" class="card card-link">
@@ -159,7 +169,7 @@
 
     </main>
 
-    <script src="js/menu.js?v=2400"></script>
+    <script src="js/menu.js?v=2500"></script>
     <script>
         function testo(valore){
             return String(valore || "").trim();
@@ -207,6 +217,9 @@
             }
             return 1;
         }
+
+        function getContractCategory(contratto){ const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "").replaceAll("_", "-"); return ["luce","gas","luce+gas","luce-gas","lucegas"].includes(servizio) ? "Commodity" : "Extra Commodity"; }
+        function sommaCategoria(lista, categoria){ return lista.filter(c => getContractCategory(c) === categoria).reduce((totale, contratto) => totale + getContractUnits(contratto), 0); }
 
         function sommaUnita(lista){
             return lista.reduce((totale, contratto) => totale + getContractUnits(contratto), 0);
@@ -258,6 +271,8 @@
                 .filter(c => praticaValida(c))
                 .reduce((tot, c) => tot + margine(c), 0);
 
+            document.getElementById("dashCommodity").innerText = sommaCategoria(contratti, "Commodity");
+            document.getElementById("dashExtraCommodity").innerText = sommaCategoria(contratti, "Extra Commodity");
             document.getElementById("dashTotaleContratti").innerText = totale;
             document.getElementById("dashContrattiOk").innerText = ok;
             document.getElementById("dashKo").innerText = ko;

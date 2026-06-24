@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Scheda Partner - Top House Gestionale</title>
 
-    <link rel="stylesheet" href="css/style.css?v=2400">
+    <link rel="stylesheet" href="css/style.css?v=2500">
 
     <style>
         .partner-profile-logo{
@@ -66,7 +66,7 @@
             margin-top:14px;
         }
 
-        .service-tag{
+        .pie-chart{width:190px;height:190px;border-radius:50%;margin:10px auto 20px;box-shadow:0 12px 28px rgba(0,0,0,.16)}.pie-legend{display:grid;gap:10px}.pie-legend div{display:flex;justify-content:space-between;gap:12px;background:#f8fafc;border:1px solid #e5e7eb;border-radius:14px;padding:12px;font-weight:800}.legend-dot{width:12px;height:12px;border-radius:50%;display:inline-block;margin-right:8px}.service-tag{
             background:#f8fafc;
             color:#081120;
             border:1px solid #e5e7eb;
@@ -202,6 +202,13 @@
 
                     </div>
 
+                    
+                    <div class="box onova-distribution" id="onovaDistributionBox" style="display:none;">
+                        <div class="section-title"><div><h3>🥧 Distribuzione ONOVA</h3><p>Ripartizione contratti Commodity / Extra Commodity.</p></div></div>
+                        <div id="onovaPieChart" class="pie-chart"></div>
+                        <div id="onovaPieLegend" class="pie-legend"></div>
+                    </div>
+
                     <div class="box">
 
                         <h3>📌 Riepilogo</h3>
@@ -268,8 +275,8 @@
 
     </main>
 
-    <script src="js/menu.js?v=2400"></script>
-    <script src="js/partner-detail.js?v=2400"></script>
+    <script src="js/menu.js?v=2500"></script>
+    <script src="js/partner-detail.js?v=2500"></script>
 
 </body>
 

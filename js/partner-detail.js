@@ -98,6 +98,30 @@ function praticaValida(contratto){
 }
 
 
+
+function getContractCategory(contratto){
+    const servizio = String(contratto.servizio || "")
+        .toLowerCase()
+        .replaceAll(" ", "")
+        .replaceAll("_", "-");
+
+    if(
+        servizio === "luce" ||
+        servizio === "gas" ||
+        servizio === "luce+gas" ||
+        servizio === "luce-gas" ||
+        servizio === "lucegas"
+    ){
+        return "Commodity";
+    }
+
+    return "Extra Commodity";
+}
+
+function sommaCategoria(lista, categoria){
+    return lista.filter(c => getContractCategory(c) === categoria)
+        .reduce((totale, contratto) => totale + getContractUnits(contratto), 0);
+}
 function getContractUnits(contratto){
     const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
     if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){
@@ -310,6 +334,7 @@ function renderContratti(lista){
             <td>${escapeHtml(contratto.venditore)}</td>
             <td>${escapeHtml(contratto.gestore)}</td>
             <td>${escapeHtml(contratto.servizio)}</td>
+            <td><span class="badge pending">${getContractCategory(contratto)}</span></td>
             <td>${escapeHtml(contratto.stato)}</td>
             <td>${numero(contratto.gettonePartner)}€</td>
             <td>${escapeHtml(contratto.pagamentoPartner)}</td>
@@ -399,6 +424,22 @@ function renderGraficoMensile(){
     });
 }
 
+function renderOnovaDistribution(lista){
+    const box = document.getElementById("onovaDistributionBox");
+    const chart = document.getElementById("onovaPieChart");
+    const legend = document.getElementById("onovaPieLegend");
+    if(!box || partner.nome.toLowerCase() !== "onova"){ return; }
+    box.style.display = "block";
+    const commodity = sommaCategoria(lista, "Commodity");
+    const extra = sommaCategoria(lista, "Extra Commodity");
+    const totale = commodity + extra;
+    if(totale === 0){ chart.style.background = "#f3f4f6"; legend.innerHTML = `<div>Nessun dato disponibile per il grafico ONOVA.</div>`; return; }
+    const commodityPerc = Math.round((commodity / totale) * 100);
+    const extraPerc = 100 - commodityPerc;
+    chart.style.background = `conic-gradient(#ff7b00 0 ${commodityPerc}%, #d90429 ${commodityPerc}% 100%)`;
+    legend.innerHTML = `<div><span><span class="legend-dot" style="background:#ff7b00"></span>Commodity</span><span>${commodity} (${commodityPerc}%)</span></div><div><span><span class="legend-dot" style="background:#d90429"></span>Extra Commodity</span><span>${extra} (${extraPerc}%)</span></div>`;
+}
+
 function aggiornaPagina(){
 
     const lista = filtraContrattiPartner();
@@ -408,6 +449,8 @@ function aggiornaPagina(){
     renderContratti(lista);
 
     renderGraficoMensile();
+
+    renderOnovaDistribution(lista);
 }
 
 async function exportPartnerExcel(){

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Report - Top House Gestionale</title>
 
-    <link rel="stylesheet" href="css/style.css?v=2400">
+    <link rel="stylesheet" href="css/style.css?v=2500">
 </head>
 
 <body>
@@ -41,6 +41,8 @@
         </div>
 
         <section class="cards">
+            <div class="card"><h4>Commodity</h4><p id="totaleCommodity">0</p></div>
+            <div class="card"><h4>Extra Commodity</h4><p id="totaleExtraCommodity">0</p></div>
 
             <div class="card">
                 <h4>Totale Contratti</h4>
@@ -161,7 +163,7 @@
 
     </main>
 
-    <script src="js/menu.js?v=2400"></script>
+    <script src="js/menu.js?v=2500"></script>
     <script>
         function testo(valore){
             return String(valore || "").trim();
@@ -189,6 +191,9 @@
             }
             return 1;
         }
+
+        function getContractCategory(contratto){ const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "").replaceAll("_", "-"); return ["luce","gas","luce+gas","luce-gas","lucegas"].includes(servizio) ? "Commodity" : "Extra Commodity"; }
+        function sommaCategoria(lista, categoria){ return lista.filter(c => getContractCategory(c) === categoria).reduce((totale, contratto) => totale + getContractUnits(contratto), 0); }
 
         function sommaUnita(lista){
             return lista.reduce((totale, contratto) => totale + getContractUnits(contratto), 0);
@@ -237,6 +242,8 @@
                 .filter(c => praticaValida(c))
                 .reduce((tot, c) => tot + margine(c), 0);
 
+            document.getElementById("totaleCommodity").innerText = sommaCategoria(contratti, "Commodity");
+            document.getElementById("totaleExtraCommodity").innerText = sommaCategoria(contratti, "Extra Commodity");
             document.getElementById("totaleContratti").innerText = totale;
             document.getElementById("totaleOk").innerText = ok;
             document.getElementById("totaleKo").innerText = ko;
