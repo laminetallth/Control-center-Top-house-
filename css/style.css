@@ -1213,7 +1213,7 @@ tr:hover td{
     justify-content:center;
 }
 
-.greenword-analysis .pie-chart{
+.greenword-pie-chart{
     width:230px;
     height:230px;
     border-radius:50%;
@@ -1226,7 +1226,7 @@ tr:hover td{
     position:relative;
 }
 
-.greenword-analysis .pie-chart span{
+.greenword-pie-chart span{
     width:104px;
     height:104px;
     border-radius:50%;
@@ -1241,15 +1241,37 @@ tr:hover td{
     box-shadow:inset 0 0 0 1px var(--border);
 }
 
-.greenword-analysis .pie-chart small{
+.greenword-pie-chart small{
     color:var(--gray);
     font-size:12px;
     font-weight:800;
     text-transform:uppercase;
 }
 
-.greenword-analysis .pie-legend{
+.greenword-legend{
+    display:grid;
+    gap:10px;
     width:100%;
+}
+
+.greenword-legend div{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    background:#f8fafc;
+    border:1px solid var(--border);
+    border-radius:14px;
+    padding:12px;
+    font-weight:800;
+}
+
+.greenword-legend .legend-dot{
+    width:12px;
+    height:12px;
+    border-radius:50%;
+    display:inline-block;
+    margin-right:8px;
+    vertical-align:middle;
 }
 
 .greenword-chart-right h4{
@@ -1269,7 +1291,7 @@ tr:hover td{
     gap:14px;
 }
 
-.ranking-row{
+.greenword-ranking-row{
     display:grid;
     gap:8px;
     background:#f8fafc;
@@ -1278,32 +1300,32 @@ tr:hover td{
     padding:14px;
 }
 
-.ranking-info{
+.greenword-ranking-row .ranking-info{
     display:flex;
     justify-content:space-between;
     gap:14px;
     align-items:center;
 }
 
-.ranking-info span,
-.ranking-info a{
+.greenword-ranking-row .ranking-info span,
+.greenword-ranking-row .ranking-info a{
     color:var(--dark);
     font-weight:900;
     text-decoration:none;
 }
 
-.ranking-info a:hover{
+.greenword-ranking-row .ranking-info a:hover{
     color:#16a34a;
     text-decoration:underline;
 }
 
-.ranking-info small{
+.greenword-ranking-row .ranking-info small{
     color:var(--gray);
     font-weight:800;
     white-space:nowrap;
 }
 
-.ranking-bar{
+.greenword-ranking-bar{
     width:100%;
     height:10px;
     border-radius:999px;
@@ -1311,7 +1333,7 @@ tr:hover td{
     overflow:hidden;
 }
 
-.ranking-bar span{
+.greenword-ranking-bar span{
     display:block;
     height:100%;
     border-radius:999px;
@@ -1344,7 +1366,7 @@ tr:hover td{
         min-width:0;
     }
 
-    .ranking-info{
+    .greenword-ranking-row .ranking-info{
         align-items:flex-start;
         flex-direction:column;
         gap:4px;
