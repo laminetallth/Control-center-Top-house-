@@ -6,12 +6,13 @@
         { label: "📄 Contratti", href: "contracts.html", matches: ["contracts.html"] },
         { label: "👥 Venditori", href: "vendors.html", matches: ["vendors.html", "vendor-detail.html"] },
         { label: "🤝 Partner", href: "partners.html", matches: ["partners.html", "partner-detail.html"] },
+        { label: "🏪 Affiliati", href: "affiliates.html", matches: ["affiliates.html"] },
         { label: "💰 Provvigioni", href: "commissions.html", matches: ["commissions.html"] },
         { label: "📈 Investimenti", href: "investments.html", matches: ["investments.html"] },
         { label: "🏦 Cash Flow", href: "cashflow.html", matches: ["cashflow.html"] },
         { label: "📊 KPI", href: "kpi.html", matches: ["kpi.html"] },
         { label: "📑 Report", href: "reports.html", matches: ["reports.html"] },
-        { label: "📁 Documenti", href: "documents.html", matches: ["documents.html"] },
+        { label: "✅ Attività", href: "activities.html", matches: ["activities.html"] },
         { label: "⚙️ Impostazioni", href: "settings.html", matches: ["settings.html"] }
     ];
 

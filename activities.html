@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attività - Top House Gestionale</title>
+    <link rel="stylesheet" href="css/style.css?v=2200">
+</head>
+<body>
+    <div id="sidebarContainer"></div>
+    <main class="main">
+        <div class="header"><div><h1>Attività</h1><span>Promemoria operativi e cose da fare per TOP HOUSE</span></div></div>
+        <section class="cards">
+            <div class="card"><h4>Totale attività</h4><p id="kpiTotale">0</p></div>
+            <div class="card"><h4>Da fare</h4><p id="kpiDaFare">0</p></div>
+            <div class="card"><h4>In corso</h4><p id="kpiInCorso">0</p></div>
+            <div class="card"><h4>Completate</h4><p id="kpiCompletate">0</p></div>
+            <div class="card"><h4>Urgenti</h4><p id="kpiUrgenti">0</p></div>
+        </section>
+        <section class="box full-box">
+            <div class="section-title"><div><h3>➕ Nuova attività</h3><p>Aggiungi un promemoria operativo.</p></div></div>
+            <form id="activityForm" class="contract-form">
+                <input type="hidden" id="activityId">
+                <div class="form-field"><label>Titolo</label><input id="titolo" required></div>
+                <div class="form-field"><label>Priorità</label><select id="priorita"><option>Bassa</option><option selected>Media</option><option>Alta</option><option>Urgente</option></select></div>
+                <div class="form-field"><label>Scadenza</label><input id="scadenza" type="date"></div>
+                <div class="form-field"><label>Assegnato a</label><input id="assegnatoA" placeholder="Nome collaboratore"></div>
+                <div class="form-field form-field-wide"><label>Descrizione</label><input id="descrizione" placeholder="Descrizione attività"></div>
+                <div class="form-field form-field-wide"><label>Note</label><input id="note" placeholder="Note operative"></div>
+                <button type="submit" id="saveActivityBtn">Salva attività</button><button type="button" class="cancel-btn" id="cancelEditBtn">Annulla modifica</button>
+            </form>
+        </section>
+        <section class="box full-box">
+            <div class="section-title"><div><h3>📋 Lista attività</h3><p>Filtra, aggiorna stato, modifica o elimina attività.</p></div></div>
+            <div class="table-actions filters-area">
+                <input id="searchText" placeholder="Cerca testo">
+                <select id="filterStatus"><option value="">Tutti gli stati</option><option>Da fare</option><option>In corso</option><option>Completata</option><option>Rimandata</option></select>
+                <select id="filterPriority"><option value="">Tutte le priorità</option><option>Bassa</option><option>Media</option><option>Alta</option><option>Urgente</option></select>
+                <input id="filterAssignee" placeholder="Filtra assegnato a">
+            </div>
+            <br>
+            <div class="table-wrapper"><table><thead><tr><th>Titolo</th><th>Priorità</th><th>Scadenza</th><th>Stato</th><th>Assegnato a</th><th>Note</th><th>Azioni</th></tr></thead><tbody id="activitiesBody"></tbody></table></div>
+        </section>
+    </main>
+    <script src="js/menu.js?v=2200"></script>
+    <script src="js/activities.js?v=2200"></script>
+</body>
+</html>
