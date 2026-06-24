@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Report - Top House Gestionale</title>
 
-    <link rel="stylesheet" href="css/style.css?v=2300">
+    <link rel="stylesheet" href="css/style.css?v=2400">
 </head>
 
 <body>
@@ -161,7 +161,7 @@
 
     </main>
 
-    <script src="js/menu.js?v=2300"></script>
+    <script src="js/menu.js?v=2400"></script>
     <script>
         function testo(valore){
             return String(valore || "").trim();
@@ -179,6 +179,19 @@
             }
 
             return [];
+        }
+
+
+        function getContractUnits(contratto){
+            const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
+            if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){
+                return 2;
+            }
+            return 1;
+        }
+
+        function sommaUnita(lista){
+            return lista.reduce((totale, contratto) => totale + getContractUnits(contratto), 0);
         }
 
         function praticaValida(c){
@@ -207,10 +220,10 @@
 
             const contratti = filtraMese(caricaContratti());
 
-            const totale = contratti.length;
-            const ok = contratti.filter(c => praticaValida(c)).length;
-            const ko = contratti.filter(c => c.stato === "KO").length;
-            const storni = contratti.filter(c => c.stato === "Storno").length;
+            const totale = sommaUnita(contratti);
+            const ok = sommaUnita(contratti.filter(c => praticaValida(c)));
+            const ko = sommaUnita(contratti.filter(c => c.stato === "KO"));
+            const storni = sommaUnita(contratti.filter(c => c.stato === "Storno"));
 
             const daIncassare = contratti
                 .filter(c => praticaValida(c) && c.pagamentoPartner === "Da incassare")
@@ -261,20 +274,20 @@
                     };
                 }
 
-                stats[nome].totale += 1;
+                stats[nome].totale += getContractUnits(c);
 
                 if(praticaValida(c)){
-                    stats[nome].ok += 1;
+                    stats[nome].ok += getContractUnits(c);
                     stats[nome].provvigioni += numero(c.gettoneVenditore);
                     stats[nome].margine += margine(c);
                 }
 
                 if(c.stato === "KO"){
-                    stats[nome].ko += 1;
+                    stats[nome].ko += getContractUnits(c);
                 }
 
                 if(c.stato === "Storno"){
-                    stats[nome].storni += 1;
+                    stats[nome].storni += getContractUnits(c);
                 }
 
             });
@@ -341,10 +354,10 @@
                     };
                 }
 
-                stats[nome].totale += 1;
+                stats[nome].totale += getContractUnits(c);
 
                 if(praticaValida(c)){
-                    stats[nome].ok += 1;
+                    stats[nome].ok += getContractUnits(c);
                     stats[nome].margine += margine(c);
 
                     if(c.pagamentoPartner === "Da incassare"){
@@ -357,11 +370,11 @@
                 }
 
                 if(c.stato === "KO"){
-                    stats[nome].ko += 1;
+                    stats[nome].ko += getContractUnits(c);
                 }
 
                 if(c.stato === "Storno"){
-                    stats[nome].storni += 1;
+                    stats[nome].storni += getContractUnits(c);
                 }
 
             });

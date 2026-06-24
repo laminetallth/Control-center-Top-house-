@@ -4,39 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Affiliati - Top House Gestionale</title>
-    <link rel="stylesheet" href="css/style.css?v=2300">
+    <link rel="stylesheet" href="css/style.css?v=2400">
 </head>
 <body>
     <div id="sidebarContainer"></div>
     <main class="main">
-        <div class="header"><div><h1>Affiliati</h1><span>Attività commerciali collegate al marketing passivo TOP HOUSE</span></div><button class="month-select" id="exportAffiliatesBtn">Export Excel</button></div>
+        <div class="header"><div><h1>Affiliati</h1><span>Attività commerciali collegate ai venditori TOP HOUSE</span></div><button class="month-select" id="exportAffiliatesBtn">Export Excel</button></div>
         <section class="cards">
             <div class="card"><h4>Totale affiliati</h4><p id="kpiTotale">0</p></div>
             <div class="card"><h4>Affiliati attivi</h4><p id="kpiAttivi">0</p></div>
             <div class="card"><h4>Non attivi</h4><p id="kpiNonAttivi">0</p></div>
-            <div class="card"><h4>Da contattare</h4><p id="kpiDaContattare">0</p></div>
-            <div class="card"><h4>Gettone medio</h4><p id="kpiGettoneMedio">0€</p></div>
+            <div class="card"><h4>In valutazione</h4><p id="kpiInValutazione">0</p></div>
         </section>
         <section class="box full-box">
-            <div class="section-title"><div><h3>➕ Nuovo affiliato</h3><p>Registra un'attività affiliata.</p></div></div>
+            <div class="section-title"><div><h3>➕ Nuovo affiliato</h3><p>Registra un affiliato e collegalo a un venditore.</p></div></div>
             <form id="affiliateForm" class="contract-form">
                 <input type="hidden" id="affiliateId">
-                <div class="form-field"><label>Nome attività</label><input id="nomeAttivita" required></div>
-                <div class="form-field"><label>Città</label><input id="citta"></div>
-                <div class="form-field"><label>Gettone stipulato</label><input id="gettoneStipulato" type="number" min="0" step="0.01"></div>
-                <div class="form-field"><label>Venditore</label><input id="venditore" placeholder="Nome venditore"></div>
-                <div class="form-field"><label>Stato</label><select id="stato"><option>Attivo</option><option>Non attivo</option><option>Da contattare</option></select></div>
+                <div class="form-field"><label>Nome affiliato</label><input id="nomeAffiliato" required></div>
+                <div class="form-field"><label>Cognome / Ragione sociale</label><input id="cognomeRagioneSociale" required></div>
+                <div class="form-field"><label>Telefono</label><input id="telefono" type="tel"></div>
+                <div class="form-field"><label>Email</label><input id="email" type="email"></div>
+                <div class="form-field"><label>Venditore collegato</label><select id="venditoreCollegato" required></select></div>
+                <div class="form-field"><label>Zona</label><input id="zona"></div>
+                <div class="form-field"><label>Stato</label><select id="stato"><option>Attivo</option><option>Non attivo</option><option>In valutazione</option></select></div>
                 <div class="form-field form-field-wide"><label>Note</label><input id="note" placeholder="Note"></div>
                 <button type="submit" id="saveAffiliateBtn">Salva affiliato</button><button type="button" class="cancel-btn" id="cancelEditBtn">Annulla modifica</button>
             </form>
         </section>
         <section class="box full-box">
             <div class="section-title"><div><h3>🏪 Tabella affiliati</h3><p>Gestione, filtri e stati degli affiliati.</p></div></div>
-            <div class="table-actions filters-area"><input id="searchName" placeholder="Cerca nome attività"><input id="filterCity" placeholder="Città"><input id="filterVendor" placeholder="Venditore"><select id="filterStatus"><option value="">Tutti gli stati</option><option>Attivo</option><option>Non attivo</option><option>Da contattare</option></select></div><br>
-            <div class="table-wrapper"><table><thead><tr><th>Nome attività</th><th>Città</th><th>Gettone stipulato</th><th>Venditore collegato</th><th>Stato</th><th>Note</th><th>Azioni</th></tr></thead><tbody id="affiliatesBody"></tbody></table></div>
+            <div class="table-actions filters-area"><input id="searchText" placeholder="Cerca affiliato, telefono, email, zona"><select id="filterVendor"></select><select id="filterStatus"><option value="">Tutti gli stati</option><option>Attivo</option><option>Non attivo</option><option>In valutazione</option></select><button type="button" id="resetAffiliateFiltersBtn">Reset filtri</button></div><br>
+            <div class="table-wrapper"><table><thead><tr><th>Nome affiliato</th><th>Telefono</th><th>Email</th><th>Venditore collegato</th><th>Zona</th><th>Stato</th><th>Note</th><th>Azioni</th></tr></thead><tbody id="affiliatesBody"></tbody></table></div>
         </section>
     </main>
-    <script src="js/menu.js?v=2300"></script>
-    <script src="js/affiliates.js?v=2300"></script>
+    <script src="js/menu.js?v=2400"></script>
+    <script src="js/affiliates.js?v=2400"></script>
 </body>
 </html>

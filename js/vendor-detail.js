@@ -133,6 +133,18 @@ function statoVenditore(nome){
     return stati[nome] || "Attivo";
 }
 
+function getContractUnits(contratto){
+    const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
+    if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){
+        return 2;
+    }
+    return 1;
+}
+
+function sommaUnita(lista){
+    return lista.reduce((totale, contratto) => totale + getContractUnits(contratto), 0);
+}
+
 function calcolaMargine(contratto){
 
     if(contratto.stato !== "OK" && contratto.stato !== "Pagato"){
@@ -244,7 +256,7 @@ function aggiornaProfilo(){
 }
 
 function filtraAffiliatiVenditore(){
-    return caricaAffiliati().filter(affiliato => testo(affiliato.venditore) === nomeVenditore);
+    return caricaAffiliati().filter(affiliato => testo(affiliato.venditoreCollegato || affiliato.venditore) === nomeVenditore);
 }
 
 function renderAffiliatiVenditore(){
@@ -253,13 +265,15 @@ function renderAffiliatiVenditore(){
 
     document.getElementById("totaleAffiliati").innerText = affiliati.length;
     document.getElementById("affiliatiAttivi").innerText = affiliati.filter(a => a.stato === "Attivo").length;
+    document.getElementById("affiliatiNonAttivi").innerText = affiliati.filter(a => a.stato === "Non attivo").length;
+    document.getElementById("affiliatiInValutazione").innerText = affiliati.filter(a => a.stato === "In valutazione" || a.stato === "Da contattare").length;
 
     tbody.innerHTML = "";
 
     if(affiliati.length === 0){
         tbody.innerHTML = `
             <tr>
-                <td colspan="5" style="text-align:center; padding:30px; color:#6b7280; font-weight:bold;">
+                <td colspan="6" style="text-align:center; padding:30px; color:#6b7280; font-weight:bold;">
                     Nessun affiliato collegato a questo venditore.
                 </td>
             </tr>
@@ -270,9 +284,10 @@ function renderAffiliatiVenditore(){
     affiliati.forEach(affiliato => {
         const row = document.createElement("tr");
         row.innerHTML = `
-            <td>${escapeHtml(affiliato.nomeAttivita)}</td>
-            <td>${escapeHtml(affiliato.citta)}</td>
-            <td>${numero(affiliato.gettoneStipulato)}€</td>
+            <td>${escapeHtml([affiliato.nomeAffiliato || affiliato.nomeAttivita, affiliato.cognomeRagioneSociale].filter(Boolean).join(" "))}</td>
+            <td>${escapeHtml(affiliato.telefono)}</td>
+            <td>${escapeHtml(affiliato.email)}</td>
+            <td>${escapeHtml(affiliato.zona || affiliato.citta)}</td>
             <td>${badgeAffiliato(affiliato.stato)}</td>
             <td>${escapeHtml(affiliato.note)}</td>
         `;
@@ -282,13 +297,13 @@ function renderAffiliatiVenditore(){
 
 function aggiornaCards(lista){
 
-    const totale = lista.length;
+    const totale = sommaUnita(lista);
 
-    const ok = lista.filter(c => c.stato === "OK" || c.stato === "Pagato").length;
+    const ok = sommaUnita(lista.filter(c => c.stato === "OK" || c.stato === "Pagato"));
 
-    const ko = lista.filter(c => c.stato === "KO").length;
+    const ko = sommaUnita(lista.filter(c => c.stato === "KO"));
 
-    const storni = lista.filter(c => c.stato === "Storno").length;
+    const storni = sommaUnita(lista.filter(c => c.stato === "Storno"));
 
     const provvigioniMaturate = lista
         .filter(c => c.stato === "OK" || c.stato === "Pagato")
@@ -398,9 +413,9 @@ function creaDatiMensili(){
 
         return {
             mese: mese.label,
-            ok: contrattiMese.filter(c => c.stato === "OK" || c.stato === "Pagato").length,
-            ko: contrattiMese.filter(c => c.stato === "KO").length,
-            storni: contrattiMese.filter(c => c.stato === "Storno").length,
+            ok: sommaUnita(contrattiMese.filter(c => c.stato === "OK" || c.stato === "Pagato")),
+            ko: sommaUnita(contrattiMese.filter(c => c.stato === "KO")),
+            storni: sommaUnita(contrattiMese.filter(c => c.stato === "Storno")),
             provvigioni: contrattiMese
                 .filter(c => c.stato === "OK" || c.stato === "Pagato")
                 .reduce((totale, c) => totale + numero(c.gettoneVenditore), 0)
@@ -464,10 +479,10 @@ async function exportVendorExcel(){
     const meseSelezionato = monthFilter.options[monthFilter.selectedIndex].text;
     const dataExport = new Date().toLocaleDateString("it-IT");
 
-    const totale = lista.length;
-    const ok = lista.filter(c => c.stato === "OK" || c.stato === "Pagato").length;
-    const ko = lista.filter(c => c.stato === "KO").length;
-    const storni = lista.filter(c => c.stato === "Storno").length;
+    const totale = sommaUnita(lista);
+    const ok = sommaUnita(lista.filter(c => c.stato === "OK" || c.stato === "Pagato"));
+    const ko = sommaUnita(lista.filter(c => c.stato === "KO"));
+    const storni = sommaUnita(lista.filter(c => c.stato === "Storno"));
 
     const provvigioni = lista
         .filter(c => c.stato === "OK" || c.stato === "Pagato")

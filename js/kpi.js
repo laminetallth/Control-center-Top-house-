@@ -21,6 +21,16 @@ const KPI_COMPARISON_CONFIG = [
 function testo(valore){ return String(valore || "").trim(); }
 function numero(valore){ return Number(valore || 0) || 0; }
 function praticaValida(c){ return testo(c.stato) === "OK" || testo(c.stato) === "Pagato"; }
+
+function getContractUnits(contratto){
+    const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
+    if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){
+        return 2;
+    }
+    return 1;
+}
+function sommaUnita(lista){ return lista.reduce((totale, contratto) => totale + getContractUnits(contratto), 0); }
+
 function calcolaMargine(c){ return praticaValida(c) ? numero(c.gettonePartner) - numero(c.gettoneVenditore) : 0; }
 function euro(v){ return Math.round(numero(v)).toLocaleString("it-IT") + "€"; }
 function percent(v){ return Math.round(numero(v) * 10) / 10 + "%"; }
@@ -41,10 +51,10 @@ function popolaMesi(){
 
 function calcolaMetriche(contratti, investimenti){
     const okList = contratti.filter(praticaValida);
-    const totale = contratti.length;
-    const ok = okList.length;
-    const ko = contratti.filter(c => testo(c.stato) === "KO").length;
-    const storni = contratti.filter(c => testo(c.stato) === "Storno").length;
+    const totale = sommaUnita(contratti);
+    const ok = sommaUnita(okList);
+    const ko = sommaUnita(contratti.filter(c => testo(c.stato) === "KO"));
+    const storni = sommaUnita(contratti.filter(c => testo(c.stato) === "Storno"));
     const margine = okList.reduce((t, c) => t + calcolaMargine(c), 0);
     const daIncassare = okList.filter(c => testo(c.pagamentoPartner) === "Da incassare").reduce((t, c) => t + numero(c.gettonePartner), 0);
     const daPagare = okList.filter(c => testo(c.pagamentoVenditore) === "Da pagare").reduce((t, c) => t + numero(c.gettoneVenditore), 0);
@@ -95,7 +105,7 @@ function renderBarChart(id, dati, key, type){
 }
 function renderServiceMix(lista){
     const counts = {};
-    lista.filter(praticaValida).forEach(c => { const s = testo(c.servizio) || "Non indicato"; counts[s] = (counts[s] || 0) + 1; });
+    lista.filter(praticaValida).forEach(c => { const s = testo(c.servizio) || "Non indicato"; counts[s] = (counts[s] || 0) + getContractUnits(c); });
     const entries = Object.entries(counts).sort((a,b) => b[1]-a[1]);
     const tot = entries.reduce((t, e) => t + e[1], 0);
     document.getElementById("serviceMix").innerHTML = entries.length ? entries.map(([nome, val]) => { const p = tot ? Math.round((val/tot)*100) : 0; return `<div class="service-row"><div class="service-row-head"><span>${escapeHtml(nome)}</span><span>${p}% (${val})</span></div><div class="service-track"><div class="service-fill" style="width:${p}%"></div></div></div>`; }).join("") : `<p class="empty-note">Nessun servizio venduto nel mese selezionato.</p>`;
@@ -103,7 +113,7 @@ function renderServiceMix(lista){
 
 function statistiche(lista, campo){
     const map = {};
-    lista.forEach(c => { const nome = testo(c[campo]) || "Non indicato"; if(!map[nome]) map[nome] = { nome, ok:0, totali:0, provvigioni:0, daIncassare:0, margine:0 }; map[nome].totali++; if(praticaValida(c)){ map[nome].ok++; map[nome].provvigioni += numero(c.gettoneVenditore); map[nome].daIncassare += testo(c.pagamentoPartner) === "Da incassare" ? numero(c.gettonePartner) : 0; map[nome].margine += calcolaMargine(c); } });
+    lista.forEach(c => { const nome = testo(c[campo]) || "Non indicato"; if(!map[nome]) map[nome] = { nome, ok:0, totali:0, provvigioni:0, daIncassare:0, margine:0 }; map[nome].totali += getContractUnits(c); if(praticaValida(c)){ map[nome].ok += getContractUnits(c); map[nome].provvigioni += numero(c.gettoneVenditore); map[nome].daIncassare += testo(c.pagamentoPartner) === "Da incassare" ? numero(c.gettonePartner) : 0; map[nome].margine += calcolaMargine(c); } });
     return Object.values(map).sort((a,b) => b.ok - a.ok || b.margine - a.margine);
 }
 function renderTables(lista){

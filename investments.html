@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Investimenti - Top House Gestionale</title>
 
-    <link rel="stylesheet" href="css/style.css?v=2300">
+    <link rel="stylesheet" href="css/style.css?v=2400">
 </head>
 
 <body>
@@ -58,7 +58,7 @@
             </div>
 
             <div class="card">
-                <h4>Materiale / Gadget</h4>
+                <h4>Ufficio / Materiale per ufficio</h4>
                 <p id="totaleMateriale">0€</p>
             </div>
 
@@ -95,8 +95,8 @@
                     <select id="investmentCategory" required>
                         <option value="">Seleziona categoria</option>
                         <option value="Marketing">Marketing</option>
-                        <option value="Software">Software / Strumenti</option>
-                        <option value="Materiale">Materiale / Gadget</option>
+                        <option value="Software / Strumenti">Software / Strumenti</option>
+                        <option value="Ufficio / Materiale per ufficio">Ufficio / Materiale per ufficio</option>
                         <option value="Evento">Evento</option>
                         <option value="Trasporti">Trasporti</option>
                         <option value="Altro">Altro</option>
@@ -105,7 +105,7 @@
 
                 <div class="form-field">
                     <label>Descrizione</label>
-                    <input type="text" id="investmentDescription" placeholder="Es. Magliette evento Praia a Mare" required>
+                    <input type="text" id="investmentDescription" placeholder="Descrizione investimento" required>
                 </div>
 
                 <div class="form-field">
@@ -154,7 +154,7 @@
 
     </main>
 
-    <script src="js/menu.js?v=2300"></script>
+    <script src="js/menu.js?v=2400"></script>
     <script>
         function testo(valore){
             return String(valore || "").trim();
@@ -272,11 +272,11 @@
                 .reduce((tot, i) => tot + numero(i.importo), 0);
 
             const software = lista
-                .filter(i => i.categoria === "Software")
+                .filter(i => i.categoria === "Software" || i.categoria === "Software / Strumenti")
                 .reduce((tot, i) => tot + numero(i.importo), 0);
 
             const materiale = lista
-                .filter(i => i.categoria === "Materiale")
+                .filter(i => i.categoria === "Materiale" || i.categoria === "Ufficio / Materiale per ufficio")
                 .reduce((tot, i) => tot + numero(i.importo), 0);
 
             const margine = contratti

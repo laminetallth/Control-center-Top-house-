@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Top House Gestion</title>
 
-    <link rel="stylesheet" href="css/style.css?v=2300">
+    <link rel="stylesheet" href="css/style.css?v=2400">
 </head>
 
 <body>
@@ -159,7 +159,7 @@
 
     </main>
 
-    <script src="js/menu.js?v=2300"></script>
+    <script src="js/menu.js?v=2400"></script>
     <script>
         function testo(valore){
             return String(valore || "").trim();
@@ -199,6 +199,19 @@
             }
         }
 
+
+        function getContractUnits(contratto){
+            const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
+            if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){
+                return 2;
+            }
+            return 1;
+        }
+
+        function sommaUnita(lista){
+            return lista.reduce((totale, contratto) => totale + getContractUnits(contratto), 0);
+        }
+
         function praticaValida(c){
             return c.stato === "OK" || c.stato === "Pagato";
         }
@@ -225,13 +238,13 @@
 
             const contratti = filtraMese(caricaContratti());
 
-            const totale = contratti.length;
+            const totale = sommaUnita(contratti);
 
-            const ok = contratti.filter(c => praticaValida(c)).length;
+            const ok = sommaUnita(contratti.filter(c => praticaValida(c)));
 
-            const ko = contratti.filter(c => c.stato === "KO").length;
+            const ko = sommaUnita(contratti.filter(c => c.stato === "KO"));
 
-            const storni = contratti.filter(c => c.stato === "Storno").length;
+            const storni = sommaUnita(contratti.filter(c => c.stato === "Storno"));
 
             const daIncassare = contratti
                 .filter(c => praticaValida(c) && c.pagamentoPartner === "Da incassare")

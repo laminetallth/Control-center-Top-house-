@@ -97,6 +97,16 @@ function praticaValida(contratto){
     return contratto.stato === "OK" || contratto.stato === "Pagato";
 }
 
+
+function getContractUnits(contratto){
+    const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
+    if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){
+        return 2;
+    }
+    return 1;
+}
+function sommaUnita(lista){ return lista.reduce((totale, contratto) => totale + getContractUnits(contratto), 0); }
+
 function calcolaMargine(contratto){
 
     if(!praticaValida(contratto)){
@@ -217,13 +227,13 @@ function aggiornaProfilo(){
 
 function aggiornaCards(lista){
 
-    const totale = lista.length;
+    const totale = sommaUnita(lista);
 
-    const ok = lista.filter(c => praticaValida(c)).length;
+    const ok = sommaUnita(lista.filter(c => praticaValida(c)));
 
-    const ko = lista.filter(c => c.stato === "KO").length;
+    const ko = sommaUnita(lista.filter(c => c.stato === "KO"));
 
-    const storni = lista.filter(c => c.stato === "Storno").length;
+    const storni = sommaUnita(lista.filter(c => c.stato === "Storno"));
 
     const daIncassare = lista
         .filter(c =>
@@ -340,9 +350,9 @@ function creaDatiMensili(){
 
         return {
             mese: mese.label,
-            ok: contrattiMese.filter(c => praticaValida(c)).length,
-            ko: contrattiMese.filter(c => c.stato === "KO").length,
-            storni: contrattiMese.filter(c => c.stato === "Storno").length,
+            ok: sommaUnita(contrattiMese.filter(c => praticaValida(c))),
+            ko: sommaUnita(contrattiMese.filter(c => c.stato === "KO")),
+            storni: sommaUnita(contrattiMese.filter(c => c.stato === "Storno")),
             incassato: contrattiMese
                 .filter(c =>
                     praticaValida(c) &&
@@ -407,10 +417,10 @@ async function exportPartnerExcel(){
     const meseSelezionato = monthFilter.options[monthFilter.selectedIndex].text;
     const dataExport = new Date().toLocaleDateString("it-IT");
 
-    const totale = lista.length;
-    const ok = lista.filter(c => praticaValida(c)).length;
-    const ko = lista.filter(c => c.stato === "KO").length;
-    const storni = lista.filter(c => c.stato === "Storno").length;
+    const totale = sommaUnita(lista);
+    const ok = sommaUnita(lista.filter(c => praticaValida(c)));
+    const ko = sommaUnita(lista.filter(c => c.stato === "KO"));
+    const storni = sommaUnita(lista.filter(c => c.stato === "Storno"));
 
     const daIncassare = lista
         .filter(c =>
