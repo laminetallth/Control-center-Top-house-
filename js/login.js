@@ -8,7 +8,7 @@ const submitButton = document.getElementById("loginButton");
 
 function showError(message) {
     errorBox.textContent = message;
-    errorBox.style.display = "block";
+    errorBox.classList.add("show");
 }
 
 onAuthStateChanged(auth, (user) => {
@@ -19,7 +19,7 @@ onAuthStateChanged(auth, (user) => {
 
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
-    errorBox.style.display = "none";
+    errorBox.classList.remove("show");
     submitButton.disabled = true;
     submitButton.textContent = "Accesso in corso...";
 

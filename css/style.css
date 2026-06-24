@@ -1373,18 +1373,152 @@ tr:hover td{
     }
 }
 
-.login-page{min-height:100vh;display:grid;place-items:center;background:linear-gradient(135deg,#081120,#1f2937 55%,#d90429);}
-.login-shell{width:min(92vw,440px);}
-.login-card{background:#fff;border-radius:26px;padding:34px;box-shadow:0 24px 70px rgba(0,0,0,.28);text-align:center;}
-.login-logo img{width:92px;height:92px;object-fit:contain;margin-bottom:14px;}
-.login-card h1{color:#081120;margin:0 0 8px;font-size:28px;}
-.login-card p{color:#6b7280;font-weight:800;margin-bottom:24px;}
-.login-form{display:grid;gap:12px;text-align:left;}
-.login-form label{font-weight:900;color:#081120;}
-.login-form input{border:1px solid #e5e7eb;border-radius:14px;padding:14px 16px;font-size:15px;}
-.login-form button{border:none;border-radius:14px;padding:14px 18px;background:#d90429;color:#fff;font-weight:900;cursor:pointer;}
-.login-form button:disabled{opacity:.7;cursor:wait;}
-.login-error{display:none;background:#fee2e2;border:1px solid #fecaca;color:#991b1b;border-radius:14px;padding:12px;font-weight:800;text-align:center;}
+
+.login-page{
+    min-height:100vh;
+    margin:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:Arial, Helvetica, sans-serif;
+    background:
+        radial-gradient(circle at top left, rgba(255,123,0,0.18), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(217,4,41,0.28), transparent 30%),
+        linear-gradient(135deg, #081120 0%, #101b30 45%, #2a0f25 72%, #d90429 100%);
+    padding:24px;
+}
+
+.login-shell{
+    width:100%;
+    max-width:520px;
+}
+
+.login-card{
+    width:100%;
+    background:rgba(255,255,255,0.96);
+    border-radius:28px;
+    box-shadow:0 24px 60px rgba(0,0,0,0.28);
+    padding:42px 42px 36px;
+    text-align:center;
+    border:1px solid rgba(255,255,255,0.45);
+    box-sizing:border-box;
+}
+
+.login-logo{
+    width:95px;
+    height:auto;
+    display:block;
+    margin:0 auto 18px;
+}
+
+.login-card h1{
+    margin:0 0 10px;
+    font-size:28px;
+    line-height:1.1;
+    color:#081120;
+    font-weight:800;
+}
+
+.login-card p{
+    margin:0 0 28px;
+    color:#667085;
+    font-size:16px;
+    font-weight:500;
+}
+
+.login-form{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+    text-align:left;
+}
+
+.login-form label{
+    font-size:14px;
+    font-weight:700;
+    color:#081120;
+    margin-bottom:8px;
+    display:block;
+}
+
+.login-form input{
+    width:100%;
+    height:56px;
+    border-radius:16px;
+    border:1px solid #d8dde6;
+    padding:0 18px;
+    font-size:16px;
+    background:#ffffff;
+    color:#081120;
+    box-sizing:border-box;
+    transition:all 0.2s ease;
+}
+
+.login-form input:focus{
+    outline:none;
+    border-color:#ff7b00;
+    box-shadow:0 0 0 4px rgba(255,123,0,0.15);
+}
+
+.login-btn{
+    margin-top:8px;
+    height:56px;
+    border:none;
+    border-radius:16px;
+    background:linear-gradient(90deg, #d90429 0%, #ff7b00 100%);
+    color:#ffffff;
+    font-size:18px;
+    font-weight:800;
+    cursor:pointer;
+    transition:transform 0.15s ease, box-shadow 0.2s ease;
+    box-shadow:0 12px 24px rgba(217,4,41,0.22);
+}
+
+.login-btn:hover{
+    transform:translateY(-1px);
+    box-shadow:0 16px 28px rgba(217,4,41,0.28);
+}
+
+.login-btn:disabled{
+    opacity:.7;
+    cursor:wait;
+    transform:none;
+}
+
+.login-error{
+    margin-top:14px;
+    padding:12px 14px;
+    border-radius:12px;
+    background:#fee2e2;
+    color:#b42318;
+    font-size:14px;
+    font-weight:700;
+    display:none;
+    text-align:center;
+}
+
+.login-error.show{
+    display:block;
+}
+
+@media (max-width:640px){
+    .login-page{
+        padding:18px;
+    }
+
+    .login-card{
+        padding:28px 22px;
+        border-radius:22px;
+    }
+
+    .login-card h1{
+        font-size:24px;
+    }
+
+    .login-card p{
+        font-size:15px;
+    }
+}
 .sidebar-auth{margin-top:auto;padding:16px;border-top:1px solid rgba(255,255,255,.14);display:grid;gap:8px;color:#fff;}
 .sidebar-auth small{color:rgba(255,255,255,.65);font-weight:800;}
 .sidebar-auth strong{font-size:12px;word-break:break-word;}
