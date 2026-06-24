@@ -8,6 +8,10 @@ const MESI = [
 const KPI_COMPARISON_CONFIG = [
     { key:"totale", label:"Totale Contratti", type:"number", mood:"up" },
     { key:"ok", label:"Contratti OK", type:"number", mood:"up" },
+    { key:"commodity", label:"Totale Commodity", type:"number", mood:"up" },
+    { key:"extraCommodity", label:"Totale Extra Commodity", type:"number", mood:"up" },
+    { key:"commodityPerc", label:"% Commodity", type:"percent", mood:"up" },
+    { key:"extraCommodityPerc", label:"% Extra Commodity", type:"percent", mood:"up" },
     { key:"okRate", label:"OK Rate %", type:"percent", mood:"up" },
     { key:"ko", label:"KO", type:"number", mood:"down" },
     { key:"storni", label:"Storni", type:"number", mood:"down" },
@@ -22,6 +26,30 @@ function testo(valore){ return String(valore || "").trim(); }
 function numero(valore){ return Number(valore || 0) || 0; }
 function praticaValida(c){ return testo(c.stato) === "OK" || testo(c.stato) === "Pagato"; }
 
+
+function getContractCategory(contratto){
+    const servizio = String(contratto.servizio || "")
+        .toLowerCase()
+        .replaceAll(" ", "")
+        .replaceAll("_", "-");
+
+    if(
+        servizio === "luce" ||
+        servizio === "gas" ||
+        servizio === "luce+gas" ||
+        servizio === "luce-gas" ||
+        servizio === "lucegas"
+    ){
+        return "Commodity";
+    }
+
+    return "Extra Commodity";
+}
+
+function sommaCategoria(lista, categoria){
+    return lista.filter(c => getContractCategory(c) === categoria)
+        .reduce((totale, contratto) => totale + getContractUnits(contratto), 0);
+}
 function getContractUnits(contratto){
     const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
     if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){
@@ -59,11 +87,17 @@ function calcolaMetriche(contratti, investimenti){
     const daIncassare = okList.filter(c => testo(c.pagamentoPartner) === "Da incassare").reduce((t, c) => t + numero(c.gettonePartner), 0);
     const daPagare = okList.filter(c => testo(c.pagamentoVenditore) === "Da pagare").reduce((t, c) => t + numero(c.gettoneVenditore), 0);
     const investimentiTot = investimenti.reduce((t, i) => t + numero(i.importo), 0);
+    const commodity = sommaCategoria(contratti, "Commodity");
+    const extraCommodity = sommaCategoria(contratti, "Extra Commodity");
+    const commodityOk = sommaCategoria(okList, "Commodity");
+    const extraCommodityOk = sommaCategoria(okList, "Extra Commodity");
+    const commodityPerc = totale > 0 ? (commodity / totale) * 100 : 0;
+    const extraCommodityPerc = totale > 0 ? (extraCommodity / totale) * 100 : 0;
     const okRate = totale > 0 ? (ok / totale) * 100 : 0;
     const roi = investimentiTot > 0 ? ((margine - investimentiTot) / investimentiTot) * 100 : 0;
     const saldo = margine - investimentiTot;
     const cashPressure = daIncassare + daPagare;
-    return { totale, ok, okRate, ko, storni, margine, daIncassare, daPagare, investimenti: investimentiTot, roi, saldo, cashPressure };
+    return { totale, ok, commodity, extraCommodity, commodityOk, extraCommodityOk, commodityPerc, extraCommodityPerc, okRate, ko, storni, margine, daIncassare, daPagare, investimenti: investimentiTot, roi, saldo, cashPressure };
 }
 
 function renderCards(m){

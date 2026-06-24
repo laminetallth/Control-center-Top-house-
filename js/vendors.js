@@ -20,7 +20,7 @@ const VENDITORI_REGISTRATI = [
     {
         nome: "Gabriele Straniero",
         zona: "Italia",
-        ruolo: "Direttore Commerciale e Vendite",
+        ruolo: "Direttore zona Italia",
         foto: "assets/vendors/gabriele-straniero.png"
     },
     {
@@ -32,7 +32,7 @@ const VENDITORI_REGISTRATI = [
     {
         nome: "Lamine Tall",
         zona: "Lombardia",
-        ruolo: "Responsabile Amministrativo Procedure e BO",
+        ruolo: "Venditore Lombardia",
         foto: "assets/vendors/lamine-tall.png"
     },
     {
@@ -108,6 +108,30 @@ function badgeStatoVenditore(nome){
 }
 
 
+
+function getContractCategory(contratto){
+    const servizio = String(contratto.servizio || "")
+        .toLowerCase()
+        .replaceAll(" ", "")
+        .replaceAll("_", "-");
+
+    if(
+        servizio === "luce" ||
+        servizio === "gas" ||
+        servizio === "luce+gas" ||
+        servizio === "luce-gas" ||
+        servizio === "lucegas"
+    ){
+        return "Commodity";
+    }
+
+    return "Extra Commodity";
+}
+
+function sommaCategoria(lista, categoria){
+    return lista.filter(c => getContractCategory(c) === categoria)
+        .reduce((totale, contratto) => totale + getContractUnits(contratto), 0);
+}
 function getContractUnits(contratto){
     const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
     if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){
@@ -238,7 +262,7 @@ function creaStatisticheVenditori(contratti){
 
 function aggiornaCards(venditori){
 
-    const totaleVenditori = VENDITORI_REGISTRATI.filter(v => v.ruolo === "Venditore").length;
+    const totaleVenditori = VENDITORI_REGISTRATI.length;
 
     const totaleOk = venditori.reduce((totale, venditore) => totale + venditore.ok, 0);
 

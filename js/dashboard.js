@@ -21,6 +21,30 @@ function caricaContratti(){
 }
 
 
+
+function getContractCategory(contratto){
+    const servizio = String(contratto.servizio || "")
+        .toLowerCase()
+        .replaceAll(" ", "")
+        .replaceAll("_", "-");
+
+    if(
+        servizio === "luce" ||
+        servizio === "gas" ||
+        servizio === "luce+gas" ||
+        servizio === "luce-gas" ||
+        servizio === "lucegas"
+    ){
+        return "Commodity";
+    }
+
+    return "Extra Commodity";
+}
+
+function sommaCategoria(lista, categoria){
+    return lista.filter(c => getContractCategory(c) === categoria)
+        .reduce((totale, contratto) => totale + getContractUnits(contratto), 0);
+}
 function getContractUnits(contratto){
     const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
     if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){

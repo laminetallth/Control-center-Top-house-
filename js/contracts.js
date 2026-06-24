@@ -181,12 +181,37 @@ const partnerFilter = document.getElementById("partnerFilter");
 const managerFilter = document.getElementById("managerFilter");
 const statusFilter = document.getElementById("statusFilter");
 const paymentVendorFilter = document.getElementById("paymentVendorFilter");
+const categoryFilter = document.getElementById("categoryFilter");
 
 function salvaStorage(){
     localStorage.setItem("contrattiTopHouse", JSON.stringify(contratti));
 }
 
 
+
+function getContractCategory(contratto){
+    const servizio = String(contratto.servizio || "")
+        .toLowerCase()
+        .replaceAll(" ", "")
+        .replaceAll("_", "-");
+
+    if(
+        servizio === "luce" ||
+        servizio === "gas" ||
+        servizio === "luce+gas" ||
+        servizio === "luce-gas" ||
+        servizio === "lucegas"
+    ){
+        return "Commodity";
+    }
+
+    return "Extra Commodity";
+}
+
+function sommaCategoria(lista, categoria){
+    return lista.filter(c => getContractCategory(c) === categoria)
+        .reduce((totale, contratto) => totale + getContractUnits(contratto), 0);
+}
 function getContractUnits(contratto){
     const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
     if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){
@@ -255,6 +280,7 @@ function getListaFiltrata(){
     const gestoreSelezionato = testo(managerFilter.value);
     const statoSelezionato = testo(statusFilter.value);
     const pagamentoVenditoreSelezionato = testo(paymentVendorFilter.value);
+    const categoriaSelezionata = testo(categoryFilter.value);
 
     return contratti.filter(c => {
 
@@ -300,13 +326,18 @@ function getListaFiltrata(){
             pagamentoVenditoreSelezionato === "" ||
             c.pagamentoVenditore === pagamentoVenditoreSelezionato;
 
+        const matchCategoria =
+            categoriaSelezionata === "" ||
+            getContractCategory(c) === categoriaSelezionata;
+
         return matchRicerca &&
                matchMese &&
                matchVenditore &&
                matchPartner &&
                matchGestore &&
                matchStato &&
-               matchPagamentoVenditore;
+               matchPagamentoVenditore &&
+               matchCategoria;
 
     });
 }
@@ -356,6 +387,7 @@ function renderContratti(){
             <td>${escapeHtml(contratto.partner)}</td>
             <td>${escapeHtml(contratto.gestore)}</td>
             <td>${escapeHtml(contratto.servizio)}</td>
+            <td><span class="badge pending">${getContractCategory(contratto)}</span></td>
             <td>${statoBadge(contratto.stato)}</td>
             <td>${contratto.gettonePartner}€</td>
             <td>${contratto.gettoneVenditore}€</td>
@@ -401,6 +433,8 @@ function aggiornaStatistiche(lista){
         .reduce((totale, c) => totale + calcolaMargine(c), 0);
 
     document.getElementById("totaleContratti").innerText = totale;
+    document.getElementById("totaleCommodity").innerText = sommaCategoria(lista, "Commodity");
+    document.getElementById("totaleExtraCommodity").innerText = sommaCategoria(lista, "Extra Commodity");
     document.getElementById("totaleOk").innerText = ok;
     document.getElementById("totaleKo").innerText = ko;
     document.getElementById("totaleStorni").innerText = storni;
@@ -549,6 +583,7 @@ function resetFiltri(){
     managerFilter.value = "";
     statusFilter.value = "";
     paymentVendorFilter.value = "";
+    categoryFilter.value = "";
 
     renderContratti();
 }
@@ -561,6 +596,7 @@ partnerFilter.addEventListener("change", renderContratti);
 managerFilter.addEventListener("change", renderContratti);
 statusFilter.addEventListener("change", renderContratti);
 paymentVendorFilter.addEventListener("change", renderContratti);
+categoryFilter.addEventListener("change", renderContratti);
 
 
 function sommaUnita(lista){
@@ -578,8 +614,8 @@ function exportReport(){
     const daIncassarePartner = lista.filter(c => praticaValidaPerCompensi(c) && c.pagamentoPartner === "Da incassare").reduce((totale, c) => totale + numero(c.gettonePartner), 0);
     const daPagareVenditori = lista.filter(c => praticaValidaPerCompensi(c) && c.pagamentoVenditore === "Da pagare").reduce((totale, c) => totale + numero(c.gettoneVenditore), 0);
     const margineMaturato = lista.filter(c => praticaValidaPerCompensi(c)).reduce((totale, c) => totale + calcolaMargine(c), 0);
-    const righeContratti = lista.map(c => `<tr><td>${c.id}</td><td>${escapeHtml(c.dataInserimento)}</td><td>${escapeHtml(c.dataEsito)}</td><td>${escapeHtml(c.nome)}</td><td>${escapeHtml(c.cognome)}</td><td>${escapeHtml(c.venditore)}</td><td>${escapeHtml(c.partner)}</td><td>${escapeHtml(c.gestore)}</td><td>${escapeHtml(c.servizio)}</td><td>${getContractUnits(c)}</td><td>${escapeHtml(c.stato)}</td><td>${c.gettonePartner}€</td><td>${c.gettoneVenditore}€</td><td>${calcolaMargine(c)}€</td><td>${escapeHtml(c.pagamentoPartner)}</td><td>${escapeHtml(c.pagamentoVenditore)}</td><td>${escapeHtml(c.note)}</td></tr>`).join("") || `<tr><td colspan="17">Nessun contratto trovato.</td></tr>`;
-    const reportHtml = `<html><head><meta charset="UTF-8"></head><body><h1>TOP HOUSE - Report Contratti</h1><p>Mensilità: ${escapeHtml(meseSelezionato)} | Export: ${escapeHtml(dataExport)}</p><table border="1"><tbody><tr><td>Totale contratti</td><td>${totale}</td><td>OK</td><td>${ok}</td><td>KO</td><td>${ko}</td><td>Storni</td><td>${storni}</td><td>Da incassare partner</td><td>${daIncassarePartner}€</td><td>Da pagare venditori</td><td>${daPagareVenditori}€</td><td>Margine</td><td>${margineMaturato}€</td></tr></tbody></table><br><table border="1"><thead><tr><th>ID</th><th>Data Inserimento</th><th>Data Esito</th><th>Nome</th><th>Cognome</th><th>Venditore</th><th>Partner</th><th>Gestore</th><th>Servizio</th><th>Unità</th><th>Stato</th><th>Gettone Partner</th><th>Gettone Venditore</th><th>Margine</th><th>Pagamento Partner</th><th>Pagamento Venditore</th><th>Note</th></tr></thead><tbody>${righeContratti}</tbody></table></body></html>`;
+    const righeContratti = lista.map(c => `<tr><td>${c.id}</td><td>${escapeHtml(c.dataInserimento)}</td><td>${escapeHtml(c.dataEsito)}</td><td>${escapeHtml(c.nome)}</td><td>${escapeHtml(c.cognome)}</td><td>${escapeHtml(c.venditore)}</td><td>${escapeHtml(c.partner)}</td><td>${escapeHtml(c.gestore)}</td><td>${escapeHtml(c.servizio)}</td><td>${getContractCategory(c)}</td><td>${getContractUnits(c)}</td><td>${escapeHtml(c.stato)}</td><td>${c.gettonePartner}€</td><td>${c.gettoneVenditore}€</td><td>${calcolaMargine(c)}€</td><td>${escapeHtml(c.pagamentoPartner)}</td><td>${escapeHtml(c.pagamentoVenditore)}</td><td>${escapeHtml(c.note)}</td></tr>`).join("") || `<tr><td colspan="17">Nessun contratto trovato.</td></tr>`;
+    const reportHtml = `<html><head><meta charset="UTF-8"></head><body><h1>TOP HOUSE - Report Contratti</h1><p>Mensilità: ${escapeHtml(meseSelezionato)} | Export: ${escapeHtml(dataExport)}</p><table border="1"><tbody><tr><td>Totale contratti</td><td>${totale}</td><td>OK</td><td>${ok}</td><td>KO</td><td>${ko}</td><td>Storni</td><td>${storni}</td><td>Da incassare partner</td><td>${daIncassarePartner}€</td><td>Da pagare venditori</td><td>${daPagareVenditori}€</td><td>Margine</td><td>${margineMaturato}€</td></tr></tbody></table><br><table border="1"><thead><tr><th>ID</th><th>Data Inserimento</th><th>Data Esito</th><th>Nome</th><th>Cognome</th><th>Venditore</th><th>Partner</th><th>Gestore</th><th>Servizio</th><th>Categoria</th><th>Unità</th><th>Stato</th><th>Gettone Partner</th><th>Gettone Venditore</th><th>Margine</th><th>Pagamento Partner</th><th>Pagamento Venditore</th><th>Note</th></tr></thead><tbody>${righeContratti}</tbody></table></body></html>`;
     const blob = new Blob([reportHtml], { type: "application/vnd.ms-excel;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);

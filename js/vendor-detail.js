@@ -20,7 +20,7 @@ const VENDITORI_REGISTRATI = [
     {
         nome: "Gabriele Straniero",
         zona: "Italia",
-        ruolo: "Direttore Commerciale e Vendite",
+        ruolo: "Direttore zona Italia",
         foto: "assets/vendors/gabriele-straniero.png"
     },
     {
@@ -32,7 +32,7 @@ const VENDITORI_REGISTRATI = [
     {
         nome: "Lamine Tall",
         zona: "Lombardia",
-        ruolo: "Responsabile Amministrativo Procedure e BO",
+        ruolo: "Venditore Lombardia",
         foto: "assets/vendors/lamine-tall.png"
     },
     {
@@ -133,6 +133,30 @@ function statoVenditore(nome){
     return stati[nome] || "Attivo";
 }
 
+
+function getContractCategory(contratto){
+    const servizio = String(contratto.servizio || "")
+        .toLowerCase()
+        .replaceAll(" ", "")
+        .replaceAll("_", "-");
+
+    if(
+        servizio === "luce" ||
+        servizio === "gas" ||
+        servizio === "luce+gas" ||
+        servizio === "luce-gas" ||
+        servizio === "lucegas"
+    ){
+        return "Commodity";
+    }
+
+    return "Extra Commodity";
+}
+
+function sommaCategoria(lista, categoria){
+    return lista.filter(c => getContractCategory(c) === categoria)
+        .reduce((totale, contratto) => totale + getContractUnits(contratto), 0);
+}
 function getContractUnits(contratto){
     const servizio = String(contratto.servizio || "").toLowerCase().replaceAll(" ", "");
     if(servizio === "luce+gas" || servizio === "luce-gas" || servizio === "lucegas"){
@@ -323,6 +347,8 @@ function aggiornaCards(lista){
     const okRate = totale > 0 ? Math.round((ok / totale) * 100) : 0;
 
     document.getElementById("totaleContratti").innerText = totale;
+    document.getElementById("totaleCommodity").innerText = sommaCategoria(lista, "Commodity");
+    document.getElementById("totaleExtraCommodity").innerText = sommaCategoria(lista, "Extra Commodity");
     document.getElementById("totaleOk").innerText = ok;
     document.getElementById("totaleKo").innerText = ko;
     document.getElementById("totaleStorni").innerText = storni;
@@ -373,6 +399,7 @@ function renderContratti(lista){
             <td>${contratto.partner || ""}</td>
             <td>${contratto.gestore || ""}</td>
             <td>${contratto.servizio || ""}</td>
+            <td>${getContractCategory(contratto)}</td>
             <td>${contratto.stato || ""}</td>
             <td>${contratto.gettonePartner || 0}€</td>
             <td>${contratto.gettoneVenditore || 0}€</td>
@@ -473,223 +500,24 @@ function aggiornaPagina(){
 }
 
 async function exportVendorExcel(){
-
     const lista = filtraContrattiVenditore();
-
     const meseSelezionato = monthFilter.options[monthFilter.selectedIndex].text;
     const dataExport = new Date().toLocaleDateString("it-IT");
-
     const totale = sommaUnita(lista);
+    const commodity = sommaCategoria(lista, "Commodity");
+    const extraCommodity = sommaCategoria(lista, "Extra Commodity");
     const ok = sommaUnita(lista.filter(c => c.stato === "OK" || c.stato === "Pagato"));
     const ko = sommaUnita(lista.filter(c => c.stato === "KO"));
     const storni = sommaUnita(lista.filter(c => c.stato === "Storno"));
-
-    const provvigioni = lista
-        .filter(c => c.stato === "OK" || c.stato === "Pagato")
-        .reduce((totale, c) => totale + numero(c.gettoneVenditore), 0);
-
-    const daPagare = lista
-        .filter(c =>
-            (c.stato === "OK" || c.stato === "Pagato") &&
-            c.pagamentoVenditore === "Da pagare"
-        )
-        .reduce((totale, c) => totale + numero(c.gettoneVenditore), 0);
-
-    const margine = lista
-        .filter(c => c.stato === "OK" || c.stato === "Pagato")
-        .reduce((totale, c) => totale + calcolaMargine(c), 0);
-
-    let righe = "";
-
-    if(lista.length === 0){
-
-        righe = `
-            <tr>
-                <td colspan="14" class="empty">
-                    Nessun contratto trovato.
-                </td>
-            </tr>
-        `;
-
-    }else{
-
-        lista.forEach(c => {
-
-            const margineContratto = calcolaMargine(c);
-
-            righe += `
-                <tr>
-                    <td>${c.id || ""}</td>
-                    <td>${c.dataInserimento || ""}</td>
-                    <td>${c.dataEsito || ""}</td>
-                    <td>${c.nome || ""}</td>
-                    <td>${c.cognome || ""}</td>
-                    <td>${c.partner || ""}</td>
-                    <td>${c.gestore || ""}</td>
-                    <td>${c.servizio || ""}</td>
-                    <td>${c.stato || ""}</td>
-                    <td>${c.gettonePartner || 0}€</td>
-                    <td>${c.gettoneVenditore || 0}€</td>
-                    <td>${margineContratto}€</td>
-                    <td>${c.pagamentoVenditore || ""}</td>
-                    <td>${c.note || ""}</td>
-                </tr>
-            `;
-
-        });
-
-    }
-
-    const html = `
-        <html>
-        <head>
-            <meta charset="UTF-8">
-
-            <style>
-                body{
-                    font-family:Arial, Helvetica, sans-serif;
-                    color:#081120;
-                }
-
-                .header-report{
-                    background:linear-gradient(90deg,#d90429,#ff7b00);
-                    color:white;
-                    padding:24px;
-                    border-radius:18px;
-                    margin-bottom:24px;
-                }
-
-                .title{
-                    font-size:30px;
-                    font-weight:800;
-                }
-
-                .subtitle{
-                    font-size:16px;
-                    margin-top:6px;
-                }
-
-                .summary{
-                    width:100%;
-                    border-collapse:collapse;
-                    margin-bottom:24px;
-                }
-
-                .summary td{
-                    background:#f8fafc;
-                    border:1px solid #e5e7eb;
-                    padding:16px;
-                    font-size:15px;
-                    font-weight:bold;
-                }
-
-                .summary .value{
-                    color:#ff7b00;
-                    font-size:22px;
-                    font-weight:800;
-                }
-
-                table{
-                    width:100%;
-                    border-collapse:collapse;
-                }
-
-                th{
-                    background:#081120;
-                    color:white;
-                    padding:12px;
-                    border:1px solid #d1d5db;
-                    text-align:left;
-                }
-
-                td{
-                    padding:10px;
-                    border:1px solid #e5e7eb;
-                }
-
-                tr:nth-child(even) td{
-                    background:#f9fafb;
-                }
-
-                .section-title{
-                    font-size:22px;
-                    font-weight:800;
-                    margin:24px 0 12px 0;
-                }
-
-                .empty{
-                    text-align:center;
-                    padding:28px;
-                    color:#6b7280;
-                    font-weight:bold;
-                }
-            </style>
-        </head>
-
-        <body>
-
-            <div class="header-report">
-                <div class="title">TOP HOUSE - Report Collaboratore</div>
-                <div class="subtitle">
-                    Nome: ${venditore.nome} | Ruolo: ${venditore.ruolo} | Zona: ${venditore.zona} | Mensilità: ${meseSelezionato} | Esportato il: ${dataExport}
-                </div>
-            </div>
-
-            <table class="summary">
-                <tr>
-                    <td>Contratti Totali<br><span class="value">${totale}</span></td>
-                    <td>Contratti OK<br><span class="value">${ok}</span></td>
-                    <td>KO<br><span class="value">${ko}</span></td>
-                    <td>Storni<br><span class="value">${storni}</span></td>
-                    <td>Provvigioni<br><span class="value">${provvigioni}€</span></td>
-                    <td>Da Pagare<br><span class="value">${daPagare}€</span></td>
-                    <td>Margine Top House<br><span class="value">${margine}€</span></td>
-                </tr>
-            </table>
-
-            <div class="section-title">Dettaglio Contratti</div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Data Inserimento</th>
-                        <th>Data Esito</th>
-                        <th>Nome</th>
-                        <th>Cognome</th>
-                        <th>Partner</th>
-                        <th>Gestore</th>
-                        <th>Servizio</th>
-                        <th>Stato</th>
-                        <th>Gettone Partner</th>
-                        <th>Gettone Venditore</th>
-                        <th>Margine Top House</th>
-                        <th>Pagamento Venditore</th>
-                        <th>Note</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    ${righe}
-                </tbody>
-            </table>
-
-        </body>
-        </html>
-    `;
-
-    const blob = new Blob([html], {
-        type: "application/vnd.ms-excel;charset=utf-8;"
-    });
-
+    const lavorazione = sommaUnita(lista.filter(c => c.stato !== "OK" && c.stato !== "Pagato" && c.stato !== "KO" && c.stato !== "Storno"));
+    const totaleDaPagare = lista.filter(c => (c.stato === "OK" || c.stato === "Pagato") && c.pagamentoVenditore === "Da pagare").reduce((t,c)=>t+numero(c.gettoneVenditore),0);
+    const totalePagato = lista.filter(c => (c.stato === "OK" || c.stato === "Pagato") && c.pagamentoVenditore === "Pagato").reduce((t,c)=>t+numero(c.gettoneVenditore),0);
+    const righe = lista.map(c => `<tr><td>${escapeHtml(c.dataInserimento)}</td><td>${escapeHtml([c.nome,c.cognome].filter(Boolean).join(" "))}</td><td>${escapeHtml(c.servizio)}</td><td>${getContractCategory(c)}</td><td>${escapeHtml(c.gestore)}</td><td>${escapeHtml(c.stato)}</td><td>${numero(c.gettoneVenditore)}€</td><td>${escapeHtml(c.pagamentoVenditore)}</td><td>${escapeHtml(c.note)}</td></tr>`).join("") || `<tr><td colspan="9" class="empty">Nessun contratto trovato.</td></tr>`;
+    const html = `<html><head><meta charset="UTF-8"><style>body{font-family:Arial;color:#081120}.header-report{border-bottom:4px solid #ff7b00;padding:18px 0;margin-bottom:18px}.logo{height:70px}.title{font-size:28px;font-weight:800;color:#d90429}.summary td{background:#f8fafc;border:1px solid #e5e7eb;padding:12px;font-weight:bold}.value{color:#ff7b00;font-size:20px}table{width:100%;border-collapse:collapse}th{background:#081120;color:white;padding:10px;text-align:left}td{border:1px solid #e5e7eb;padding:9px}</style></head><body><div class="header-report"><img class="logo" src="assets/logo-tophouse.png"><div class="title">Report Venditore - TOP HOUSE</div><div>Venditore: ${escapeHtml(venditore.nome)} | Periodo: ${escapeHtml(meseSelezionato)} | Generato: ${escapeHtml(dataExport)}</div></div><table class="summary"><tr><td>Contratti<br><span class="value">${totale}</span></td><td>Commodity<br><span class="value">${commodity}</span></td><td>Extra Commodity<br><span class="value">${extraCommodity}</span></td><td>OK<br><span class="value">${ok}</span></td><td>KO<br><span class="value">${ko}</span></td><td>Storni<br><span class="value">${storni}</span></td><td>In lavorazione<br><span class="value">${lavorazione}</span></td><td>Da pagare<br><span class="value">${totaleDaPagare}€</span></td><td>Pagato<br><span class="value">${totalePagato}€</span></td></tr></table><h2>Lista pratiche</h2><table><thead><tr><th>Data</th><th>Cliente</th><th>Servizio</th><th>Categoria</th><th>Gestore</th><th>Stato pratica</th><th>Gettone venditore</th><th>Stato pagamento venditore</th><th>Note</th></tr></thead><tbody>${righe}</tbody></table></body></html>`;
+    const blob = new Blob([html], { type:"application/vnd.ms-excel;charset=utf-8;" });
     const link = document.createElement("a");
-
-    const meseFile = monthFilter.value || "tutte-mensilita";
-    const nomeFile = venditore.nome.toLowerCase().replaceAll(" ", "-");
-
     link.href = URL.createObjectURL(blob);
-    link.download = `report-collaboratore-${nomeFile}-${meseFile}.xls`;
-
+    link.download = `report-venditore-${venditore.nome.toLowerCase().replaceAll(" ", "-")}-${monthFilter.value || new Date().toISOString().slice(0,7)}.xls`;
     link.click();
 }
 
