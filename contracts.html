@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Contratti - Top House Gestionale</title>
 
-    <link rel="stylesheet" href="css/style.css?v=2500">
+    <link rel="stylesheet" href="css/style.css?v=3000">
 </head>
 
 <body>
@@ -253,6 +253,7 @@
                 <div>
                     <h3>📋 Registro Contratti</h3>
                     <p>Filtra per mese, venditore, partner, gestore, stato e pagamento.</p>
+                    <p id="firebaseStatus" class="firebase-status">Connessione Firebase in corso...</p>
                 </div>
             </div>
 
@@ -295,6 +296,8 @@
                     <option value="Non dovuto">Non dovuto</option>
                 </select>
 
+                <button id="migrateLocalContractsBtn" type="button" style="display:none;">Migra contratti locali su Firebase</button>
+                <button id="archiveLocalContractsBtn" type="button" style="display:none;">Archivia dati locali dopo migrazione</button>
                 <button onclick="exportReport()">Esporta Report Excel</button>
                 <button onclick="resetFiltri()">Reset Filtri</button>
                 <button class="danger" onclick="resetContratti()">Svuota Tutto</button>
@@ -338,8 +341,9 @@
 
     </main>
 
-    <script src="js/menu.js?v=2500"></script>
-    <script src="js/contracts.js?v=2500"></script>
+    <script src="js/menu.js?v=3000"></script>
+    <script type="module" src="js/auth-guard.js?v=3000"></script>
+    <script type="module" src="js/contracts.js?v=3000"></script>
 
 </body>
 

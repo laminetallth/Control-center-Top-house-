@@ -60,9 +60,35 @@
         menu.className = "menu";
         menuItems.forEach((item) => menu.appendChild(createMenuItem(item, currentPage)));
 
+        const authBox = document.createElement("div");
+        authBox.className = "sidebar-auth";
+        authBox.innerHTML = `
+            <small>Accesso Firebase</small>
+            <strong id="userEmail">${window.topHouseCurrentUser?.email || "Utente autenticato"}</strong>
+            <button type="button" id="logoutButton">Esci</button>
+        `;
+
         sidebar.appendChild(logoSection);
         sidebar.appendChild(menu);
+        sidebar.appendChild(authBox);
         container.replaceWith(sidebar);
+
+        const logoutButton = document.getElementById("logoutButton");
+        if (logoutButton) {
+            logoutButton.addEventListener("click", async () => {
+                const { auth, signOut } = await import("./firebase-config.js");
+                await signOut(auth);
+                window.location.href = "login.html";
+            });
+        }
+
+        window.addEventListener("topHouseAuthReady", (event) => {
+            const email = event.detail?.user?.email;
+            const userEmailSlot = document.getElementById("userEmail");
+            if (email && userEmailSlot) {
+                userEmailSlot.textContent = email;
+            }
+        });
     }
 
     if (document.readyState === "loading") {
