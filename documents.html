@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documenti - Top House Gestionale</title>
+    <link rel="stylesheet" href="css/style.css?v=2300">
+</head>
+<body>
+    <div id="sidebarContainer"></div>
+    <main class="main">
+        <div class="header"><div><h1>Documenti</h1><span>Archivio documenti aziendali interni TOP HOUSE</span></div></div>
+        <section class="cards">
+            <div class="card"><h4>Totale documenti</h4><p id="docTotale">0</p></div>
+            <div class="card"><h4>Documenti contratti</h4><p id="docContratti">0</p></div>
+            <div class="card"><h4>Documenti partner</h4><p id="docPartner">0</p></div>
+            <div class="card"><h4>Documenti venditori</h4><p id="docVenditori">0</p></div>
+            <div class="card"><h4>Documenti aziendali</h4><p id="docAziendali">0</p></div>
+            <div class="card"><h4>Urgenti / da aggiornare</h4><p id="docUrgenti">0</p></div>
+        </section>
+        <section class="box full-box document-panel">
+            <div class="section-title"><div><h3>➕ Nuovo documento</h3><p>Registra link, scadenze, note e collegamenti operativi.</p></div></div>
+            <form id="documentForm" class="contract-form">
+                <input type="hidden" id="documentId">
+                <div class="form-field"><label>Titolo</label><input id="titolo" required></div>
+                <div class="form-field"><label>Categoria</label><select id="categoria"><option>Contratti</option><option>Partner</option><option>Venditori</option><option>Aziendale</option><option>Moduli</option><option>Altro</option></select></div>
+                <div class="form-field"><label>Collegato a</label><input id="collegatoA" placeholder="Cliente, partner, venditore..."></div>
+                <div class="form-field"><label>Link documento / URL</label><input id="linkDocumento" type="url" placeholder="https://..."></div>
+                <div class="form-field"><label>Scadenza o aggiornamento</label><input id="scadenza" type="date"></div>
+                <div class="form-field"><label>Stato</label><select id="stato"><option>Attivo</option><option>Da aggiornare</option><option>Archiviato</option></select></div>
+                <div class="form-field form-field-wide"><label>Note</label><input id="note" placeholder="Note interne"></div>
+                <button type="submit" id="saveDocumentBtn">Salva documento</button><button type="button" class="cancel-btn" id="cancelEditBtn">Annulla modifica</button>
+            </form>
+        </section>
+        <section class="box full-box document-panel">
+            <div class="section-title"><div><h3>📁 Tabella documenti</h3><p>Cerca, filtra, modifica o elimina i documenti salvati.</p></div></div>
+            <div class="table-actions filters-area"><input id="searchText" placeholder="Cerca documento"><select id="filterCategory"><option value="">Tutte le categorie</option><option>Contratti</option><option>Partner</option><option>Venditori</option><option>Aziendale</option><option>Moduli</option><option>Altro</option></select><select id="filterStatus"><option value="">Tutti gli stati</option><option>Attivo</option><option>Da aggiornare</option><option>Archiviato</option></select></div><br>
+            <div class="table-wrapper"><table><thead><tr><th>Titolo</th><th>Categoria</th><th>Collegato a</th><th>Link</th><th>Scadenza</th><th>Stato</th><th>Note</th><th>Azioni</th></tr></thead><tbody id="documentsBody"></tbody></table></div>
+        </section>
+    </main>
+    <script src="js/menu.js?v=2300"></script>
+    <script src="js/documents.js?v=2300"></script>
+</body>
+</html>

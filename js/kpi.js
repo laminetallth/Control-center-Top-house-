@@ -5,7 +5,7 @@ const MESI = [
     ["2026-10", "Ottobre 2026"], ["2026-11", "Novembre 2026"], ["2026-12", "Dicembre 2026"]
 ];
 
-const KPI_CONFIG = [
+const KPI_COMPARISON_CONFIG = [
     { key:"totale", label:"Totale Contratti", type:"number", mood:"up" },
     { key:"ok", label:"Contratti OK", type:"number", mood:"up" },
     { key:"okRate", label:"OK Rate %", type:"percent", mood:"up" },
@@ -14,7 +14,7 @@ const KPI_CONFIG = [
     { key:"margine", label:"Margine Maturato", type:"currency", mood:"up" },
     { key:"daIncassare", label:"Da Incassare Partner", type:"currency", mood:"down" },
     { key:"daPagare", label:"Da Pagare Venditori", type:"currency", mood:"down" },
-    { key:"investimenti", label:"Investimenti", type:"currency", mood:"warning" },
+    { key:"investimenti", label:"Investimenti", type:"currency", mood:"down" },
     { key:"roi", label:"ROI Investimenti", type:"percent", mood:"up" }
 ];
 
@@ -51,11 +51,17 @@ function calcolaMetriche(contratti, investimenti){
     const investimentiTot = investimenti.reduce((t, i) => t + numero(i.importo), 0);
     const okRate = totale > 0 ? (ok / totale) * 100 : 0;
     const roi = investimentiTot > 0 ? ((margine - investimentiTot) / investimentiTot) * 100 : 0;
-    return { totale, ok, okRate, ko, storni, margine, daIncassare, daPagare, investimenti: investimentiTot, roi };
+    const saldo = margine - investimentiTot;
+    const cashPressure = daIncassare + daPagare;
+    return { totale, ok, okRate, ko, storni, margine, daIncassare, daPagare, investimenti: investimentiTot, roi, saldo, cashPressure };
 }
 
 function renderCards(m){
-    document.getElementById("mainKpiCards").innerHTML = KPI_CONFIG.map(k => `
+    const cards = KPI_COMPARISON_CONFIG.concat([
+        { key:"saldo", label:"Saldo Operativo", type:"currency" },
+        { key:"cashPressure", label:"Cash pressure", type:"currency" }
+    ]);
+    document.getElementById("mainKpiCards").innerHTML = cards.map(k => `
         <div class="card kpi-card"><h4>${k.label}</h4><p>${format(m[k.key], k.type)}</p><small>Mese selezionato</small></div>
     `).join("");
 }
@@ -70,7 +76,7 @@ function classeTrend(k, attuale, precedente){
 }
 
 function renderComparison(attuale, precedente){
-    document.getElementById("comparisonGrid").innerHTML = KPI_CONFIG.map(k => `
+    document.getElementById("comparisonGrid").innerHTML = KPI_COMPARISON_CONFIG.map(k => `
         <div class="comparison-card"><h4>${k.label}</h4><div class="comparison-values"><div><span>Selezionato</span><strong>${format(attuale[k.key], k.type)}</strong></div><div><span>Precedente</span><strong>${format(precedente[k.key], k.type)}</strong></div></div><span class="trend-badge ${classeTrend(k, attuale[k.key], precedente[k.key])}">${variazione(attuale[k.key], precedente[k.key])}</span></div>
     `).join("");
 }

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Attività - Top House Gestionale</title>
-    <link rel="stylesheet" href="css/style.css?v=2200">
+    <link rel="stylesheet" href="css/style.css?v=2300">
 </head>
 <body>
     <div id="sidebarContainer"></div>
@@ -25,6 +25,7 @@
                 <div class="form-field"><label>Priorità</label><select id="priorita"><option>Bassa</option><option selected>Media</option><option>Alta</option><option>Urgente</option></select></div>
                 <div class="form-field"><label>Scadenza</label><input id="scadenza" type="date"></div>
                 <div class="form-field"><label>Assegnato a</label><input id="assegnatoA" placeholder="Nome collaboratore"></div>
+                <div class="form-field"><label>Stato</label><select id="stato"><option>Da fare</option><option>In corso</option><option>Completata</option><option>Rimandata</option></select></div>
                 <div class="form-field form-field-wide"><label>Descrizione</label><input id="descrizione" placeholder="Descrizione attività"></div>
                 <div class="form-field form-field-wide"><label>Note</label><input id="note" placeholder="Note operative"></div>
                 <button type="submit" id="saveActivityBtn">Salva attività</button><button type="button" class="cancel-btn" id="cancelEditBtn">Annulla modifica</button>
@@ -42,7 +43,7 @@
             <div class="table-wrapper"><table><thead><tr><th>Titolo</th><th>Priorità</th><th>Scadenza</th><th>Stato</th><th>Assegnato a</th><th>Note</th><th>Azioni</th></tr></thead><tbody id="activitiesBody"></tbody></table></div>
         </section>
     </main>
-    <script src="js/menu.js?v=2200"></script>
-    <script src="js/activities.js?v=2200"></script>
+    <script src="js/menu.js?v=2300"></script>
+    <script src="js/activities.js?v=2300"></script>
 </body>
 </html>
