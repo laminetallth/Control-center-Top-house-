@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impostazioni - Top House Gestionale</title>
+    <link rel="stylesheet" href="css/style.css?v=2300">
+</head>
+<body>
+    <div id="sidebarContainer"></div>
+    <main class="main">
+        <div class="header"><div><h1>Impostazioni</h1><span>Configurazioni generali, backup e manutenzione dati</span></div></div>
+        <section class="grid settings-grid">
+            <div class="box settings-panel"><div class="section-title"><div><h3>🏷️ Brand</h3><p>Identità del gestionale TOP HOUSE.</p></div></div><div class="brand-preview"><img src="assets/logo-casa.png" alt="Logo sidebar"><img src="assets/logo-tophouse.png" alt="Logo completo"></div><p><strong>Nome azienda:</strong> TOP HOUSE</p><p><strong>Nome gestionale:</strong> TOP HOUSE GESTIONALE</p><p><strong>Logo sidebar attuale:</strong> assets/logo-casa.png</p><p><strong>Logo completo:</strong> assets/logo-tophouse.png</p></div>
+            <div class="box settings-panel"><div class="section-title"><div><h3>🧮 Dati sistema</h3><p>Numeri letti dal localStorage.</p></div></div><div class="settings-stats"><div><span>Contratti salvati</span><strong id="countContratti">0</strong></div><div><span>Investimenti salvati</span><strong id="countInvestimenti">0</strong></div><div><span>Attività salvate</span><strong id="countAttivita">0</strong></div><div><span>Documenti salvati</span><strong id="countDocumenti">0</strong></div></div></div>
+        </section>
+        <section class="box full-box settings-panel"><div class="section-title"><div><h3>💾 Backup dati</h3><p>Esporta un JSON completo delle chiavi principali.</p></div></div><button class="primary-action" id="exportBackupBtn">Esporta Backup JSON</button></section>
+        <section class="box full-box settings-panel"><div class="section-title"><div><h3>📥 Import dati</h3><p>Ripristina dati da un backup JSON dopo conferma.</p></div></div><div class="table-actions"><input type="file" id="importFile" accept="application/json,.json"><button id="importBackupBtn">Importa backup</button></div></section>
+        <section class="box full-box settings-panel"><div class="section-title"><div><h3>🧹 Reset dati</h3><p>Svuota singole sezioni. Nessun reset totale automatico.</p></div></div><div class="reset-actions"><button data-reset="contrattiTopHouse">Svuota contratti</button><button data-reset="investimentiTopHouse">Svuota investimenti</button><button data-reset="attivitaTopHouse">Svuota attività</button><button data-reset="documentiTopHouse">Svuota documenti</button></div></section>
+    </main>
+    <script src="js/menu.js?v=2300"></script>
+    <script src="js/settings.js?v=2300"></script>
+</body>
+</html>

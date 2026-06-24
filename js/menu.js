@@ -13,6 +13,7 @@
         { label: "📊 KPI", href: "kpi.html", matches: ["kpi.html"] },
         { label: "📑 Report", href: "reports.html", matches: ["reports.html"] },
         { label: "✅ Attività", href: "activities.html", matches: ["activities.html"] },
+        { label: "📁 Documenti", href: "documents.html", matches: ["documents.html"] },
         { label: "⚙️ Impostazioni", href: "settings.html", matches: ["settings.html"] }
     ];
 
