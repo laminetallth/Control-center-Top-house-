@@ -4,24 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Top House Gestionale</title>
-    <link rel="stylesheet" href="css/style.css?v=3100">
+    <link rel="stylesheet" href="css/style.css?v=3200">
 </head>
 <body class="login-page">
     <main class="login-shell">
         <section class="login-card">
-            <div class="login-logo"><img src="assets/logo-casa.png" alt="Top House Logo"></div>
+            <img class="login-logo" src="assets/logo-casa.png" alt="Top House Logo">
             <h1>TOP HOUSE GESTIONALE</h1>
             <p>Accedi con il tuo account autorizzato.</p>
             <form id="loginForm" class="login-form">
-                <label for="email">Email</label>
-                <input type="email" id="email" autocomplete="email" required placeholder="nome@email.it">
-                <label for="password">Password</label>
-                <input type="password" id="password" autocomplete="current-password" required placeholder="Password">
+                <div class="login-field">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" autocomplete="email" required placeholder="nome@email.it">
+                </div>
+                <div class="login-field">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" autocomplete="current-password" required placeholder="Password">
+                </div>
                 <div id="loginError" class="login-error" role="alert"></div>
-                <button id="loginButton" type="submit">Accedi</button>
+                <button id="loginButton" class="login-btn" type="submit">Accedi</button>
             </form>
         </section>
     </main>
-    <script type="module" src="js/login.js?v=3100"></script>
+    <script type="module" src="js/login.js?v=3200"></script>
 </body>
 </html>
