@@ -6,8 +6,6 @@ const MESI = [
     ["2026-10", "Ottobre 2026"], ["2026-11", "Novembre 2026"], ["2026-12", "Dicembre 2026"]
 ];
 
-import { parseMoney, formatEuro } from "./money.js";
-
 const KPI_COMPARISON_CONFIG = [
     { key:"totale", label:"Totale Contratti", type:"number", mood:"up" },
     { key:"ok", label:"Contratti OK", type:"number", mood:"up" },
@@ -26,7 +24,7 @@ const KPI_COMPARISON_CONFIG = [
 ];
 
 function testo(valore){ return String(valore || "").trim(); }
-function numero(valore){ return parseMoney(valore); }
+function numero(valore){ return Number(valore || 0) || 0; }
 function praticaValida(c){ return testo(c.stato) === "OK" || testo(c.stato) === "Pagato"; }
 
 
@@ -63,7 +61,7 @@ function getContractUnits(contratto){
 function sommaUnita(lista){ return lista.reduce((totale, contratto) => totale + getContractUnits(contratto), 0); }
 
 function calcolaMargine(c){ return praticaValida(c) ? numero(c.gettonePartner) - numero(c.gettoneVenditore) : 0; }
-function euro(v){ return formatEuro(v); }
+function euro(v){ return Math.round(numero(v)).toLocaleString("it-IT") + "€"; }
 function percent(v){ return Math.round(numero(v) * 10) / 10 + "%"; }
 function format(v, type){ return type === "currency" ? euro(v) : type === "percent" ? percent(v) : String(Math.round(numero(v))); }
 function escapeHtml(v){ return testo(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
