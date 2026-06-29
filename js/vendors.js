@@ -1,3 +1,4 @@
+import { formatEuro } from "./formatters.js";
 import { readCollection } from "./firebase-data.js";
 const VENDITORI_REGISTRATI = [
     {
@@ -287,9 +288,9 @@ function aggiornaCards(venditori){
     document.getElementById("totaleOk").innerText = totaleOk;
     document.getElementById("totaleKo").innerText = totaleKo;
     document.getElementById("totaleStorni").innerText = totaleStorni;
-    document.getElementById("provvigioniMaturate").innerText = provvigioniMaturate + "€";
-    document.getElementById("daPagareVenditori").innerText = daPagareVenditori + "€";
-    document.getElementById("margineGenerato").innerText = margineGenerato + "€";
+    document.getElementById("provvigioniMaturate").innerText = formatEuro(provvigioniMaturate);
+    document.getElementById("daPagareVenditori").innerText = formatEuro(daPagareVenditori);
+    document.getElementById("margineGenerato").innerText = formatEuro(margineGenerato);
 }
 
 function renderClassificaVenditori(venditori){
@@ -331,10 +332,10 @@ function renderClassificaVenditori(venditori){
             <td>${venditore.ok}</td>
             <td>${venditore.ko}</td>
             <td>${venditore.storni}</td>
-            <td>${venditore.provvigioniMaturate}€</td>
-            <td>${venditore.daPagare}€</td>
-            <td>${venditore.pagato}€</td>
-            <td>${venditore.margine}€</td>
+            <td>${formatEuro(venditore.provvigioniMaturate)}</td>
+            <td>${formatEuro(venditore.daPagare)}</td>
+            <td>${formatEuro(venditore.pagato)}</td>
+            <td>${formatEuro(venditore.margine)}</td>
             <td>
                 <a class="mini-btn" href="vendor-detail.html?vendor=${slugVenditore(venditore.nome)}">
                     Apri Scheda
@@ -371,8 +372,8 @@ function aggiornaMigliorVenditore(venditori){
         document.getElementById("bestVendorName").innerText = "-";
         document.getElementById("bestVendorArea").innerText = "-";
         document.getElementById("bestVendorOk").innerText = "0";
-        document.getElementById("bestVendorCommission").innerText = "0€";
-        document.getElementById("bestVendorMargin").innerText = "0€";
+        document.getElementById("bestVendorCommission").innerText = formatEuro(0);
+        document.getElementById("bestVendorMargin").innerText = formatEuro(0);
 
         return;
     }
@@ -382,8 +383,8 @@ function aggiornaMigliorVenditore(venditori){
     document.getElementById("bestVendorName").innerText = migliore.nome;
     document.getElementById("bestVendorArea").innerText = migliore.zona;
     document.getElementById("bestVendorOk").innerText = migliore.ok;
-    document.getElementById("bestVendorCommission").innerText = migliore.provvigioniMaturate + "€";
-    document.getElementById("bestVendorMargin").innerText = migliore.margine + "€";
+    document.getElementById("bestVendorCommission").innerText = formatEuro(migliore.provvigioniMaturate);
+    document.getElementById("bestVendorMargin").innerText = formatEuro(migliore.margine);
 
 }
 

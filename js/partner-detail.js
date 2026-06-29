@@ -1,3 +1,4 @@
+import { formatEuro } from "./formatters.js";
 import { readCollection } from "./firebase-data.js";
 const PARTNER_REGISTRATI = [
     {
@@ -297,14 +298,14 @@ function aggiornaCards(lista){
     document.getElementById("totaleOk").innerText = ok;
     document.getElementById("totaleKo").innerText = ko;
     document.getElementById("totaleStorni").innerText = storni;
-    document.getElementById("daIncassarePartner").innerText = daIncassare + "€";
-    document.getElementById("incassatoPartner").innerText = incassato + "€";
-    document.getElementById("margineMaturato").innerText = margine + "€";
+    document.getElementById("daIncassarePartner").innerText = formatEuro(daIncassare);
+    document.getElementById("incassatoPartner").innerText = formatEuro(incassato);
+    document.getElementById("margineMaturato").innerText = formatEuro(margine);
 
     document.getElementById("okRate").innerText = okRate + "%";
     document.getElementById("negativeCount").innerText = negativeCount;
 
-    document.getElementById("partnerBalance").innerText = saldoPartner + "€";
+    document.getElementById("partnerBalance").innerText = formatEuro(saldoPartner);
 
     const selectedText = monthFilter.options[monthFilter.selectedIndex].text;
     document.getElementById("selectedMonthLabel").innerText = selectedText;
@@ -348,10 +349,10 @@ function renderContratti(lista){
             <td>${escapeHtml(contratto.servizio)}</td>
             <td><span class="badge pending">${getContractCategory(contratto)}</span></td>
             <td>${escapeHtml(contratto.stato)}</td>
-            <td>${numero(contratto.gettonePartner)}€</td>
+            <td>${formatEuro(numero(contratto.gettonePartner))}</td>
             <td>${escapeHtml(contratto.pagamentoPartner)}</td>
-            <td>${numero(contratto.gettoneVenditore)}€</td>
-            <td>${margine}€</td>
+            <td>${formatEuro(numero(contratto.gettoneVenditore))}</td>
+            <td>${formatEuro(margine)}</td>
             <td>${escapeHtml(contratto.note)}</td>
         `;
 
@@ -701,10 +702,10 @@ async function exportPartnerExcel(){
                     <td>${escapeHtml(c.gestore)}</td>
                     <td>${escapeHtml(c.servizio)}</td>
                     <td>${escapeHtml(c.stato)}</td>
-                    <td>${numero(c.gettonePartner)}€</td>
+                    <td>${formatEuro(numero(c.gettonePartner))}</td>
                     <td>${escapeHtml(c.pagamentoPartner)}</td>
-                    <td>${numero(c.gettoneVenditore)}€</td>
-                    <td>${margineContratto}€</td>
+                    <td>${formatEuro(numero(c.gettoneVenditore))}</td>
+                    <td>${formatEuro(margineContratto)}</td>
                     <td>${escapeHtml(c.note)}</td>
                 </tr>
             `;
@@ -814,9 +815,9 @@ async function exportPartnerExcel(){
                     <td>Contratti OK<br><span class="value">${ok}</span></td>
                     <td>KO<br><span class="value">${ko}</span></td>
                     <td>Storni<br><span class="value">${storni}</span></td>
-                    <td>Da Incassare<br><span class="value">${daIncassare}€</span></td>
-                    <td>Incassato<br><span class="value">${incassato}€</span></td>
-                    <td>Margine Maturato<br><span class="value">${margine}€</span></td>
+                    <td>Da Incassare<br><span class="value">${formatEuro(daIncassare)}</span></td>
+                    <td>Incassato<br><span class="value">${formatEuro(incassato)}</span></td>
+                    <td>Margine Maturato<br><span class="value">${formatEuro(margine)}</span></td>
                 </tr>
             </table>
 

@@ -1,3 +1,4 @@
+import { formatEuro } from "./formatters.js";
 import { readCollection } from "./firebase-data.js";
 const MESI = [
     ["2026-01", "Gennaio 2026"], ["2026-02", "Febbraio 2026"], ["2026-03", "Marzo 2026"],
@@ -61,7 +62,7 @@ function getContractUnits(contratto){
 function sommaUnita(lista){ return lista.reduce((totale, contratto) => totale + getContractUnits(contratto), 0); }
 
 function calcolaMargine(c){ return praticaValida(c) ? numero(c.gettonePartner) - numero(c.gettoneVenditore) : 0; }
-function euro(v){ return Math.round(numero(v)).toLocaleString("it-IT") + "€"; }
+function euro(v){ return formatEuro(v); }
 function percent(v){ return Math.round(numero(v) * 10) / 10 + "%"; }
 function format(v, type){ return type === "currency" ? euro(v) : type === "percent" ? percent(v) : String(Math.round(numero(v))); }
 function escapeHtml(v){ return testo(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }

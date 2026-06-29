@@ -158,6 +158,7 @@
     <script src="js/menu.js?v=3100"></script>
     <script type="module" src="js/auth-guard.js?v=3100"></script>
     <script type="module">
+        import { formatEuro } from "./js/formatters.js";
         import { readCollection, addDocument, deleteDocument } from "./js/firebase-data.js";
         function setFirebaseStatus(message, type){ const el = document.getElementById("firebaseStatus"); if(el){ el.textContent = message; el.className = `firebase-status ${type || ""}`.trim(); } }
         function testo(valore){
@@ -290,12 +291,12 @@
                 .filter(c => praticaValida(c))
                 .reduce((tot, c) => tot + calcolaMargine(c), 0);
 
-            document.getElementById("totaleInvestimenti").innerText = totale + "€";
-            document.getElementById("totaleMarketing").innerText = marketing + "€";
-            document.getElementById("totaleSoftware").innerText = software + "€";
-            document.getElementById("totaleMateriale").innerText = materiale + "€";
-            document.getElementById("margineMaturato").innerText = margine + "€";
-            document.getElementById("saldoInvestimenti").innerText = (margine - totale) + "€";
+            document.getElementById("totaleInvestimenti").innerText = formatEuro(totale);
+            document.getElementById("totaleMarketing").innerText = formatEuro(marketing);
+            document.getElementById("totaleSoftware").innerText = formatEuro(software);
+            document.getElementById("totaleMateriale").innerText = formatEuro(materiale);
+            document.getElementById("margineMaturato").innerText = formatEuro(margine);
+            document.getElementById("saldoInvestimenti").innerText = formatEuro(margine - totale);
 
             renderTabella(lista);
         }
@@ -330,7 +331,7 @@
                     <td>${i.data}</td>
                     <td>${i.categoria}</td>
                     <td>${i.descrizione}</td>
-                    <td>${i.importo}€</td>
+                    <td>${formatEuro(i.importo)}</td>
                 `;
 
                 tbody.appendChild(row);

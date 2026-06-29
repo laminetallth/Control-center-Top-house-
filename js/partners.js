@@ -1,3 +1,4 @@
+import { formatEuro } from "./formatters.js";
 import { readCollection } from "./firebase-data.js";
 const PARTNER_REGISTRATI = [
     {
@@ -254,9 +255,9 @@ function aggiornaCards(partner){
     document.getElementById("totaleOk").innerText = totaleOk;
     document.getElementById("totaleKo").innerText = totaleKo;
     document.getElementById("totaleStorni").innerText = totaleStorni;
-    document.getElementById("daIncassarePartner").innerText = daIncassarePartner + "€";
-    document.getElementById("incassatoPartner").innerText = incassatoPartner + "€";
-    document.getElementById("margineMaturato").innerText = margineMaturato + "€";
+    document.getElementById("daIncassarePartner").innerText = formatEuro(daIncassarePartner);
+    document.getElementById("incassatoPartner").innerText = formatEuro(incassatoPartner);
+    document.getElementById("margineMaturato").innerText = formatEuro(margineMaturato);
 }
 
 function renderPartnerCategorie(partner){
@@ -310,8 +311,8 @@ function renderPartnerCategorie(partner){
 
                     <div class="partner-stats">
                         <span><strong>${p.totale}</strong> pratiche</span>
-                        <span><strong>${p.daIncassare}€</strong> da incassare</span>
-                        <span><strong>${p.margine}€</strong> margine</span>
+                        <span><strong>${formatEuro(p.daIncassare)}</strong> da incassare</span>
+                        <span><strong>${formatEuro(p.margine)}</strong> margine</span>
                     </div>
                 </div>
             `;
@@ -352,9 +353,9 @@ function renderClassificaPartner(partner){
             <td>${p.ok}</td>
             <td>${p.ko}</td>
             <td>${p.storni}</td>
-            <td>${p.daIncassare}€</td>
-            <td>${p.incassato}€</td>
-            <td>${p.margine}€</td>
+            <td>${formatEuro(p.daIncassare)}</td>
+            <td>${formatEuro(p.incassato)}</td>
+            <td>${formatEuro(p.margine)}</td>
             <td>
                 <a class="mini-btn" href="partner-detail.html?partner=${slugPartner(p.nome)}">
                     Apri Scheda
@@ -386,8 +387,8 @@ function aggiornaMigliorPartner(partner){
         document.getElementById("bestPartnerName").innerText = "-";
         document.getElementById("bestPartnerCategory").innerText = "-";
         document.getElementById("bestPartnerOk").innerText = "0";
-        document.getElementById("bestPartnerReceivable").innerText = "0€";
-        document.getElementById("bestPartnerMargin").innerText = "0€";
+        document.getElementById("bestPartnerReceivable").innerText = formatEuro(0);
+        document.getElementById("bestPartnerMargin").innerText = formatEuro(0);
 
         return;
     }
@@ -397,8 +398,8 @@ function aggiornaMigliorPartner(partner){
     document.getElementById("bestPartnerName").innerText = migliore.nome;
     document.getElementById("bestPartnerCategory").innerText = migliore.categoria;
     document.getElementById("bestPartnerOk").innerText = migliore.ok;
-    document.getElementById("bestPartnerReceivable").innerText = migliore.daIncassare + "€";
-    document.getElementById("bestPartnerMargin").innerText = migliore.margine + "€";
+    document.getElementById("bestPartnerReceivable").innerText = formatEuro(migliore.daIncassare);
+    document.getElementById("bestPartnerMargin").innerText = formatEuro(migliore.margine);
 }
 
 function aggiornaPaginaPartner(){
