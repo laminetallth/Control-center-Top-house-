@@ -1,3 +1,4 @@
+import { formatEuro } from "./formatters.js";
 import {
     db,
     collection,
@@ -125,14 +126,6 @@ function formattaImportoMassimoDueDecimali(valore){
     return String(Math.round((parseImporto(valore) + Number.EPSILON) * 100) / 100);
 }
 
-function formatEuro(valore){
-    const importoArrotondato = Math.round((parseImporto(valore) + Number.EPSILON) * 100) / 100;
-
-    return importoArrotondato.toLocaleString("it-IT", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }) + "€";
-}
 
 function escapeHtml(valore){
     return testo(valore)

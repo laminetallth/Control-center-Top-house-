@@ -166,6 +166,7 @@
     <script src="js/menu.js?v=3100"></script>
     <script type="module" src="js/auth-guard.js?v=3100"></script>
     <script type="module">
+        import { formatEuro } from "./js/formatters.js";
         import { readCollection } from "./js/firebase-data.js";
         function testo(valore){
             return String(valore || "").trim();
@@ -250,9 +251,9 @@
             document.getElementById("totaleOk").innerText = ok;
             document.getElementById("totaleKo").innerText = ko;
             document.getElementById("totaleStorni").innerText = storni;
-            document.getElementById("daIncassarePartner").innerText = daIncassare + "€";
-            document.getElementById("daPagareVenditori").innerText = daPagare + "€";
-            document.getElementById("margineMaturato").innerText = margineTotale + "€";
+            document.getElementById("daIncassarePartner").innerText = formatEuro(daIncassare);
+            document.getElementById("daPagareVenditori").innerText = formatEuro(daPagare);
+            document.getElementById("margineMaturato").innerText = formatEuro(margineTotale);
 
             renderVenditori(contratti);
             renderPartner(contratti);
@@ -328,8 +329,8 @@
                     <td>${v.ok}</td>
                     <td>${v.ko}</td>
                     <td>${v.storni}</td>
-                    <td>${v.provvigioni}€</td>
-                    <td>${v.margine}€</td>
+                    <td>${formatEuro(v.provvigioni)}</td>
+                    <td>${formatEuro(v.margine)}</td>
                 `;
 
                 tbody.appendChild(row);
@@ -415,9 +416,9 @@
                     <td>${p.ok}</td>
                     <td>${p.ko}</td>
                     <td>${p.storni}</td>
-                    <td>${p.daIncassare}€</td>
-                    <td>${p.incassato}€</td>
-                    <td>${p.margine}€</td>
+                    <td>${formatEuro(p.daIncassare)}</td>
+                    <td>${formatEuro(p.incassato)}</td>
+                    <td>${formatEuro(p.margine)}</td>
                 `;
 
                 tbody.appendChild(row);

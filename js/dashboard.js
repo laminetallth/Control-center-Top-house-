@@ -1,3 +1,4 @@
+import { formatEuro } from "./formatters.js";
 function testo(valore){
     return String(valore || "").trim();
 }
@@ -116,15 +117,15 @@ function aggiornaCards(lista){
     document.getElementById("totaleOk").innerText = ok;
     document.getElementById("totaleKo").innerText = ko;
     document.getElementById("totaleStorni").innerText = storni;
-    document.getElementById("daIncassarePartner").innerText = daIncassarePartner + "€";
-    document.getElementById("daPagareVenditori").innerText = daPagareVenditori + "€";
-    document.getElementById("margineMaturato").innerText = margineMaturato + "€";
-    document.getElementById("incassatoPartner").innerText = incassatoPartner + "€";
+    document.getElementById("daIncassarePartner").innerText = formatEuro(daIncassarePartner);
+    document.getElementById("daPagareVenditori").innerText = formatEuro(daPagareVenditori);
+    document.getElementById("margineMaturato").innerText = formatEuro(margineMaturato);
+    document.getElementById("incassatoPartner").innerText = formatEuro(incassatoPartner);
 
-    document.getElementById("cashDaIncassare").innerText = daIncassarePartner + "€";
-    document.getElementById("cashIncassato").innerText = incassatoPartner + "€";
-    document.getElementById("cashDaPagare").innerText = daPagareVenditori + "€";
-    document.getElementById("cashMargine").innerText = margineMaturato + "€";
+    document.getElementById("cashDaIncassare").innerText = formatEuro(daIncassarePartner);
+    document.getElementById("cashIncassato").innerText = formatEuro(incassatoPartner);
+    document.getElementById("cashDaPagare").innerText = formatEuro(daPagareVenditori);
+    document.getElementById("cashMargine").innerText = formatEuro(margineMaturato);
 
     const percentualeOk = totale > 0 ? Math.round((ok / totale) * 100) : 0;
 
@@ -214,8 +215,8 @@ function renderMiglioriVenditori(lista){
         row.innerHTML = `
             <td>${venditore.nome}</td>
             <td>${venditore.ok}</td>
-            <td>${venditore.provvigioni}€</td>
-            <td>${venditore.margine}€</td>
+            <td>${formatEuro(venditore.provvigioni)}</td>
+            <td>${formatEuro(venditore.margine)}</td>
         `;
 
         tbody.appendChild(row);
@@ -311,12 +312,12 @@ function aggiornaAttivita(lista){
 
     if(daIncassarePartner.length > 0){
         const totale = daIncassarePartner.reduce((somma, c) => somma + numero(c.gettonePartner), 0);
-        activityList.innerHTML += `<li>Incassare ${totale}€ dai partner.</li>`;
+        activityList.innerHTML += `<li>Incassare ${formatEuro(totale)} dai partner.</li>`;
     }
 
     if(daPagareVenditori.length > 0){
         const totale = daPagareVenditori.reduce((somma, c) => somma + numero(c.gettoneVenditore), 0);
-        activityList.innerHTML += `<li>Pagare ${totale}€ ai venditori.</li>`;
+        activityList.innerHTML += `<li>Pagare ${formatEuro(totale)} ai venditori.</li>`;
     }
 
     if(ko.length > 0){

@@ -172,6 +172,7 @@
     <script src="js/menu.js?v=3100"></script>
     <script type="module" src="js/auth-guard.js?v=3100"></script>
     <script type="module">
+        import { formatEuro } from "./js/formatters.js";
         import { readCollection } from "./js/firebase-data.js";
         function testo(valore){
             return String(valore || "").trim();
@@ -279,9 +280,9 @@
             document.getElementById("dashContrattiOk").innerText = ok;
             document.getElementById("dashKo").innerText = ko;
             document.getElementById("dashStorni").innerText = storni;
-            document.getElementById("dashDaIncassare").innerText = daIncassare + "€";
-            document.getElementById("dashDaPagare").innerText = daPagare + "€";
-            document.getElementById("dashMargine").innerText = margineTotale + "€";
+            document.getElementById("dashDaIncassare").innerText = formatEuro(daIncassare);
+            document.getElementById("dashDaPagare").innerText = formatEuro(daPagare);
+            document.getElementById("dashMargine").innerText = formatEuro(margineTotale);
 
             const affiliati = caricaAffiliati();
             document.getElementById("dashAffiliatiTotali").innerText = affiliati.length;
@@ -361,7 +362,7 @@
                     <td>${c.gestore || ""}</td>
                     <td>${c.servizio || ""}</td>
                     <td>${badge(c.stato || "Inserito")}</td>
-                    <td>${margine(c)}€</td>
+                    <td>${formatEuro(margine(c))}</td>
                 `;
 
                 tbody.appendChild(row);

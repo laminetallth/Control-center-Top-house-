@@ -218,9 +218,12 @@ body{
 }
 
 .card p{
-    font-size:38px;
+    font-size:clamp(28px, 4vw, 38px);
     font-weight:800;
     color:var(--orange);
+    max-width:100%;
+    overflow-wrap:anywhere;
+    line-height:1.08;
 }
 
 .card-link{

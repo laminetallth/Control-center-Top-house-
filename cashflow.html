@@ -159,6 +159,7 @@
     <script src="js/menu.js?v=3100"></script>
     <script type="module" src="js/auth-guard.js?v=3100"></script>
     <script type="module">
+        import { formatEuro } from "./js/formatters.js";
         import { readCollection } from "./js/firebase-data.js";
         function testo(valore){
             return String(valore || "").trim();
@@ -257,18 +258,18 @@
 
             document.getElementById("totaleCommodity").innerText = sommaCategoria(contratti, "Commodity");
             document.getElementById("totaleExtraCommodity").innerText = sommaCategoria(contratti, "Extra Commodity");
-            document.getElementById("daIncassarePartner").innerText = daIncassarePartner + "€";
-            document.getElementById("incassatoPartner").innerText = incassatoPartner + "€";
-            document.getElementById("daPagareVenditori").innerText = daPagareVenditori + "€";
-            document.getElementById("pagatoVenditori").innerText = pagatoVenditori + "€";
-            document.getElementById("totaleInvestimenti").innerText = totaleInvestimenti + "€";
-            document.getElementById("margineMaturato").innerText = margineMaturato + "€";
-            document.getElementById("saldoReale").innerText = saldoReale + "€";
+            document.getElementById("daIncassarePartner").innerText = formatEuro(daIncassarePartner);
+            document.getElementById("incassatoPartner").innerText = formatEuro(incassatoPartner);
+            document.getElementById("daPagareVenditori").innerText = formatEuro(daPagareVenditori);
+            document.getElementById("pagatoVenditori").innerText = formatEuro(pagatoVenditori);
+            document.getElementById("totaleInvestimenti").innerText = formatEuro(totaleInvestimenti);
+            document.getElementById("margineMaturato").innerText = formatEuro(margineMaturato);
+            document.getElementById("saldoReale").innerText = formatEuro(saldoReale);
 
-            document.getElementById("entrateReali").innerText = entrateReali + "€";
-            document.getElementById("usciteReali").innerText = usciteReali + "€";
-            document.getElementById("saldoRealeList").innerText = saldoReale + "€";
-            document.getElementById("marginePotenziale").innerText = margineMaturato + "€";
+            document.getElementById("entrateReali").innerText = formatEuro(entrateReali);
+            document.getElementById("usciteReali").innerText = formatEuro(usciteReali);
+            document.getElementById("saldoRealeList").innerText = formatEuro(saldoReale);
+            document.getElementById("marginePotenziale").innerText = formatEuro(margineMaturato);
 
             renderTabella(contratti);
         }
@@ -304,11 +305,11 @@
                     <td>${c.partner || ""}</td>
                     <td>${c.gestore || ""}</td>
                     <td>${c.stato || ""}</td>
-                    <td>${numero(c.gettonePartner)}€</td>
+                    <td>${formatEuro(numero(c.gettonePartner))}</td>
                     <td>${c.pagamentoPartner || ""}</td>
-                    <td>${numero(c.gettoneVenditore)}€</td>
+                    <td>${formatEuro(numero(c.gettoneVenditore))}</td>
                     <td>${c.pagamentoVenditore || ""}</td>
-                    <td>${margine(c)}€</td>
+                    <td>${formatEuro(margine(c))}</td>
                 `;
 
                 tbody.appendChild(row);
