@@ -110,8 +110,19 @@ function testo(valore){
     return String(valore || "").trim();
 }
 
+function parseImporto(valore){
+    const importo = testo(valore).replace(",", ".");
+    const numeroConvertito = Number.parseFloat(importo);
+
+    return Number.isFinite(numeroConvertito) ? numeroConvertito : 0;
+}
+
 function numero(valore){
-    return Number(valore || 0);
+    return parseImporto(valore);
+}
+
+function formattaImportoMassimoDueDecimali(valore){
+    return String(Math.round((parseImporto(valore) + Number.EPSILON) * 100) / 100);
 }
 
 function escapeHtml(valore){
@@ -189,6 +200,9 @@ const firebaseStatus = document.getElementById("firebaseStatus");
 const migrateLocalContractsBtn = document.getElementById("migrateLocalContractsBtn");
 const archiveLocalContractsBtn = document.getElementById("archiveLocalContractsBtn");
 const contractsCollection = collection(db, "contracts");
+const gettonePartnerInput = document.getElementById("gettonePartner");
+const gettoneVenditoreInput = document.getElementById("gettoneVenditore");
+const percentualeVenditoreSelect = document.getElementById("percentualeVenditore");
 
 const monthFilter = document.getElementById("monthFilter");
 const vendorFilter = document.getElementById("vendorFilter");
@@ -197,6 +211,34 @@ const managerFilter = document.getElementById("managerFilter");
 const statusFilter = document.getElementById("statusFilter");
 const paymentVendorFilter = document.getElementById("paymentVendorFilter");
 const categoryFilter = document.getElementById("categoryFilter");
+
+function calcolaGettoneVenditoreDaPercentuale(){
+    const percentuale = percentualeVenditoreSelect.value;
+
+    if(percentuale === "manuale"){
+        return;
+    }
+
+    const gettonePartner = parseImporto(gettonePartnerInput.value);
+    const gettoneVenditore = gettonePartner * (parseImporto(percentuale) / 100);
+    gettoneVenditoreInput.value = formattaImportoMassimoDueDecimali(gettoneVenditore);
+}
+
+function aggiornaPercentualeDaModificaManuale(){
+    const percentuale = percentualeVenditoreSelect.value;
+
+    if(percentuale === "manuale"){
+        return;
+    }
+
+    const gettonePartner = parseImporto(gettonePartnerInput.value);
+    const gettoneVenditoreAtteso = gettonePartner * (parseImporto(percentuale) / 100);
+    const gettoneVenditoreCorrente = parseImporto(gettoneVenditoreInput.value);
+
+    if(Math.abs(gettoneVenditoreCorrente - gettoneVenditoreAtteso) > 0.009){
+        percentualeVenditoreSelect.value = "manuale";
+    }
+}
 
 function salvaStorage(){
     localStorage.setItem("contrattiTopHouse", JSON.stringify(contratti));
@@ -532,8 +574,8 @@ form.addEventListener("submit", async function(e){
         gestore: document.getElementById("gestore").value,
         servizio: document.getElementById("servizio").value,
         stato: document.getElementById("stato").value,
-        gettonePartner: Number(document.getElementById("gettonePartner").value || 0),
-        gettoneVenditore: Number(document.getElementById("gettoneVenditore").value || 0),
+        gettonePartner: parseImporto(gettonePartnerInput.value),
+        gettoneVenditore: parseImporto(gettoneVenditoreInput.value),
         pagamentoPartner: document.getElementById("pagamentoPartner").value,
         pagamentoVenditore: document.getElementById("pagamentoVenditore").value,
         note: document.getElementById("note").value
@@ -580,8 +622,9 @@ function modificaContratto(id){
     document.getElementById("gestore").value = contratto.gestore;
     document.getElementById("servizio").value = contratto.servizio;
     document.getElementById("stato").value = contratto.stato;
-    document.getElementById("gettonePartner").value = contratto.gettonePartner;
-    document.getElementById("gettoneVenditore").value = contratto.gettoneVenditore;
+    gettonePartnerInput.value = contratto.gettonePartner;
+    gettoneVenditoreInput.value = contratto.gettoneVenditore;
+    percentualeVenditoreSelect.value = "manuale";
     document.getElementById("pagamentoPartner").value = contratto.pagamentoPartner;
     document.getElementById("pagamentoVenditore").value = contratto.pagamentoVenditore;
     document.getElementById("note").value = contratto.note;
@@ -624,6 +667,7 @@ function resetForm(){
     form.reset();
 
     document.getElementById("editId").value = "";
+    percentualeVenditoreSelect.value = "manuale";
 
     saveButton.innerText = "Salva Contratto";
 
@@ -647,6 +691,10 @@ function resetFiltri(){
 }
 
 searchInput.addEventListener("input", renderContratti);
+
+gettonePartnerInput.addEventListener("input", calcolaGettoneVenditoreDaPercentuale);
+gettoneVenditoreInput.addEventListener("input", aggiornaPercentualeDaModificaManuale);
+percentualeVenditoreSelect.addEventListener("change", calcolaGettoneVenditoreDaPercentuale);
 
 monthFilter.addEventListener("change", renderContratti);
 vendorFilter.addEventListener("change", renderContratti);
