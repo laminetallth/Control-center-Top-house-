@@ -1,4 +1,5 @@
 import { readCollection, addDocument, updateDocument, deleteDocument } from "./firebase-data.js";
+import { createEkoDocumentsCard, initEkoDocumentsWidget } from "./eko-documents.js";
 const STORAGE_KEY = "documentiTopHouse";
 function testo(v){ return String(v || "").trim(); }
 function leggi(){ try{ const d = JSON.parse(localStorage.getItem(STORAGE_KEY)); return Array.isArray(d) ? d : []; }catch(e){ return []; } }
@@ -36,4 +37,8 @@ async function elimina(id){ if(!confirm("Eliminare questo documento?")){ return;
 documentForm.addEventListener("submit", async e => { e.preventDefault(); const lista = leggi(); const id = documentId.value; const dati = { id: id ? Number(id) : Date.now(), titolo: testo(titolo.value), categoria: categoria.value, collegatoA: testo(collegatoA.value), linkDocumento: testo(linkDocumento.value), scadenza: scadenza.value, stato: stato.value, note: testo(note.value), aggiornatoIl: new Date().toISOString() }; const i = lista.findIndex(d => Number(d.id) === Number(id)); if(i >= 0){ lista[i] = dati; }else{ lista.push(dati); } salva(lista); resetForm(); render(); try{ if(i >= 0){ await updateDocument("documents", dati.firestoreId || dati.localId || dati.id, dati); }else{ await addDocument("documents", dati); } setFirebaseStatus("Dati sincronizzati", "online"); }catch(e){ console.error(e); setFirebaseStatus("Errore Firebase", "error"); } });
 cancelEditBtn.addEventListener("click", resetForm);
 [searchText, filterCategory, filterStatus].forEach(el => el.addEventListener("input", render));
-window.modifica = modifica; window.elimina = elimina; caricaFirebase();
+window.modifica = modifica; window.elimina = elimina;
+const ekoCard = document.getElementById("ekoDocumentsCard");
+if(ekoCard){ ekoCard.innerHTML = createEkoDocumentsCard({ href: "#documenti-eko" }); }
+initEkoDocumentsWidget("ekoDocumentsWidget");
+caricaFirebase();
