@@ -172,16 +172,7 @@
         }
 
         function numero(valore){
-            if(valore === null || valore === undefined){ return 0; }
-            if(typeof valore === "number"){ return Number.isFinite(valore) ? valore : 0; }
-            const pulito = String(valore).trim().replace(/\s/g, "").replace(/€/g, "");
-            const normalizzato = pulito.includes(",") ? pulito.replace(/\./g, "").replace(",", ".") : pulito;
-            const parsed = parseFloat(normalizzato);
-            return Number.isFinite(parsed) ? parsed : 0;
-        }
-
-        function euro(valore){
-            return numero(valore).toLocaleString("it-IT", { style:"currency", currency:"EUR", minimumFractionDigits:2, maximumFractionDigits:2 });
+            return Number(valore || 0);
         }
 
         function caricaContratti(){

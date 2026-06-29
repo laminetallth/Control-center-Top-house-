@@ -1,6 +1,4 @@
-import { parseMoney, formatEuro } from "./money.js";
-
-mport { readCollection } from "./firebase-data.js";
+import { readCollection } from "./firebase-data.js";
 const VENDITORI_REGISTRATI = [
     {
         nome: "Antonio Attardi",
@@ -57,7 +55,7 @@ function testo(valore){
 }
 
 function numero(valore){
-    return parseMoney(valore);
+    return Number(valore || 0);
 }
 
 function slugVenditore(nome){
@@ -289,9 +287,9 @@ function aggiornaCards(venditori){
     document.getElementById("totaleOk").innerText = totaleOk;
     document.getElementById("totaleKo").innerText = totaleKo;
     document.getElementById("totaleStorni").innerText = totaleStorni;
-    document.getElementById("provvigioniMaturate").innerText = formatEuro(provvigioniMaturate);
-    document.getElementById("daPagareVenditori").innerText = formatEuro(daPagareVenditori);
-    document.getElementById("margineGenerato").innerText = formatEuro(margineGenerato);
+    document.getElementById("provvigioniMaturate").innerText = provvigioniMaturate + "€";
+    document.getElementById("daPagareVenditori").innerText = daPagareVenditori + "€";
+    document.getElementById("margineGenerato").innerText = margineGenerato + "€";
 }
 
 function renderClassificaVenditori(venditori){
@@ -333,10 +331,10 @@ function renderClassificaVenditori(venditori){
             <td>${venditore.ok}</td>
             <td>${venditore.ko}</td>
             <td>${venditore.storni}</td>
-            <td>${formatEuro(venditore.provvigioniMaturate)}</td>
-            <td>${formatEuro(venditore.daPagare)}</td>
-            <td>${formatEuro(venditore.pagato)}</td>
-            <td>${formatEuro(venditore.margine)}</td>
+            <td>${venditore.provvigioniMaturate}€</td>
+            <td>${venditore.daPagare}€</td>
+            <td>${venditore.pagato}€</td>
+            <td>${venditore.margine}€</td>
             <td>
                 <a class="mini-btn" href="vendor-detail.html?vendor=${slugVenditore(venditore.nome)}">
                     Apri Scheda
@@ -384,8 +382,8 @@ function aggiornaMigliorVenditore(venditori){
     document.getElementById("bestVendorName").innerText = migliore.nome;
     document.getElementById("bestVendorArea").innerText = migliore.zona;
     document.getElementById("bestVendorOk").innerText = migliore.ok;
-    document.getElementById("bestVendorCommission").innerText = formatEuro(migliore.provvigioniMaturate);
-    document.getElementById("bestVendorMargin").innerText = formatEuro(migliore.margine);
+    document.getElementById("bestVendorCommission").innerText = migliore.provvigioniMaturate + "€";
+    document.getElementById("bestVendorMargin").innerText = migliore.margine + "€";
 
 }
 

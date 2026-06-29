@@ -10,8 +10,6 @@ import {
     orderBy
 } from "./firebase-config.js";
 
-import { parseMoney, formatEuro } from "./money.js";
-
 const VENDITORI_REGISTRATI = [
     "Antonio Attardi",
     "Davide Marino",
@@ -113,7 +111,7 @@ function testo(valore){
 }
 
 function numero(valore){
-    return parseMoney(valore);
+    return Number(valore || 0);
 }
 
 function escapeHtml(valore){
@@ -442,9 +440,9 @@ function renderContratti(){
             <td>${escapeHtml(contratto.servizio)}</td>
             <td><span class="badge pending">${getContractCategory(contratto)}</span></td>
             <td>${statoBadge(contratto.stato)}</td>
-            <td>${formatEuro(contratto.gettonePartner)}</td>
-            <td>${formatEuro(contratto.gettoneVenditore)}</td>
-            <td>${formatEuro(margine)}</td>
+            <td>${contratto.gettonePartner}€</td>
+            <td>${contratto.gettoneVenditore}€</td>
+            <td>${margine}€</td>
             <td>${pagamentoBadge(contratto.pagamentoPartner)}</td>
             <td>${pagamentoBadge(contratto.pagamentoVenditore)}</td>
             <td>${escapeHtml(contratto.note)}</td>
@@ -491,9 +489,9 @@ function aggiornaStatistiche(lista){
     document.getElementById("totaleOk").innerText = ok;
     document.getElementById("totaleKo").innerText = ko;
     document.getElementById("totaleStorni").innerText = storni;
-    document.getElementById("daIncassarePartner").innerText = formatEuro(daIncassarePartner);
-    document.getElementById("totaleVenditori").innerText = formatEuro(daPagareVenditori);
-    document.getElementById("margineTopHouse").innerText = formatEuro(margineMaturato);
+    document.getElementById("daIncassarePartner").innerText = daIncassarePartner + "€";
+    document.getElementById("totaleVenditori").innerText = daPagareVenditori + "€";
+    document.getElementById("margineTopHouse").innerText = margineMaturato + "€";
 }
 
 function popolaFiltriFissi(){
@@ -534,8 +532,8 @@ form.addEventListener("submit", async function(e){
         gestore: document.getElementById("gestore").value,
         servizio: document.getElementById("servizio").value,
         stato: document.getElementById("stato").value,
-        gettonePartner: numero(document.getElementById("gettonePartner").value),
-        gettoneVenditore: numero(document.getElementById("gettoneVenditore").value),
+        gettonePartner: Number(document.getElementById("gettonePartner").value || 0),
+        gettoneVenditore: Number(document.getElementById("gettoneVenditore").value || 0),
         pagamentoPartner: document.getElementById("pagamentoPartner").value,
         pagamentoVenditore: document.getElementById("pagamentoVenditore").value,
         note: document.getElementById("note").value
@@ -582,8 +580,8 @@ function modificaContratto(id){
     document.getElementById("gestore").value = contratto.gestore;
     document.getElementById("servizio").value = contratto.servizio;
     document.getElementById("stato").value = contratto.stato;
-    document.getElementById("gettonePartner").value = String(contratto.gettonePartner).replace(".", ",");
-    document.getElementById("gettoneVenditore").value = String(contratto.gettoneVenditore).replace(".", ",");
+    document.getElementById("gettonePartner").value = contratto.gettonePartner;
+    document.getElementById("gettoneVenditore").value = contratto.gettoneVenditore;
     document.getElementById("pagamentoPartner").value = contratto.pagamentoPartner;
     document.getElementById("pagamentoVenditore").value = contratto.pagamentoVenditore;
     document.getElementById("note").value = contratto.note;
@@ -674,8 +672,8 @@ function exportReport(){
     const daIncassarePartner = lista.filter(c => praticaValidaPerCompensi(c) && c.pagamentoPartner === "Da incassare").reduce((totale, c) => totale + numero(c.gettonePartner), 0);
     const daPagareVenditori = lista.filter(c => praticaValidaPerCompensi(c) && c.pagamentoVenditore === "Da pagare").reduce((totale, c) => totale + numero(c.gettoneVenditore), 0);
     const margineMaturato = lista.filter(c => praticaValidaPerCompensi(c)).reduce((totale, c) => totale + calcolaMargine(c), 0);
-    const righeContratti = lista.map(c => `<tr><td>${c.id}</td><td>${escapeHtml(c.dataInserimento)}</td><td>${escapeHtml(c.dataEsito)}</td><td>${escapeHtml(c.nome)}</td><td>${escapeHtml(c.cognome)}</td><td>${escapeHtml(c.venditore)}</td><td>${escapeHtml(c.partner)}</td><td>${escapeHtml(c.gestore)}</td><td>${escapeHtml(c.servizio)}</td><td>${getContractCategory(c)}</td><td>${getContractUnits(c)}</td><td>${escapeHtml(c.stato)}</td><td>${formatEuro(c.gettonePartner)}</td><td>${formatEuro(c.gettoneVenditore)}</td><td>${formatEuro(calcolaMargine(c))}</td><td>${escapeHtml(c.pagamentoPartner)}</td><td>${escapeHtml(c.pagamentoVenditore)}</td><td>${escapeHtml(c.note)}</td></tr>`).join("") || `<tr><td colspan="17">Nessun contratto trovato.</td></tr>`;
-    const reportHtml = `<html><head><meta charset="UTF-8"></head><body><h1>TOP HOUSE - Report Contratti</h1><p>Mensilità: ${escapeHtml(meseSelezionato)} | Export: ${escapeHtml(dataExport)}</p><table border="1"><tbody><tr><td>Totale contratti</td><td>${totale}</td><td>OK</td><td>${ok}</td><td>KO</td><td>${ko}</td><td>Storni</td><td>${storni}</td><td>Da incassare partner</td><td>${formatEuro(daIncassarePartner)}</td><td>Da pagare venditori</td><td>${formatEuro(daPagareVenditori)}</td><td>Margine</td><td>${formatEuro(margineMaturato)}</td></tr></tbody></table><br><table border="1"><thead><tr><th>ID</th><th>Data Inserimento</th><th>Data Esito</th><th>Nome</th><th>Cognome</th><th>Venditore</th><th>Partner</th><th>Gestore</th><th>Servizio</th><th>Categoria</th><th>Unità</th><th>Stato</th><th>Gettone Partner</th><th>Gettone Venditore</th><th>Margine</th><th>Pagamento Partner</th><th>Pagamento Venditore</th><th>Note</th></tr></thead><tbody>${righeContratti}</tbody></table></body></html>`;
+    const righeContratti = lista.map(c => `<tr><td>${c.id}</td><td>${escapeHtml(c.dataInserimento)}</td><td>${escapeHtml(c.dataEsito)}</td><td>${escapeHtml(c.nome)}</td><td>${escapeHtml(c.cognome)}</td><td>${escapeHtml(c.venditore)}</td><td>${escapeHtml(c.partner)}</td><td>${escapeHtml(c.gestore)}</td><td>${escapeHtml(c.servizio)}</td><td>${getContractCategory(c)}</td><td>${getContractUnits(c)}</td><td>${escapeHtml(c.stato)}</td><td>${c.gettonePartner}€</td><td>${c.gettoneVenditore}€</td><td>${calcolaMargine(c)}€</td><td>${escapeHtml(c.pagamentoPartner)}</td><td>${escapeHtml(c.pagamentoVenditore)}</td><td>${escapeHtml(c.note)}</td></tr>`).join("") || `<tr><td colspan="17">Nessun contratto trovato.</td></tr>`;
+    const reportHtml = `<html><head><meta charset="UTF-8"></head><body><h1>TOP HOUSE - Report Contratti</h1><p>Mensilità: ${escapeHtml(meseSelezionato)} | Export: ${escapeHtml(dataExport)}</p><table border="1"><tbody><tr><td>Totale contratti</td><td>${totale}</td><td>OK</td><td>${ok}</td><td>KO</td><td>${ko}</td><td>Storni</td><td>${storni}</td><td>Da incassare partner</td><td>${daIncassarePartner}€</td><td>Da pagare venditori</td><td>${daPagareVenditori}€</td><td>Margine</td><td>${margineMaturato}€</td></tr></tbody></table><br><table border="1"><thead><tr><th>ID</th><th>Data Inserimento</th><th>Data Esito</th><th>Nome</th><th>Cognome</th><th>Venditore</th><th>Partner</th><th>Gestore</th><th>Servizio</th><th>Categoria</th><th>Unità</th><th>Stato</th><th>Gettone Partner</th><th>Gettone Venditore</th><th>Margine</th><th>Pagamento Partner</th><th>Pagamento Venditore</th><th>Note</th></tr></thead><tbody>${righeContratti}</tbody></table></body></html>`;
     const blob = new Blob([reportHtml], { type: "application/vnd.ms-excel;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);

@@ -55,7 +55,7 @@ function testo(valore){
 }
 
 function numero(valore){
-    return parseMoney(valore);
+    return Number(valore || 0);
 }
 
 function getParametro(nome){
@@ -188,8 +188,6 @@ function trovaVenditore(nome){
         foto: ""
     };
 }
-
-import { parseMoney, formatEuro } from "./money.js";
 
 const nomeVenditore = decodeURIComponent(getParametro("vendor"));
 const venditore = trovaVenditore(nomeVenditore);
@@ -356,9 +354,9 @@ function aggiornaCards(lista){
     document.getElementById("totaleOk").innerText = ok;
     document.getElementById("totaleKo").innerText = ko;
     document.getElementById("totaleStorni").innerText = storni;
-    document.getElementById("provvigioniMaturate").innerText = formatEuro(provvigioniMaturate);
-    document.getElementById("daPagare").innerText = formatEuro(daPagare);
-    document.getElementById("margineGenerato").innerText = formatEuro(margine);
+    document.getElementById("provvigioniMaturate").innerText = provvigioniMaturate + "€";
+    document.getElementById("daPagare").innerText = daPagare + "€";
+    document.getElementById("margineGenerato").innerText = margine + "€";
 
     document.getElementById("okRate").innerText = okRate + "%";
     document.getElementById("negativeCount").innerText = ko + storni;
@@ -405,9 +403,9 @@ function renderContratti(lista){
             <td>${contratto.servizio || ""}</td>
             <td>${getContractCategory(contratto)}</td>
             <td>${contratto.stato || ""}</td>
-            <td>${formatEuro(contratto.gettonePartner)}</td>
-            <td>${formatEuro(contratto.gettoneVenditore)}</td>
-            <td>${formatEuro(margine)}</td>
+            <td>${contratto.gettonePartner || 0}€</td>
+            <td>${contratto.gettoneVenditore || 0}€</td>
+            <td>${margine}€</td>
             <td>${contratto.pagamentoVenditore || ""}</td>
             <td>${contratto.note || ""}</td>
         `;
@@ -516,8 +514,8 @@ async function exportVendorExcel(){
     const lavorazione = sommaUnita(lista.filter(c => c.stato !== "OK" && c.stato !== "Pagato" && c.stato !== "KO" && c.stato !== "Storno"));
     const totaleDaPagare = lista.filter(c => (c.stato === "OK" || c.stato === "Pagato") && c.pagamentoVenditore === "Da pagare").reduce((t,c)=>t+numero(c.gettoneVenditore),0);
     const totalePagato = lista.filter(c => (c.stato === "OK" || c.stato === "Pagato") && c.pagamentoVenditore === "Pagato").reduce((t,c)=>t+numero(c.gettoneVenditore),0);
-    const righe = lista.map(c => `<tr><td>${escapeHtml(c.dataInserimento)}</td><td>${escapeHtml([c.nome,c.cognome].filter(Boolean).join(" "))}</td><td>${escapeHtml(c.servizio)}</td><td>${getContractCategory(c)}</td><td>${escapeHtml(c.gestore)}</td><td>${escapeHtml(c.stato)}</td><td>${formatEuro(c.gettoneVenditore)}</td><td>${escapeHtml(c.pagamentoVenditore)}</td><td>${escapeHtml(c.note)}</td></tr>`).join("") || `<tr><td colspan="9" class="empty">Nessun contratto trovato.</td></tr>`;
-    const html = `<html><head><meta charset="UTF-8"><style>body{font-family:Arial;color:#081120}.header-report{border-bottom:4px solid #ff7b00;padding:18px 0;margin-bottom:18px}.logo{height:70px}.title{font-size:28px;font-weight:800;color:#d90429}.summary td{background:#f8fafc;border:1px solid #e5e7eb;padding:12px;font-weight:bold}.value{color:#ff7b00;font-size:20px}table{width:100%;border-collapse:collapse}th{background:#081120;color:white;padding:10px;text-align:left}td{border:1px solid #e5e7eb;padding:9px}</style></head><body><div class="header-report"><img class="logo" src="assets/logo-tophouse.png"><div class="title">Report Venditore - TOP HOUSE</div><div>Venditore: ${escapeHtml(venditore.nome)} | Periodo: ${escapeHtml(meseSelezionato)} | Generato: ${escapeHtml(dataExport)}</div></div><table class="summary"><tr><td>Contratti<br><span class="value">${totale}</span></td><td>Commodity<br><span class="value">${commodity}</span></td><td>Extra Commodity<br><span class="value">${extraCommodity}</span></td><td>OK<br><span class="value">${ok}</span></td><td>KO<br><span class="value">${ko}</span></td><td>Storni<br><span class="value">${storni}</span></td><td>In lavorazione<br><span class="value">${lavorazione}</span></td><td>Da pagare<br><span class="value">${formatEuro(totaleDaPagare)}</span></td><td>Pagato<br><span class="value">${formatEuro(totalePagato)}</span></td></tr></table><h2>Lista pratiche</h2><table><thead><tr><th>Data</th><th>Cliente</th><th>Servizio</th><th>Categoria</th><th>Gestore</th><th>Stato pratica</th><th>Gettone venditore</th><th>Stato pagamento venditore</th><th>Note</th></tr></thead><tbody>${righe}</tbody></table></body></html>`;
+    const righe = lista.map(c => `<tr><td>${escapeHtml(c.dataInserimento)}</td><td>${escapeHtml([c.nome,c.cognome].filter(Boolean).join(" "))}</td><td>${escapeHtml(c.servizio)}</td><td>${getContractCategory(c)}</td><td>${escapeHtml(c.gestore)}</td><td>${escapeHtml(c.stato)}</td><td>${numero(c.gettoneVenditore)}€</td><td>${escapeHtml(c.pagamentoVenditore)}</td><td>${escapeHtml(c.note)}</td></tr>`).join("") || `<tr><td colspan="9" class="empty">Nessun contratto trovato.</td></tr>`;
+    const html = `<html><head><meta charset="UTF-8"><style>body{font-family:Arial;color:#081120}.header-report{border-bottom:4px solid #ff7b00;padding:18px 0;margin-bottom:18px}.logo{height:70px}.title{font-size:28px;font-weight:800;color:#d90429}.summary td{background:#f8fafc;border:1px solid #e5e7eb;padding:12px;font-weight:bold}.value{color:#ff7b00;font-size:20px}table{width:100%;border-collapse:collapse}th{background:#081120;color:white;padding:10px;text-align:left}td{border:1px solid #e5e7eb;padding:9px}</style></head><body><div class="header-report"><img class="logo" src="assets/logo-tophouse.png"><div class="title">Report Venditore - TOP HOUSE</div><div>Venditore: ${escapeHtml(venditore.nome)} | Periodo: ${escapeHtml(meseSelezionato)} | Generato: ${escapeHtml(dataExport)}</div></div><table class="summary"><tr><td>Contratti<br><span class="value">${totale}</span></td><td>Commodity<br><span class="value">${commodity}</span></td><td>Extra Commodity<br><span class="value">${extraCommodity}</span></td><td>OK<br><span class="value">${ok}</span></td><td>KO<br><span class="value">${ko}</span></td><td>Storni<br><span class="value">${storni}</span></td><td>In lavorazione<br><span class="value">${lavorazione}</span></td><td>Da pagare<br><span class="value">${totaleDaPagare}€</span></td><td>Pagato<br><span class="value">${totalePagato}€</span></td></tr></table><h2>Lista pratiche</h2><table><thead><tr><th>Data</th><th>Cliente</th><th>Servizio</th><th>Categoria</th><th>Gestore</th><th>Stato pratica</th><th>Gettone venditore</th><th>Stato pagamento venditore</th><th>Note</th></tr></thead><tbody>${righe}</tbody></table></body></html>`;
     const blob = new Blob([html], { type:"application/vnd.ms-excel;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
