@@ -18,13 +18,6 @@ import {
     query,
     orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
-import {
-    getStorage,
-    ref,
-    uploadBytes,
-    getDownloadURL,
-    deleteObject
-} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBIeD4OhruGkqV_vO2136XOoWagzNMZR78",
@@ -38,13 +31,11 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 
 export {
     app,
     auth,
     db,
-    storage,
     onAuthStateChanged,
     signInWithEmailAndPassword,
     signOut,
@@ -57,9 +48,5 @@ export {
     deleteDoc,
     serverTimestamp,
     query,
-    orderBy,
-    ref,
-    uploadBytes,
-    getDownloadURL,
-    deleteObject
+    orderBy
 };

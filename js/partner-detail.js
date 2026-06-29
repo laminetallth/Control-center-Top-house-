@@ -1,5 +1,4 @@
 import { readCollection } from "./firebase-data.js";
-import { createEkoDocumentsCard, initEkoDocumentsWidget } from "./eko-documents.js";
 const PARTNER_REGISTRATI = [
     {
         nome: "Greenword",
@@ -875,13 +874,6 @@ monthFilter.addEventListener("change", aggiornaPagina);
 
 
 aggiornaProfilo();
-if(normalizzaTesto(partner.nome) === "eko"){
-    const ekoSection = document.getElementById("ekoPartnerDocumentsSection");
-    const ekoCard = document.getElementById("ekoPartnerDocumentsCard");
-    if(ekoSection){ ekoSection.style.display = "block"; }
-    if(ekoCard){ ekoCard.innerHTML = createEkoDocumentsCard({ href: "#ekoPartnerDocumentsSection" }); }
-    initEkoDocumentsWidget("ekoPartnerDocumentsWidget");
-}
 
 async function inizializzaFirebase(){ try{ await readCollection("contracts"); }catch(error){ console.error(error); } aggiornaPagina(); }
 inizializzaFirebase();
