@@ -15,7 +15,7 @@ function testo(valore){
 }
 
 function numero(valore){
-    return Number(valore || 0);
+    return parseMoney(valore);
 }
 
 function escapeHtml(valore){
@@ -87,6 +87,8 @@ function calcolaMargine(contratto){
 
     return numero(contratto.gettonePartner) - numero(contratto.gettoneVenditore);
 }
+
+import { parseMoney, formatEuro } from "./money.js";
 
 const monthFilter = document.getElementById("monthFilter");
 const searchInput = document.getElementById("searchInput");
@@ -224,12 +226,12 @@ function aggiornaCards(lista){
     document.getElementById("totaleCommodity").innerText = sommaCategoria(lista, "Commodity");
     document.getElementById("totaleExtraCommodity").innerText = sommaCategoria(lista, "Extra Commodity");
     document.getElementById("pratichePagabili").innerText = pratichePagabili;
-    document.getElementById("provvigioniMaturate").innerText = provvigioniMaturate + "€";
-    document.getElementById("daPagareVenditori").innerText = daPagare + "€";
-    document.getElementById("pagatoVenditori").innerText = pagato + "€";
+    document.getElementById("provvigioniMaturate").innerText = formatEuro(provvigioniMaturate);
+    document.getElementById("daPagareVenditori").innerText = formatEuro(daPagare);
+    document.getElementById("pagatoVenditori").innerText = formatEuro(pagato);
     document.getElementById("venditoriDaPagare").innerText = venditoriDaPagare;
-    document.getElementById("nonDovuto").innerText = nonDovuto + "€";
-    document.getElementById("margineMaturato").innerText = margineMaturato + "€";
+    document.getElementById("nonDovuto").innerText = formatEuro(nonDovuto);
+    document.getElementById("margineMaturato").innerText = formatEuro(margineMaturato);
     document.getElementById("praticheDaSaldare").innerText = praticheDaSaldare;
 
     const selectedText = monthFilter.options[monthFilter.selectedIndex].text;
@@ -316,7 +318,7 @@ function renderVenditori(lista){
 
     if(top){
         document.getElementById("topVendorName").innerText = top.nome;
-        document.getElementById("topVendorAmount").innerText = top.provvigioni + "€";
+        document.getElementById("topVendorAmount").innerText = formatEuro(top.provvigioni);
     }else{
         document.getElementById("topVendorName").innerText = "-";
         document.getElementById("topVendorAmount").innerText = "0€";
@@ -342,10 +344,10 @@ function renderVenditori(lista){
         row.innerHTML = `
             <td>${escapeHtml(v.nome)}</td>
             <td>${v.pratiche}</td>
-            <td>${v.provvigioni}€</td>
-            <td>${v.daPagare}€</td>
-            <td>${v.pagato}€</td>
-            <td>${v.nonDovuto}€</td>
+            <td>${formatEuro(v.provvigioni)}</td>
+            <td>${formatEuro(v.daPagare)}</td>
+            <td>${formatEuro(v.pagato)}</td>
+            <td>${formatEuro(v.nonDovuto)}</td>
             <td>
                 <a class="mini-btn" href="vendor-detail.html?vendor=${slugVenditore(v.nome)}">
                     Apri Scheda
@@ -390,10 +392,10 @@ function renderRegistro(lista){
             <td>${escapeHtml(c.gestore)}</td>
             <td>${escapeHtml(c.servizio)}</td>
             <td>${badgeStato(c.stato)}</td>
-            <td>${numero(c.gettoneVenditore)}€</td>
+            <td>${formatEuro(c.gettoneVenditore)}</td>
             <td>${badgePagamento(c.pagamentoVenditore)}</td>
-            <td>${numero(c.gettonePartner)}€</td>
-            <td>${calcolaMargine(c)}€</td>
+            <td>${formatEuro(c.gettonePartner)}</td>
+            <td>${formatEuro(calcolaMargine(c))}</td>
             <td>${escapeHtml(c.note)}</td>
         `;
 
@@ -472,10 +474,10 @@ async function exportCommissionsExcel(){
                     <td>${escapeHtml(c.gestore)}</td>
                     <td>${escapeHtml(c.servizio)}</td>
                     <td>${escapeHtml(c.stato)}</td>
-                    <td>${numero(c.gettoneVenditore)}€</td>
+                    <td>${formatEuro(c.gettoneVenditore)}</td>
                     <td>${escapeHtml(c.pagamentoVenditore)}</td>
-                    <td>${numero(c.gettonePartner)}€</td>
-                    <td>${calcolaMargine(c)}€</td>
+                    <td>${formatEuro(c.gettonePartner)}</td>
+                    <td>${formatEuro(calcolaMargine(c))}</td>
                     <td>${escapeHtml(c.note)}</td>
                 </tr>
             `;
@@ -582,10 +584,10 @@ async function exportCommissionsExcel(){
             <table class="summary">
                 <tr>
                     <td>Pratiche Pagabili<br><span class="value">${pratichePagabili}</span></td>
-                    <td>Provvigioni Maturate<br><span class="value">${provvigioniMaturate}€</span></td>
-                    <td>Da Pagare<br><span class="value">${daPagare}€</span></td>
-                    <td>Pagato<br><span class="value">${pagato}€</span></td>
-                    <td>Margine Maturato<br><span class="value">${margineMaturato}€</span></td>
+                    <td>Provvigioni Maturate<br><span class="value">${formatEuro(provvigioniMaturate)}</span></td>
+                    <td>Da Pagare<br><span class="value">${formatEuro(daPagare)}</span></td>
+                    <td>Pagato<br><span class="value">${formatEuro(pagato)}</span></td>
+                    <td>Margine Maturato<br><span class="value">${formatEuro(margineMaturato)}</span></td>
                 </tr>
             </table>
 

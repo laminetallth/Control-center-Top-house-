@@ -111,7 +111,7 @@
 
                 <div class="form-field">
                     <label>Importo €</label>
-                    <input type="number" id="investmentAmount" placeholder="Es. 1000" min="0" required>
+                    <input type="text" id="investmentAmount" placeholder="Es. 1000,00" inputmode="decimal" autocomplete="off" required>
                 </div>
 
                 <button type="submit" class="save-btn">Salva Investimento</button>
@@ -165,7 +165,16 @@
         }
 
         function numero(valore){
-            return Number(valore || 0);
+            if(valore === null || valore === undefined){ return 0; }
+            if(typeof valore === "number"){ return Number.isFinite(valore) ? valore : 0; }
+            const pulito = String(valore).trim().replace(/\s/g, "").replace(/€/g, "");
+            const normalizzato = pulito.includes(",") ? pulito.replace(/\./g, "").replace(",", ".") : pulito;
+            const parsed = parseFloat(normalizzato);
+            return Number.isFinite(parsed) ? parsed : 0;
+        }
+
+        function euro(valore){
+            return numero(valore).toLocaleString("it-IT", { style:"currency", currency:"EUR", minimumFractionDigits:2, maximumFractionDigits:2 });
         }
 
         function caricaInvestimenti(){
