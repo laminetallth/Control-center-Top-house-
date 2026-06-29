@@ -111,7 +111,7 @@ function testo(valore){
 }
 
 function numero(valore){
-    return Number(String(valore || 0).replace(",", "."));
+    return Number(valore || 0);
 }
 
 function escapeHtml(valore){
@@ -532,8 +532,8 @@ form.addEventListener("submit", async function(e){
         gestore: document.getElementById("gestore").value,
         servizio: document.getElementById("servizio").value,
         stato: document.getElementById("stato").value,
-        gettonePartner: numero(document.getElementById("gettonePartner").value),
-        gettoneVenditore: numero(document.getElementById("gettoneVenditore").value),
+        gettonePartner: Number(document.getElementById("gettonePartner").value || 0),
+        gettoneVenditore: Number(document.getElementById("gettoneVenditore").value || 0),
         pagamentoPartner: document.getElementById("pagamentoPartner").value,
         pagamentoVenditore: document.getElementById("pagamentoVenditore").value,
         note: document.getElementById("note").value
