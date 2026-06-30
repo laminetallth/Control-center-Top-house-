@@ -8,6 +8,7 @@
         { label: "🤝 Partner", href: "partners.html", matches: ["partners.html", "partner-detail.html"] },
         { label: "🏪 Affiliati", href: "affiliates.html", matches: ["affiliates.html"] },
         { label: "💰 Provvigioni", href: "commissions.html", matches: ["commissions.html"] },
+        { label: "🧾 Inviti a fatturare", href: "invoice-invitations.html", matches: ["invoice-invitations.html"] },
         { label: "📈 Investimenti", href: "investments.html", matches: ["investments.html"] },
         { label: "🏦 Cash Flow", href: "cashflow.html", matches: ["cashflow.html"] },
         { label: "📊 KPI", href: "kpi.html", matches: ["kpi.html"] },
