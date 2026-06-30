@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inviti a fatturare - Top House Gestionale</title>
+    <link rel="stylesheet" href="css/style.css?v=3100">
+</head>
+
+<body>
+    <div id="sidebarContainer"></div>
+
+    <main class="main">
+        <div class="header">
+            <div>
+                <h1>Inviti a fatturare</h1>
+                <span>Esporta i contratti per venditore</span>
+            </div>
+        </div>
+
+        <section class="box full-box invoice-hero">
+            <div class="invoice-brand">
+                <img src="assets/logo-casa.png" alt="TOP HOUSE Logo">
+                <div>
+                    <h3>TOP HOUSE S.R.L.S.</h3>
+                    <p>Viale Lombardia 30, Busto Arsizio · P.IVA 03949040129 · informazioni.th@gmail.com</p>
+                </div>
+            </div>
+
+            <div class="table-actions filters-area invoice-filters">
+                <select id="vendorFilter" aria-label="Seleziona venditore">
+                    <option value="">Seleziona venditore</option>
+                </select>
+
+                <select id="monthFilter" aria-label="Mese rapido">
+                    <option value="">Mese rapido</option>
+                    <option value="2026-01">Gennaio 2026</option>
+                    <option value="2026-02">Febbraio 2026</option>
+                    <option value="2026-03">Marzo 2026</option>
+                    <option value="2026-04">Aprile 2026</option>
+                    <option value="2026-05">Maggio 2026</option>
+                    <option value="2026-06">Giugno 2026</option>
+                    <option value="2026-07">Luglio 2026</option>
+                    <option value="2026-08">Agosto 2026</option>
+                    <option value="2026-09">Settembre 2026</option>
+                    <option value="2026-10">Ottobre 2026</option>
+                    <option value="2026-11">Novembre 2026</option>
+                    <option value="2026-12">Dicembre 2026</option>
+                </select>
+
+                <div class="form-field compact-field">
+                    <label>Data da</label>
+                    <input type="date" id="dateFrom">
+                </div>
+
+                <div class="form-field compact-field">
+                    <label>Data a</label>
+                    <input type="date" id="dateTo">
+                </div>
+
+                <button type="button" class="mini-btn dark" id="resetFilters">Reset</button>
+                <button type="button" class="mini-btn" id="exportExcel">Esporta Excel</button>
+                <button type="button" class="mini-btn" id="exportPdf">Esporta PDF</button>
+            </div>
+        </section>
+
+        <section class="cards invoice-summary-cards">
+            <div class="card"><h4>Venditore</h4><p id="selectedVendorLabel">-</p></div>
+            <div class="card"><h4>Periodo</h4><p id="selectedPeriodLabel">-</p></div>
+            <div class="card"><h4>Totale contratti</h4><p id="totalContracts">0</p></div>
+            <div class="card"><h4>Totale da fatturare</h4><p id="totalAmount">0,00€</p></div>
+        </section>
+
+        <section class="box full-box">
+            <div class="section-title">
+                <div>
+                    <h3>📋 Anteprima invito a fatturare</h3>
+                    <p>Mostra solo contratti OK o Pagato del venditore e periodo selezionati.</p>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table class="contracts-table invoice-preview-table">
+                    <thead>
+                        <tr>
+                            <th>N.</th>
+                            <th>Nome e Cognome Cliente</th>
+                            <th>Data Inserimento</th>
+                            <th>Partner</th>
+                            <th>Gestore</th>
+                            <th>Servizio</th>
+                            <th>Note</th>
+                            <th>Stato</th>
+                            <th>Data Esito</th>
+                            <th>Gettone venditore / Importo da fatturare</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoicePreviewBody"></tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="9">Totale da fatturare</td>
+                            <td id="tableTotalAmount">0,00€</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.4/dist/jspdf.plugin.autotable.min.js"></script>
+    <script src="js/menu.js?v=3100"></script>
+    <script type="module" src="js/auth-guard.js?v=3100"></script>
+    <script type="module" src="js/invoice-invitations.js?v=3100"></script>
+</body>
+
+</html>
