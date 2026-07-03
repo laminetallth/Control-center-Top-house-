@@ -238,32 +238,89 @@ function righeExport(lista){
     ]);
 }
 
+function applicaStileCella(worksheet, cella, stile){
+    if(!worksheet[cella]){ worksheet[cella] = { t: "s", v: "" }; }
+    worksheet[cella].s = stile;
+}
+
+function applicaStileRange(worksheet, range, stile){
+    for(let row = range.s.r; row <= range.e.r; row += 1){
+        for(let col = range.s.c; col <= range.e.c; col += 1){
+            const cella = XLSX.utils.encode_cell({ r: row, c: col });
+            applicaStileCella(worksheet, cella, stile);
+        }
+    }
+}
+
 function esportaExcel(){
     const lista = getContrattiFatturabili();
     if(!assertExportPronto(lista)){ return; }
 
-    const intestazioni = [["N.", "Nome e Cognome Cliente", "Data Inserimento", "Partner", "Gestore", "Servizio", "Note", "Stato", "Data Esito", "Gettone venditore / Importo da fatturare"]];
+    const intestazioni = [["N.", "Nome e Cognome Cliente", "Data Inserimento", "Partner", "Gestore", "Servizio", "Note", "Stato", "Data Esito", "Importo da fatturare"]];
     const totale = calcolaTotale(lista);
+    const dataExport = new Date().toLocaleDateString("it-IT");
     const worksheet = XLSX.utils.aoa_to_sheet([
-        [AZIENDA.ragioneSociale],
+        ["TOP HOUSE S.R.L.S."],
         [AZIENDA.sede],
         [`P.IVA ${AZIENDA.partitaIva} · ${AZIENDA.email}`],
         [],
         ["INVITO A FATTURARE"],
-        [`Venditore: ${vendorFilter.value}`],
+        [`Riepilogo contratti del venditore: ${vendorFilter.value}`],
         [`Periodo: ${getPeriodoLabel()}`],
         [`Totale contratti: ${lista.length}`],
         [`Totale da fatturare: ${formatEuro(totale)}`],
+        [`Documento generato il: ${dataExport}`],
         [],
         ...intestazioni,
         ...righeExport(lista),
         [],
-        ["", "", "", "", "", "", "", "", "Totale finale", formatEuro(totale)]
+        ["", "", "", "", "", "", "", "", "Totale finale", formatEuro(totale)],
+        [],
+        ["Grazie per la collaborazione"],
+        ["TOP HOUSE S.R.L.S."],
+        ["Firma e timbro"]
     ]);
 
-    worksheet["!cols"] = [{ wch: 6 }, { wch: 28 }, { wch: 16 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 34 }, { wch: 12 }, { wch: 14 }, { wch: 24 }];
-    worksheet["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: 9 } }, { s: { r: 4, c: 0 }, e: { r: 4, c: 9 } }];
-    if(logoDataUrl){ worksheet["A1"].c = [{ a: "TOP HOUSE", t: "Logo TOP HOUSE presente nella pagina e nel PDF" }]; }
+    const headerRow = 11;
+    const firstDataRow = 12;
+    const totalRow = firstDataRow + lista.length + 1;
+    const footerStartRow = totalRow + 2;
+    const border = { style: "thin", color: { rgb: "D9DEE8" } };
+    const styles = {
+        brand: { font: { bold: true, sz: 26, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "081120" } }, alignment: { horizontal: "center", vertical: "center" } },
+        company: { font: { bold: true, sz: 11, color: { rgb: "D90429" } }, alignment: { horizontal: "center" } },
+        title: { font: { bold: true, sz: 22, color: { rgb: "D90429" } }, alignment: { horizontal: "center" }, fill: { fgColor: { rgb: "FFF2E6" } } },
+        subtitle: { font: { bold: true, sz: 13, color: { rgb: "081120" } }, alignment: { horizontal: "center" } },
+        summary: { font: { bold: true, color: { rgb: "081120" } }, fill: { fgColor: { rgb: "FFE4CC" } }, border: { top: border, bottom: border, left: border, right: border } },
+        tableHead: { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "D90429" } }, alignment: { horizontal: "center" }, border: { top: border, bottom: border, left: border, right: border } },
+        even: { fill: { fgColor: { rgb: "FFF8F0" } }, border: { top: border, bottom: border, left: border, right: border } },
+        odd: { fill: { fgColor: { rgb: "FFFFFF" } }, border: { top: border, bottom: border, left: border, right: border } },
+        total: { font: { bold: true, sz: 12, color: { rgb: "FFFFFF" } }, fill: { fgColor: { rgb: "FF7B00" } }, border: { top: border, bottom: border, left: border, right: border } },
+        footer: { font: { bold: true, color: { rgb: "081120" } }, alignment: { horizontal: "center" }, fill: { fgColor: { rgb: "F3F4F6" } } }
+    };
+
+    worksheet["!cols"] = [{ wch: 6 }, { wch: 32 }, { wch: 16 }, { wch: 20 }, { wch: 20 }, { wch: 20 }, { wch: 42 }, { wch: 12 }, { wch: 14 }, { wch: 22 }];
+    worksheet["!rows"] = [{ hpt: 32 }, { hpt: 20 }, { hpt: 20 }, { hpt: 8 }, { hpt: 30 }, { hpt: 22 }, { hpt: 20 }, { hpt: 20 }, { hpt: 20 }, { hpt: 20 }, { hpt: 8 }, { hpt: 26 }];
+    worksheet["!merges"] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: 9 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: 9 } },
+        { s: { r: 2, c: 0 }, e: { r: 2, c: 9 } },
+        { s: { r: 4, c: 0 }, e: { r: 4, c: 9 } },
+        { s: { r: 5, c: 0 }, e: { r: 5, c: 9 } },
+        { s: { r: footerStartRow, c: 0 }, e: { r: footerStartRow, c: 9 } },
+        { s: { r: footerStartRow + 1, c: 0 }, e: { r: footerStartRow + 1, c: 9 } },
+        { s: { r: footerStartRow + 2, c: 0 }, e: { r: footerStartRow + 2, c: 9 } }
+    ];
+    applicaStileRange(worksheet, { s: { r: 0, c: 0 }, e: { r: 0, c: 9 } }, styles.brand);
+    applicaStileRange(worksheet, { s: { r: 1, c: 0 }, e: { r: 2, c: 9 } }, styles.company);
+    applicaStileRange(worksheet, { s: { r: 4, c: 0 }, e: { r: 4, c: 9 } }, styles.title);
+    applicaStileRange(worksheet, { s: { r: 5, c: 0 }, e: { r: 9, c: 9 } }, styles.subtitle);
+    applicaStileRange(worksheet, { s: { r: 6, c: 0 }, e: { r: 9, c: 9 } }, styles.summary);
+    applicaStileRange(worksheet, { s: { r: headerRow, c: 0 }, e: { r: headerRow, c: 9 } }, styles.tableHead);
+    lista.forEach((_, index) => applicaStileRange(worksheet, { s: { r: firstDataRow + index, c: 0 }, e: { r: firstDataRow + index, c: 9 } }, index % 2 === 0 ? styles.even : styles.odd));
+    applicaStileRange(worksheet, { s: { r: totalRow, c: 8 }, e: { r: totalRow, c: 9 } }, styles.total);
+    applicaStileRange(worksheet, { s: { r: footerStartRow, c: 0 }, e: { r: footerStartRow + 2, c: 9 } }, styles.footer);
+    if(logoDataUrl){ worksheet["A1"].c = [{ a: "TOP HOUSE", t: "Logo reale mantenuto nell'export PDF; Excel usa una testata brandizzata per compatibilità SheetJS." }]; }
 
     const workbook = XLSX.utils.book_new();
     workbook.Props = { Title: "INVITO A FATTURARE", Company: AZIENDA.ragioneSociale };
