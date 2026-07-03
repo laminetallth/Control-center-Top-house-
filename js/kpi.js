@@ -18,6 +18,7 @@ const KPI_COMPARISON_CONFIG = [
     { key:"ko", label:"KO", type:"number", mood:"down" },
     { key:"storni", label:"Storni", type:"number", mood:"down" },
     { key:"margine", label:"Margine Maturato", type:"currency", mood:"up" },
+    { key:"margineMedio", label:"Margine medio per contratto", type:"currency", mood:"up" },
     { key:"daIncassare", label:"Da Incassare Partner", type:"currency", mood:"down" },
     { key:"daPagare", label:"Da Pagare Venditori", type:"currency", mood:"down" },
     { key:"investimenti", label:"Investimenti", type:"currency", mood:"down" },
@@ -139,7 +140,8 @@ function calcolaMetriche(contratti, investimenti){
     const roi = investimentiTot > 0 ? ((margine - investimentiTot) / investimentiTot) * 100 : 0;
     const saldo = margine - investimentiTot;
     const cashPressure = daIncassare + daPagare;
-    return { totale, ok, commodity, extraCommodity, commodityOk, extraCommodityOk, commodityPerc, extraCommodityPerc, okRate, ko, storni, margine, daIncassare, daPagare, investimenti: investimentiTot, roi, saldo, cashPressure };
+    const margineMedio = ok > 0 ? margine / ok : 0;
+    return { totale, ok, commodity, extraCommodity, commodityOk, extraCommodityOk, commodityPerc, extraCommodityPerc, okRate, ko, storni, margine, margineMedio, daIncassare, daPagare, investimenti: investimentiTot, roi, saldo, cashPressure };
 }
 
 function renderCards(m, precedente){
@@ -171,7 +173,14 @@ function renderComparison(attuale, precedente){
 }
 
 function aggregaMesi(contratti, investimenti){
-    return MESI.map(([mese, label]) => {
+    const mesiConDati = new Set([
+        ...contratti.map(c => meseDaData(c.dataInserimento)).filter(Boolean),
+        ...investimenti.map(i => meseDaData(i.data || i.dataInserimento)).filter(Boolean)
+    ]);
+    const mesi = MESI.filter(([mese]) => mesiConDati.has(mese)).slice(-6);
+    const periodo = mesi.length ? mesi : MESI.slice(-6);
+
+    return periodo.map(([mese, label]) => {
         const c = filtraContrattiMese(contratti, mese);
         const inv = filtraInvestimentiMese(investimenti, mese);
         const m = calcolaMetriche(c, inv);
@@ -182,6 +191,38 @@ function renderBarChart(id, dati, key, type){
     const max = Math.max(...dati.map(d => Math.abs(numero(d[key]))), 1);
     document.getElementById(id).innerHTML = dati.map(d => `<div class="bar-wrap" title="${d.mese}: ${format(d[key], type)}"><div class="bar" style="height:${Math.max(4, (Math.abs(numero(d[key])) / max) * 130)}px"></div><div class="bar-label">${d.label}</div></div>`).join("");
 }
+function aggregaFatturato(lista, campoNome, campoImporto){
+    const map = {};
+
+    lista.filter(praticaValida).forEach(c => {
+        const nome = testo(c[campoNome]) || "Non indicato";
+        map[nome] = (map[nome] || 0) + numero(c[campoImporto]);
+    });
+
+    return Object.entries(map)
+        .map(([nome, valore]) => ({ nome, valore }))
+        .sort((a, b) => b.valore - a.valore)
+        .slice(0, 6);
+}
+
+function renderRevenueChart(id, dati, emptyMessage){
+    const container = document.getElementById(id);
+
+    if(!dati.length){
+        container.innerHTML = `<p class="empty-note">${emptyMessage}</p>`;
+        return;
+    }
+
+    const max = Math.max(...dati.map(d => Math.abs(numero(d.valore))), 1);
+    container.innerHTML = dati.map(d => `
+        <div class="revenue-row" title="${escapeHtml(d.nome)}: ${euro(d.valore)}">
+            <span class="revenue-name">${escapeHtml(d.nome)}</span>
+            <span class="revenue-track"><span class="revenue-fill" style="width:${Math.max(4, (Math.abs(numero(d.valore)) / max) * 100)}%"></span></span>
+            <span class="revenue-value">${euro(d.valore)}</span>
+        </div>
+    `).join("");
+}
+
 function renderServiceMix(lista){
     const counts = {};
     lista.filter(praticaValida).forEach(c => { const s = testo(c.servizio) || "Non indicato"; counts[s] = (counts[s] || 0) + getContractUnits(c); });
@@ -192,8 +233,9 @@ function renderServiceMix(lista){
 
 function statistiche(lista, campo){
     const map = {};
-    lista.forEach(c => { const nome = testo(c[campo]) || "Non indicato"; if(!map[nome]) map[nome] = { nome, ok:0, totali:0, provvigioni:0, daIncassare:0, margine:0 }; map[nome].totali += getContractUnits(c); if(praticaValida(c)){ map[nome].ok += getContractUnits(c); map[nome].provvigioni += numero(c.gettoneVenditore); map[nome].daIncassare += testo(c.pagamentoPartner) === "Da incassare" ? numero(c.gettonePartner) : 0; map[nome].margine += calcolaMargine(c); } });
-    return Object.values(map).sort((a,b) => b.ok - a.ok || b.margine - a.margine);
+    lista.forEach(c => { const nome = testo(c[campo]) || "Non indicato"; if(!map[nome]) map[nome] = { nome, ok:0, totali:0, provvigioni:0, daIncassare:0, fatturatoPartner:0, margine:0 }; map[nome].totali += getContractUnits(c); if(praticaValida(c)){ map[nome].ok += getContractUnits(c); map[nome].provvigioni += numero(c.gettoneVenditore); map[nome].fatturatoPartner += numero(c.gettonePartner); map[nome].daIncassare += testo(c.pagamentoPartner) === "Da incassare" ? numero(c.gettonePartner) : 0; map[nome].margine += calcolaMargine(c); } });
+    const revenueKey = campo === "partner" ? "fatturatoPartner" : campo === "venditore" ? "provvigioni" : "ok";
+    return Object.values(map).sort((a,b) => b[revenueKey] - a[revenueKey] || b.margine - a.margine);
 }
 function renderTables(lista){
     const venditori = statistiche(lista, "venditore");
@@ -204,10 +246,10 @@ function renderTables(lista){
 }
 function renderInsights(lista, metriche, rankings){
     const servizi = statistiche(lista, "servizio");
-    const margineMedio = metriche.ok > 0 ? metriche.margine / metriche.ok : 0;
+    const margineMedio = metriche.margineMedio;
     const saldo = metriche.margine - metriche.investimenti;
     const pressure = metriche.daIncassare + metriche.daPagare;
-    const cards = [["Miglior venditore", rankings.venditori[0]?.nome || "-"], ["Miglior partner", rankings.partner[0]?.nome || "-"], ["Servizio più venduto", servizi[0]?.nome || "-"], ["Margine medio per OK", euro(margineMedio)], ["Saldo operativo stimato", euro(saldo)], ["Cash pressure", euro(pressure)]];
+    const cards = [["Miglior venditore", rankings.venditori[0]?.nome || "-"], ["Miglior partner", rankings.partner[0]?.nome || "-"], ["Servizio più venduto", servizi[0]?.nome || "-"], ["Margine medio per contratto", euro(margineMedio)], ["Saldo operativo stimato", euro(saldo)], ["Cash pressure", euro(pressure)]];
     document.getElementById("insightGrid").innerHTML = cards.map(c => `<div class="insight-card"><h4>${c[0]}</h4><strong>${escapeHtml(c[1])}</strong></div>`).join("");
 }
 function aggiornaPagina(){
@@ -222,6 +264,8 @@ function aggiornaPagina(){
     renderCards(attuale, precedente); renderComparison(attuale, precedente);
     const serie = aggregaMesi(contratti, investimenti);
     renderBarChart("contractsTrend", serie, "totale", "number"); renderBarChart("marginTrend", serie, "margine", "currency"); renderBarChart("okRateTrend", serie, "okRate", "percent"); renderBarChart("investmentsTrend", serie, "investimenti", "currency");
+    renderRevenueChart("partnerRevenueChart", aggregaFatturato(lista, "partner", "gettonePartner"), "Nessun fatturato partner nel periodo selezionato.");
+    renderRevenueChart("vendorRevenueChart", aggregaFatturato(lista, "venditore", "gettoneVenditore"), "Nessun fatturato venditore nel periodo selezionato.");
     renderServiceMix(lista);
     const rankings = renderTables(lista);
     renderInsights(lista, attuale, rankings);
