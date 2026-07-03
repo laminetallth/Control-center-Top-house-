@@ -1543,7 +1543,7 @@ tr:hover td{
     margin-bottom:22px;
     padding:18px;
     border-radius:22px;
-    background:linear-gradient(90deg,rgba(8,17,32,.96),rgba(217,4,41,.9),rgba(255,123,0,.92));
+    background:linear-gradient(90deg,#d90429 0%,#ff3d3d 52%,#ff7b00 100%);
     color:white;
 }
 
