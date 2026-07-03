@@ -68,8 +68,8 @@ function format(v, type){ return type === "currency" ? euro(v) : type === "perce
 function escapeHtml(v){ return testo(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
 function leggiStorage(chiave){ try{ const dati = JSON.parse(localStorage.getItem(chiave)); return Array.isArray(dati) ? dati : []; }catch(e){ return []; } }
 function meseDaData(data){ return testo(data).slice(0, 7); }
-function filtraContrattiMese(contratti, mese){ return contratti.filter(c => meseDaData(c.dataInserimento) === mese); }
-function filtraInvestimentiMese(investimenti, mese){ return investimenti.filter(i => meseDaData(i.data || i.dataInserimento) === mese); }
+function filtraContrattiMese(contratti, mese){ return mese ? contratti.filter(c => meseDaData(c.dataInserimento) === mese) : contratti; }
+function filtraInvestimentiMese(investimenti, mese){ return mese ? investimenti.filter(i => meseDaData(i.data || i.dataInserimento) === mese) : investimenti; }
 function mesePrecedente(mese){
     const [anno, meseNumero] = testo(mese).split("-").map(Number);
     if(!anno || !meseNumero) return "";
@@ -115,9 +115,8 @@ function getDelta(current, previous, invert = false){
 
 function popolaMesi(){
     const select = document.getElementById("monthFilter");
-    select.innerHTML = MESI.map(([value, label]) => `<option value="${value}">${label}</option>`).join("");
-    const corrente = new Date().toISOString().slice(0, 7);
-    select.value = MESI.some(m => m[0] === corrente) ? corrente : "2026-06";
+    select.innerHTML = `<option value="">Tutte le mensilità</option>` + MESI.map(([value, label]) => `<option value="${value}">${label}</option>`).join("");
+    select.value = "";
 }
 
 function calcolaMetriche(contratti, investimenti){
