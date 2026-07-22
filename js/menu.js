@@ -37,9 +37,25 @@
         return li;
     }
 
+    function loadEconomicOverview() {
+        const currentPage = getCurrentPage();
+        if (!["", "index.html", "contracts.html", "kpi.html"].includes(currentPage)) {
+            return;
+        }
+        if (document.querySelector('script[data-economic-overview="true"]')) {
+            return;
+        }
+        const script = document.createElement("script");
+        script.src = "js/economic-overview.js?v=3200";
+        script.defer = true;
+        script.dataset.economicOverview = "true";
+        document.head.appendChild(script);
+    }
+
     function renderSidebar() {
         const container = document.getElementById("sidebarContainer");
         if (!container) {
+            loadEconomicOverview();
             return;
         }
 
@@ -90,6 +106,8 @@
                 userEmailSlot.textContent = email;
             }
         });
+
+        loadEconomicOverview();
     }
 
     if (document.readyState === "loading") {
