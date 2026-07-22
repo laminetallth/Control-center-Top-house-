@@ -61,7 +61,7 @@
         }
         const script = document.createElement("script");
         script.type = "module";
-        script.src = "js/contract-quick-update.js?v=3300";
+        script.src = "js/contract-quick-update.js?v=3400";
         script.dataset.contractQuickUpdate = "true";
         document.head.appendChild(script);
     }
