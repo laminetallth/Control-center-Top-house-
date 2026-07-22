@@ -8,6 +8,8 @@ import {
 const STATI = ["Inserito", "In lavorazione", "OK", "KO", "Storno", "Pagato"];
 const PAGAMENTI_PARTNER = ["Da incassare", "Incassato", "Non dovuto"];
 const PAGAMENTI_VENDITORE = ["Da pagare", "Pagato", "Non dovuto"];
+const modifichePendenti = new Map();
+let salvataggioInCorso = false;
 
 function testo(valore) {
     return String(valore ?? "").trim();
@@ -26,21 +28,16 @@ function trovaContratto(id) {
     return leggiContratti().find((contratto) => Number(contratto.id) === Number(id));
 }
 
-function salvaContrattoLocale(id, modifiche) {
+function salvaModificheLocali(modificheSalvate) {
     const contratti = leggiContratti();
-    const indice = contratti.findIndex((contratto) => Number(contratto.id) === Number(id));
+    const perId = new Map(modificheSalvate.map((voce) => [Number(voce.id), voce.modifiche]));
 
-    if (indice < 0) {
-        return false;
-    }
+    const aggiornati = contratti.map((contratto) => {
+        const modifiche = perId.get(Number(contratto.id));
+        return modifiche ? { ...contratto, ...modifiche } : contratto;
+    });
 
-    contratti[indice] = {
-        ...contratti[indice],
-        ...modifiche
-    };
-
-    localStorage.setItem("contrattiTopHouse", JSON.stringify(contratti));
-    return true;
+    localStorage.setItem("contrattiTopHouse", JSON.stringify(aggiornati));
 }
 
 function tonoPerValore(valore) {
@@ -66,9 +63,51 @@ function aggiornaTono(select) {
     select.classList.add(`tone-${tonoPerValore(select.value)}`);
 }
 
-function creaSelect(valori, valoreCorrente, etichetta) {
+function mostraToast(messaggio, tipo = "success") {
+    let toast = document.getElementById("contractQuickUpdateToast");
+
+    if (!toast) {
+        toast = document.createElement("div");
+        toast.id = "contractQuickUpdateToast";
+        toast.className = "contract-quick-toast";
+        document.body.appendChild(toast);
+    }
+
+    toast.className = `contract-quick-toast ${tipo}`;
+    toast.textContent = messaggio;
+    toast.classList.add("visible");
+
+    window.clearTimeout(Number(toast.dataset.timer || 0));
+    const timer = window.setTimeout(() => toast.classList.remove("visible"), 3200);
+    toast.dataset.timer = String(timer);
+}
+
+function aggiornaPulsanteGlobale() {
+    const button = document.getElementById("saveAllContractStatuses");
+    if (!button) return;
+
+    const totale = modifichePendenti.size;
+    button.disabled = totale === 0 || salvataggioInCorso;
+    button.classList.toggle("has-changes", totale > 0);
+
+    if (salvataggioInCorso) {
+        button.textContent = `Salvataggio di ${totale} contratti...`;
+        return;
+    }
+
+    button.textContent = totale > 0
+        ? `Salva tutte le modifiche (${totale})`
+        : "Salva tutte le modifiche";
+}
+
+function aggiornaAspettoRiga(row, id) {
+    row.classList.toggle("quick-row-changed", modifichePendenti.has(Number(id)));
+}
+
+function creaSelect(valori, valoreCorrente, etichetta, tipo, id) {
     const select = document.createElement("select");
     select.className = "quick-edit-select";
+    select.dataset.quickField = tipo;
     select.setAttribute("aria-label", etichetta);
 
     valori.forEach((valore) => {
@@ -91,100 +130,117 @@ function creaSelect(valori, valoreCorrente, etichetta) {
     select.addEventListener("change", () => {
         aggiornaTono(select);
         const row = select.closest("tr");
-        const button = row?.querySelector(".quick-save-row");
-        if (button) {
-            button.disabled = false;
-            button.classList.add("has-changes");
-            button.textContent = "Salva stati";
-        }
+        if (row) aggiornaModificheRiga(row, id);
     });
 
     return select;
 }
 
-function mostraToast(messaggio, tipo = "success") {
-    let toast = document.getElementById("contractQuickUpdateToast");
+function leggiValoriRiga(row) {
+    const stato = row.querySelector('[data-quick-field="stato"]')?.value;
+    const pagamentoPartner = row.querySelector('[data-quick-field="pagamentoPartner"]')?.value;
+    const pagamentoVenditore = row.querySelector('[data-quick-field="pagamentoVenditore"]')?.value;
 
-    if (!toast) {
-        toast = document.createElement("div");
-        toast.id = "contractQuickUpdateToast";
-        toast.className = "contract-quick-toast";
-        document.body.appendChild(toast);
-    }
-
-    toast.className = `contract-quick-toast ${tipo}`;
-    toast.textContent = messaggio;
-    toast.classList.add("visible");
-
-    window.clearTimeout(Number(toast.dataset.timer || 0));
-    const timer = window.setTimeout(() => toast.classList.remove("visible"), 3000);
-    toast.dataset.timer = String(timer);
+    return { stato, pagamentoPartner, pagamentoVenditore };
 }
 
-async function salvaRiga(row, id) {
+function aggiornaModificheRiga(row, id) {
     const contratto = trovaContratto(id);
-    const button = row.querySelector(".quick-save-row");
-    const selects = [...row.querySelectorAll(".quick-edit-select")];
-
-    if (!contratto || !button || selects.length !== 3) {
+    if (!contratto) {
         mostraToast("Contratto non trovato. Aggiorna la pagina e riprova.", "error");
         return;
     }
 
-    const [statoSelect, partnerSelect, venditoreSelect] = selects;
-    const modifiche = {
-        stato: statoSelect.value,
-        pagamentoPartner: partnerSelect.value,
-        pagamentoVenditore: venditoreSelect.value
-    };
+    const modifiche = leggiValoriRiga(row);
+    const invariato =
+        testo(contratto.stato) === testo(modifiche.stato) &&
+        testo(contratto.pagamentoPartner) === testo(modifiche.pagamentoPartner) &&
+        testo(contratto.pagamentoVenditore) === testo(modifiche.pagamentoVenditore);
 
-    const nessunaModifica =
-        testo(contratto.stato) === modifiche.stato &&
-        testo(contratto.pagamentoPartner) === modifiche.pagamentoPartner &&
-        testo(contratto.pagamentoVenditore) === modifiche.pagamentoVenditore;
+    if (invariato) {
+        modifichePendenti.delete(Number(id));
+    } else {
+        modifichePendenti.set(Number(id), modifiche);
+    }
 
-    if (nessunaModifica) {
-        mostraToast("Nessuna modifica da salvare.", "info");
-        button.classList.remove("has-changes");
-        button.disabled = true;
+    aggiornaAspettoRiga(row, id);
+    aggiornaPulsanteGlobale();
+}
+
+async function salvaTutteLeModifiche() {
+    if (salvataggioInCorso || modifichePendenti.size === 0) {
         return;
     }
 
-    button.disabled = true;
-    button.textContent = "Salvataggio...";
-    selects.forEach((select) => {
+    const richieste = [...modifichePendenti.entries()].map(([id, modifiche]) => ({
+        id,
+        modifiche,
+        contratto: trovaContratto(id)
+    }));
+
+    const mancanti = richieste.filter((voce) => !voce.contratto);
+    if (mancanti.length) {
+        mostraToast("Alcuni contratti non sono più disponibili. Aggiorna la pagina.", "error");
+        return;
+    }
+
+    salvataggioInCorso = true;
+    aggiornaPulsanteGlobale();
+    document.querySelectorAll(".quick-edit-select").forEach((select) => {
         select.disabled = true;
     });
 
-    try {
+    const risultati = await Promise.allSettled(richieste.map(async (voce) => {
         const firestoreId = testo(
-            contratto.firestoreId ||
-            contratto.localId ||
-            contratto.id ||
-            id
+            voce.contratto.firestoreId ||
+            voce.contratto.localId ||
+            voce.contratto.id ||
+            voce.id
         );
 
         await setDoc(doc(db, "contracts", firestoreId), {
-            ...modifiche,
+            ...voce.modifiche,
             updatedAt: serverTimestamp()
         }, { merge: true });
 
-        salvaContrattoLocale(id, modifiche);
+        return voce;
+    }));
 
-        button.textContent = "Salvato ✓";
-        button.classList.remove("has-changes");
-        mostraToast("Stato e pagamenti aggiornati correttamente.");
+    const salvate = [];
+    let errori = 0;
 
-        window.setTimeout(() => window.location.reload(), 850);
-    } catch (error) {
-        console.error(error);
-        button.disabled = false;
-        button.textContent = "Riprova";
-        selects.forEach((select) => {
-            select.disabled = false;
-        });
-        mostraToast("Errore durante il salvataggio. Riprova.", "error");
+    risultati.forEach((risultato, index) => {
+        const voce = richieste[index];
+        if (risultato.status === "fulfilled") {
+            salvate.push(voce);
+            modifichePendenti.delete(Number(voce.id));
+        } else {
+            errori += 1;
+            console.error(risultato.reason);
+        }
+    });
+
+    if (salvate.length) {
+        salvaModificheLocali(salvate);
     }
+
+    salvataggioInCorso = false;
+    document.querySelectorAll(".quick-edit-select").forEach((select) => {
+        select.disabled = false;
+    });
+    document.querySelectorAll("#contractsBody tr").forEach((row) => {
+        const id = Number(row.dataset.quickContractId);
+        if (Number.isFinite(id)) aggiornaAspettoRiga(row, id);
+    });
+    aggiornaPulsanteGlobale();
+
+    if (errori === 0) {
+        mostraToast(`${salvate.length} contratti aggiornati correttamente.`);
+        window.setTimeout(() => window.location.reload(), 850);
+        return;
+    }
+
+    mostraToast(`${salvate.length} salvati, ${errori} non riusciti. Riprova.`, "error");
 }
 
 function miglioraRiga(row) {
@@ -208,36 +264,60 @@ function miglioraRiga(row) {
     }
 
     row.dataset.quickUpdateReady = "true";
+    row.dataset.quickContractId = String(id);
 
-    const statoSelect = creaSelect(STATI, testo(contratto.stato) || "Inserito", `Stato contratto ${id}`);
-    const partnerSelect = creaSelect(
+    const pendenti = modifichePendenti.get(id) || {};
+    const stato = testo(pendenti.stato || contratto.stato) || "Inserito";
+    const pagamentoPartner = testo(pendenti.pagamentoPartner || contratto.pagamentoPartner) || "Da incassare";
+    const pagamentoVenditore = testo(pendenti.pagamentoVenditore || contratto.pagamentoVenditore) || "Da pagare";
+
+    celle[11].replaceChildren(creaSelect(STATI, stato, `Stato contratto ${id}`, "stato", id));
+    celle[15].replaceChildren(creaSelect(
         PAGAMENTI_PARTNER,
-        testo(contratto.pagamentoPartner) || "Da incassare",
-        `Pagamento partner contratto ${id}`
-    );
-    const venditoreSelect = creaSelect(
+        pagamentoPartner,
+        `Pagamento partner contratto ${id}`,
+        "pagamentoPartner",
+        id
+    ));
+    celle[16].replaceChildren(creaSelect(
         PAGAMENTI_VENDITORE,
-        testo(contratto.pagamentoVenditore) || "Da pagare",
-        `Pagamento venditore contratto ${id}`
-    );
+        pagamentoVenditore,
+        `Pagamento venditore contratto ${id}`,
+        "pagamentoVenditore",
+        id
+    ));
 
-    celle[11].replaceChildren(statoSelect);
-    celle[15].replaceChildren(partnerSelect);
-    celle[16].replaceChildren(venditoreSelect);
-
-    const actions = celle[0].querySelector(".action-buttons") || celle[0];
-    const quickSaveButton = document.createElement("button");
-    quickSaveButton.type = "button";
-    quickSaveButton.className = "quick-save-row";
-    quickSaveButton.textContent = "Salva stati";
-    quickSaveButton.disabled = true;
-    quickSaveButton.title = "Salva rapidamente stato e pagamenti";
-    quickSaveButton.addEventListener("click", () => salvaRiga(row, id));
-    actions.appendChild(quickSaveButton);
+    aggiornaAspettoRiga(row, id);
 }
 
 function miglioraTabella() {
     document.querySelectorAll("#contractsBody tr").forEach(miglioraRiga);
+    aggiornaPulsanteGlobale();
+}
+
+function creaPulsanteGlobale() {
+    if (document.getElementById("saveAllContractStatuses")) {
+        return;
+    }
+
+    const area = document.querySelector(".table-actions.filters-area");
+    if (!area) {
+        return;
+    }
+
+    const button = document.createElement("button");
+    button.id = "saveAllContractStatuses";
+    button.type = "button";
+    button.className = "save-all-contract-statuses";
+    button.textContent = "Salva tutte le modifiche";
+    button.disabled = true;
+    button.title = "Salva insieme tutte le modifiche a stato e pagamenti";
+    button.addEventListener("click", salvaTutteLeModifiche);
+
+    const exportButton = [...area.querySelectorAll("button")]
+        .find((elemento) => testo(elemento.textContent).includes("Esporta Report"));
+    area.insertBefore(button, exportButton || null);
+    aggiornaPulsanteGlobale();
 }
 
 function aggiungiStili() {
@@ -269,24 +349,29 @@ function aggiungiStili() {
         .quick-edit-select.tone-warning { background: #fff7ed; border-color: #fdba74; color: #9a3412; }
         .quick-edit-select.tone-negative { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
         .quick-edit-select.tone-neutral { background: #f8fafc; border-color: #cbd5e1; color: #475569; }
-        .quick-save-row {
+        #contractsBody tr.quick-row-changed td {
+            background-color: rgba(255, 123, 0, .055);
+        }
+        .save-all-contract-statuses {
             background: #111827;
             color: #fff;
             border: 0;
-            border-radius: 8px;
-            padding: 7px 10px;
-            font-size: 11px;
-            font-weight: 800;
+            border-radius: 11px;
+            padding: 11px 16px;
+            font-size: 13px;
+            font-weight: 900;
             white-space: nowrap;
             cursor: pointer;
             opacity: .45;
+            transition: transform .2s, opacity .2s, box-shadow .2s;
         }
-        .quick-save-row.has-changes {
+        .save-all-contract-statuses.has-changes {
             background: linear-gradient(135deg, #d90429, #ff7b00);
             opacity: 1;
-            box-shadow: 0 5px 12px rgba(217, 4, 41, .2);
+            box-shadow: 0 7px 16px rgba(217, 4, 41, .22);
         }
-        .quick-save-row:disabled { cursor: default; }
+        .save-all-contract-statuses.has-changes:hover { transform: translateY(-1px); }
+        .save-all-contract-statuses:disabled { cursor: default; }
         .contract-quick-toast {
             position: fixed;
             right: 24px;
@@ -309,6 +394,7 @@ function aggiungiStili() {
         .contract-quick-toast.info { background: #334155; }
         @media (max-width: 900px) {
             .quick-edit-select { min-width: 120px; }
+            .save-all-contract-statuses { width: 100%; }
             .contract-quick-toast { left: 16px; right: 16px; bottom: 16px; max-width: none; }
         }
     `;
@@ -317,6 +403,7 @@ function aggiungiStili() {
 
 function avvia() {
     aggiungiStili();
+    creaPulsanteGlobale();
     miglioraTabella();
 
     const tbody = document.getElementById("contractsBody");
@@ -325,7 +412,10 @@ function avvia() {
         return;
     }
 
-    const observer = new MutationObserver(() => miglioraTabella());
+    const observer = new MutationObserver(() => {
+        creaPulsanteGlobale();
+        miglioraTabella();
+    });
     observer.observe(tbody, { childList: true, subtree: true });
 }
 
