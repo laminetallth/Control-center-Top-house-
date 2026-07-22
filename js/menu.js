@@ -52,10 +52,29 @@
         document.head.appendChild(script);
     }
 
+    function loadContractQuickUpdate() {
+        if (getCurrentPage() !== "contracts.html") {
+            return;
+        }
+        if (document.querySelector('script[data-contract-quick-update="true"]')) {
+            return;
+        }
+        const script = document.createElement("script");
+        script.type = "module";
+        script.src = "js/contract-quick-update.js?v=3300";
+        script.dataset.contractQuickUpdate = "true";
+        document.head.appendChild(script);
+    }
+
+    function loadPageEnhancements() {
+        loadEconomicOverview();
+        loadContractQuickUpdate();
+    }
+
     function renderSidebar() {
         const container = document.getElementById("sidebarContainer");
         if (!container) {
-            loadEconomicOverview();
+            loadPageEnhancements();
             return;
         }
 
@@ -107,7 +126,7 @@
             }
         });
 
-        loadEconomicOverview();
+        loadPageEnhancements();
     }
 
     if (document.readyState === "loading") {
