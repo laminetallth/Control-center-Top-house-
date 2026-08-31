@@ -1,7 +1,7 @@
 (function () {
     "use strict";
 
-    const STATI_ECONOMICI = new Set(["inserito", "in lavorazione", "ok", "pagato"]);
+    const STATI_ECONOMICI = new Set(["inserito", "in lavorazione", "ok", "pagato", "storno"]);
     const PAGINE_SUPPORTATE = new Set(["", "index.html", "contracts.html", "kpi.html"]);
     let aggiornamentoInCorso = false;
 
@@ -31,6 +31,14 @@
 
     function praticaEconomicamenteValida(contratto) {
         return STATI_ECONOMICI.has(statoNormalizzato(contratto));
+    }
+
+    function moltiplicatoreEconomico(contratto) {
+        return statoNormalizzato(contratto) === "storno" ? -1 : 1;
+    }
+
+    function importoEconomico(contratto, campo) {
+        return numero(contratto?.[campo]) * moltiplicatoreEconomico(contratto);
     }
 
     function getContractUnits(contratto) {
@@ -112,15 +120,15 @@
 
     function calcolaMetriche(lista) {
         const valide = lista.filter(praticaEconomicamenteValida);
-        const fatturato = valide.reduce((totale, contratto) => totale + numero(contratto.gettonePartner), 0);
+        const fatturato = valide.reduce((totale, contratto) => totale + importoEconomico(contratto, "gettonePartner"), 0);
         const daIncassare = valide
             .filter((contratto) => testo(contratto.pagamentoPartner) === "Da incassare")
-            .reduce((totale, contratto) => totale + numero(contratto.gettonePartner), 0);
+            .reduce((totale, contratto) => totale + importoEconomico(contratto, "gettonePartner"), 0);
         const daPagare = valide
             .filter((contratto) => testo(contratto.pagamentoVenditore) === "Da pagare")
-            .reduce((totale, contratto) => totale + numero(contratto.gettoneVenditore), 0);
+            .reduce((totale, contratto) => totale + importoEconomico(contratto, "gettoneVenditore"), 0);
         const margine = valide.reduce(
-            (totale, contratto) => totale + numero(contratto.gettonePartner) - numero(contratto.gettoneVenditore),
+            (totale, contratto) => totale + importoEconomico(contratto, "gettonePartner") - importoEconomico(contratto, "gettoneVenditore"),
             0
         );
         const unitaValide = valide.reduce((totale, contratto) => totale + getContractUnits(contratto), 0);
@@ -213,7 +221,7 @@
         const risultati = new Map();
         lista.filter(praticaEconomicamenteValida).forEach((contratto) => {
             const nome = testo(contratto[campoNome]) || "Non indicato";
-            risultati.set(nome, (risultati.get(nome) || 0) + numero(contratto[campoImporto]));
+            risultati.set(nome, (risultati.get(nome) || 0) + importoEconomico(contratto, campoImporto));
         });
         return [...risultati.entries()]
             .map(([nome, valore]) => ({ nome, valore }))
