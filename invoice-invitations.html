@@ -76,7 +76,7 @@
             <div class="section-title">
                 <div>
                     <h3>📋 Anteprima invito a fatturare</h3>
-                    <p>Mostra solo contratti OK o Pagato del venditore e periodo selezionati.</p>
+                    <p>Mostra tutti i contratti del venditore e periodo selezionati. Seleziona quelli da includere nell’export.</p>
                 </div>
             </div>
 
@@ -84,6 +84,7 @@
                 <table class="contracts-table invoice-preview-table">
                     <thead>
                         <tr>
+                            <th>Includi</th>
                             <th>N.</th>
                             <th>Nome e Cognome Cliente</th>
                             <th>Data Inserimento</th>
@@ -99,7 +100,7 @@
                     <tbody id="invoicePreviewBody"></tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="9">Totale da fatturare</td>
+                            <td colspan="10">Totale da fatturare</td>
                             <td id="tableTotalAmount">0,00€</td>
                         </tr>
                     </tfoot>
@@ -114,6 +115,7 @@
     <script src="js/menu.js?v=3100"></script>
     <script type="module" src="js/auth-guard.js?v=3100"></script>
     <script type="module" src="js/invoice-invitations.js?v=3100"></script>
+    <script src="js/invoice-invitations-selection.js?v=3200"></script>
 </body>
 
 </html>
