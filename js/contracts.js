@@ -570,7 +570,7 @@ function aggiornaStatistiche(lista){
 function aggiornaGestoriCollegati(gestoreDaPreservare = ""){
     const partnerSelezionato = testo(partnerSelect.value);
     const gestoriDisponibili = PARTNER_GESTORI_COLLEGATI[partnerSelezionato] || GESTORI_REGISTRATI;
-    const valoreDaPreservare = testo(gestoreDaPreservare) || testo(gestoreSelect.value);
+    const valoreDaPreservare = testo(gestoreDaPreservare);
 
     gestoreSelect.innerHTML = `<option value="">Seleziona gestore</option>`;
 
