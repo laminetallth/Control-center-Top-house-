@@ -30,7 +30,9 @@ const PARTNER_REGISTRATI = [
     "EKO",
     "WLD Impianti",
     "New costruction",
-    "Vita Group"
+    "Vita Group",
+    "GMC",
+    "PROM UP"
 ];
 
 const GESTORI_REGISTRATI = [
@@ -50,8 +52,33 @@ const GESTORI_REGISTRATI = [
     "STREAM",
     "UNION",
     "UNOENERGY",
-    "VIVIENERGIA"
+    "VIVIENERGIA",
+    "PLENITUDE",
+    "A2A",
+    "ENEL DIGITAL",
+    "MAGIX",
+    "SKY",
+    "FASTWEB",
+    "EDISON",
+    "TIM",
+    "WIND",
+    "VODAFONE"
 ];
+
+const PARTNER_GESTORI_COLLEGATI = {
+    "GMC": ["PLENITUDE"],
+    "PROM UP": [
+        "A2A",
+        "ENEL DIGITAL",
+        "MAGIX",
+        "SKY",
+        "FASTWEB",
+        "EDISON",
+        "TIM",
+        "WIND",
+        "VODAFONE"
+    ]
+};
 
 const CONTRATTI_DEMO = [
     {
@@ -213,6 +240,8 @@ const managerFilter = document.getElementById("managerFilter");
 const statusFilter = document.getElementById("statusFilter");
 const paymentVendorFilter = document.getElementById("paymentVendorFilter");
 const categoryFilter = document.getElementById("categoryFilter");
+const partnerSelect = document.getElementById("partner");
+const gestoreSelect = document.getElementById("gestore");
 
 function calcolaGettoneVenditoreDaPercentuale(){
     const percentuale = percentualeVenditoreSelect.value;
@@ -538,6 +567,27 @@ function aggiornaStatistiche(lista){
     document.getElementById("margineTopHouse").innerText = formatEuro(margineMaturato);
 }
 
+function aggiornaGestoriCollegati(gestoreDaPreservare = ""){
+    const partnerSelezionato = testo(partnerSelect.value);
+    const gestoriDisponibili = PARTNER_GESTORI_COLLEGATI[partnerSelezionato] || GESTORI_REGISTRATI;
+    const valoreDaPreservare = testo(gestoreDaPreservare) || testo(gestoreSelect.value);
+
+    gestoreSelect.innerHTML = `<option value="">Seleziona gestore</option>`;
+
+    gestoriDisponibili.forEach(gestore => {
+        gestoreSelect.innerHTML += `<option value="${escapeHtml(gestore)}">${escapeHtml(gestore)}</option>`;
+    });
+
+    if(valoreDaPreservare && gestoriDisponibili.includes(valoreDaPreservare)){
+        gestoreSelect.value = valoreDaPreservare;
+        return;
+    }
+
+    if(PARTNER_GESTORI_COLLEGATI[partnerSelezionato] && gestoriDisponibili.length === 1){
+        gestoreSelect.value = gestoriDisponibili[0];
+    }
+}
+
 function popolaFiltriFissi(){
 
     vendorFilter.innerHTML = `<option value="">Tutti i venditori</option>`;
@@ -620,8 +670,8 @@ function modificaContratto(id){
     document.getElementById("nome").value = contratto.nome;
     document.getElementById("cognome").value = contratto.cognome;
     document.getElementById("venditore").value = contratto.venditore;
-    document.getElementById("partner").value = contratto.partner;
-    document.getElementById("gestore").value = contratto.gestore;
+    partnerSelect.value = contratto.partner;
+    aggiornaGestoriCollegati(contratto.gestore);
     document.getElementById("servizio").value = contratto.servizio;
     document.getElementById("stato").value = contratto.stato;
     gettonePartnerInput.value = contratto.gettonePartner;
@@ -668,6 +718,8 @@ function resetForm(){
 
     form.reset();
 
+    aggiornaGestoriCollegati("");
+
     document.getElementById("editId").value = "";
     percentualeVenditoreSelect.value = "manuale";
 
@@ -702,6 +754,10 @@ monthFilter.addEventListener("change", renderContratti);
 vendorFilter.addEventListener("change", renderContratti);
 partnerFilter.addEventListener("change", renderContratti);
 managerFilter.addEventListener("change", renderContratti);
+
+partnerSelect.addEventListener("change", function(){
+    aggiornaGestoriCollegati("");
+});
 statusFilter.addEventListener("change", renderContratti);
 paymentVendorFilter.addEventListener("change", renderContratti);
 categoryFilter.addEventListener("change", renderContratti);
