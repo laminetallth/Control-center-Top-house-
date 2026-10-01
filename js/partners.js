@@ -56,6 +56,22 @@ const PARTNER_REGISTRATI = [
         descrizione: "Partner per depuratori acqua e servizi casa",
         servizi: ["Depuratori", "Acqua", "Casa"],
         logo: "assets/partners/logo-vitagroup.png"
+    },
+    {
+        nome: "GMC",
+        categoria: "Luce / Gas",
+        descrizione: "Partner collegato a PLENITUDE",
+        servizi: ["Luce", "Gas"],
+        gestoriCollegati: ["PLENITUDE"],
+        logo: ""
+    },
+    {
+        nome: "PROM UP",
+        categoria: "Multi-servizio",
+        descrizione: "Partner collegato a servizi energia, internet, telefonia e TV",
+        servizi: ["Luce", "Gas", "Internet", "Telefonia", "TV"],
+        gestoriCollegati: ["A2A", "ENEL DIGITAL", "MAGIX", "SKY", "FASTWEB", "EDISON", "TIM", "WIND", "VODAFONE"],
+        logo: ""
     }
 ];
 
@@ -308,6 +324,11 @@ function renderPartnerCategorie(partner){
                     <div class="partner-services">
                         ${p.servizi.join(" · ")}
                     </div>
+
+                    ${p.gestoriCollegati?.length ? `
+                    <div class="partner-services">
+                        Gestori: ${p.gestoriCollegati.join(" · ")}
+                    </div>` : ""}
 
                     <div class="partner-stats">
                         <span><strong>${p.totale}</strong> pratiche</span>
