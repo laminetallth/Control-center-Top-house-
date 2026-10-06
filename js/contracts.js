@@ -23,6 +23,7 @@ const VENDITORI_REGISTRATI = [
     "Sarah Cavedo",
     "Dardan Gashi",
     "Andrea Cerminare",
+    "Benedetto Cavallo",
     "Morena Caccavo",
     "Studio Cian"
 ];
