@@ -68,6 +68,12 @@ const VENDITORI_REGISTRATI = [
         foto: ""
     },
     {
+        nome: "Benedetto Cavallo",
+        zona: "Italia",
+        ruolo: "Venditore",
+        foto: ""
+    },
+    {
         nome: "Morena Caccavo",
         zona: "Lombardia",
         ruolo: "Venditore",
