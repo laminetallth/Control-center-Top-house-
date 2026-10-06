@@ -18,6 +18,11 @@ const VENDITORI_REGISTRATI = [
     "Gabriele Straniero",
     "Giuseppe Maresca",
     "Lamine Tall",
+    "Francesco Cecchini",
+    "Hajar Sadiq",
+    "Sarah Cavedo",
+    "Dardan Gashi",
+    "Andrea Cerminare",
     "Morena Caccavo",
     "Studio Cian"
 ];
