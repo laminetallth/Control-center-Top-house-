@@ -12,6 +12,11 @@ import { readCollection, addDocument, updateDocument, deleteDocument } from "./f
     { nome: "Gabriele Straniero", zona: "Italia", ruolo: "Direttore zona Italia", foto: "assets/vendors/gabriele-straniero.png" },
     { nome: "Giuseppe Maresca", zona: "Empoli", ruolo: "Venditore", foto: "assets/vendors/giuseppe-maresca.png" },
     { nome: "Lamine Tall", zona: "Lombardia", ruolo: "Venditore Lombardia", foto: "assets/vendors/lamine-tall.png" },
+    { nome: "Francesco Cecchini", zona: "Italia", ruolo: "Venditore", foto: "" },
+    { nome: "Hajar Sadiq", zona: "Italia", ruolo: "Venditore", foto: "" },
+    { nome: "Sarah Cavedo", zona: "Italia", ruolo: "Venditore", foto: "" },
+    { nome: "Dardan Gashi", zona: "Italia", ruolo: "Venditore", foto: "" },
+    { nome: "Andrea Cerminare", zona: "Italia", ruolo: "Venditore", foto: "" },
     { nome: "Morena Caccavo", zona: "Lombardia", ruolo: "Venditore", foto: "assets/vendors/morena-caccavo.png" },
     { nome: "Studio Cian", zona: "Cassano Magnago", ruolo: "Venditore", foto: "assets/vendors/studio-cian.png" }
   ];
@@ -33,6 +38,19 @@ import { readCollection, addDocument, updateDocument, deleteDocument } from "./f
       vendors = SEED.map(v => ({ ...v, id: slug(v.nome), localId: slug(v.nome), firestoreId: slug(v.nome), attivo: true }));
       for (const v of vendors) {
         try { await addDocument(COLLECTION, v); } catch (e) { console.warn("Seed venditore non salvato", v.nome, e); }
+      }
+    } else {
+      // Mantieni i venditori già presenti e aggiungi automaticamente quelli nuovi della rete.
+      const existingNames = new Set(vendors.map(v => String(v.nome || "").trim().toLowerCase()));
+      for (const seed of SEED) {
+        if (existingNames.has(seed.nome.toLowerCase())) continue;
+        const created = { ...seed, id: slug(seed.nome), localId: slug(seed.nome), firestoreId: slug(seed.nome), attivo: true };
+        try {
+          await addDocument(COLLECTION, created);
+          vendors.push(created);
+        } catch (e) {
+          console.warn("Nuovo venditore non salvato", seed.nome, e);
+        }
       }
     }
     vendors = vendors.map(v => ({ ...v, attivo: v.attivo !== false }));
