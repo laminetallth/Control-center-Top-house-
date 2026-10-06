@@ -38,6 +38,36 @@ const VENDITORI_REGISTRATI = [
         foto: "assets/vendors/lamine-tall.png"
     },
     {
+        nome: "Francesco Cecchini",
+        zona: "Italia",
+        ruolo: "Venditore",
+        foto: ""
+    },
+    {
+        nome: "Hajar Sadiq",
+        zona: "Italia",
+        ruolo: "Venditore",
+        foto: ""
+    },
+    {
+        nome: "Sarah Cavedo",
+        zona: "Italia",
+        ruolo: "Venditore",
+        foto: ""
+    },
+    {
+        nome: "Dardan Gashi",
+        zona: "Italia",
+        ruolo: "Venditore",
+        foto: ""
+    },
+    {
+        nome: "Andrea Cerminare",
+        zona: "Italia",
+        ruolo: "Venditore",
+        foto: ""
+    },
+    {
         nome: "Morena Caccavo",
         zona: "Lombardia",
         ruolo: "Venditore",
