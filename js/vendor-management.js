@@ -17,6 +17,7 @@ import { readCollection, addDocument, updateDocument, deleteDocument } from "./f
     { nome: "Sarah Cavedo", zona: "Italia", ruolo: "Venditore", foto: "" },
     { nome: "Dardan Gashi", zona: "Italia", ruolo: "Venditore", foto: "" },
     { nome: "Andrea Cerminare", zona: "Italia", ruolo: "Venditore", foto: "" },
+    { nome: "Benedetto Cavallo", zona: "Italia", ruolo: "Venditore", foto: "" },
     { nome: "Morena Caccavo", zona: "Lombardia", ruolo: "Venditore", foto: "assets/vendors/morena-caccavo.png" },
     { nome: "Studio Cian", zona: "Cassano Magnago", ruolo: "Venditore", foto: "assets/vendors/studio-cian.png" }
   ];
