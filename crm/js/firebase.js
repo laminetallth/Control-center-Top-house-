@@ -1,5 +1,4 @@
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -17,10 +16,4 @@ const app = getApps().some(x => x.name === "[DEFAULT]")
   ? getApp()
   : initializeApp(firebaseConfig);
 
-const secondaryApp = getApps().some(x => x.name === "adminCreator")
-  ? getApp("adminCreator")
-  : initializeApp(firebaseConfig, "adminCreator");
-
-export const auth = getAuth(app);
-export const secondaryAuth = getAuth(secondaryApp);
 export const db = getFirestore(app);
