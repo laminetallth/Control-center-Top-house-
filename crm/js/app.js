@@ -1,6 +1,5 @@
-import {db} from "./firebase.js?v=20261008f";
-import {doc,getDoc,setDoc,onSnapshot,serverTimestamp,collection,getDocs,deleteDoc} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-
+let db=null;
+let firestoreApi={};
 
 const KEY="topHouseCRM";
 const SERVICES=["Luce","Gas","Luce + Gas","Fibra","Telefonia Mobile","Telefonia Fissa","Luce + Gas + Fibra","Fotovoltaico","Fotovoltaico + Accumulo","Caldaia","Climatizzatore","Pompa di calore","Infissi","Depuratore","Allarme","Wall Box","Altro"];
@@ -22,9 +21,11 @@ async function ensureProfile(user){const ref=doc(db,"users",user.uid),snap=await
 const existing=await getDocs(collection(db,"users"));const role=existing.empty?"admin":"seller";const profile={email:user.email||"",name:user.email?.split("@")[0]||"Venditore",sellerName:user.email?.split("@")[0]||"Venditore",role,managerUid:null,managerName:"",active:true,createdAt:serverTimestamp()};await setDoc(ref,profile);currentProfile={uid:user.uid,...profile};toast(role==="admin"?"Primo account impostato come Admin":"Account creato come Venditore")}
 async function save(){
   localStorage.setItem(KEY,JSON.stringify(data));
-  if(!currentUser)return;
-  try{await setDoc(doc(db,"crmData","main"),{...data,updatedAt:serverTimestamp(),updatedBy:currentUser.uid},{merge:true})}
-  catch(err){console.error("Firebase save error",err);toast("Salvato localmente · cloud non disponibile")}
+  if(!db||!firestoreApi.setDoc)return;
+  try{
+    const {doc,setDoc,serverTimestamp}=firestoreApi;
+    await setDoc(doc(db,"crmData","main"),{...data,updatedAt:serverTimestamp(),updatedBy:currentUser?.uid||"local-admin"},{merge:true});
+  }catch(err){console.error("Firebase save error",err);toast("Salvato localmente · cloud non disponibile")}
 }
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
 function money(n){return new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR"}).format(Number(n)||0)}
@@ -102,16 +103,25 @@ function openAffiliate(){const m=modal('<div class="modal-head"><h2>Nuovo affili
 async function startCRM(){
   currentUser={uid:"local-admin",email:"admin@tophouse.local"};
   currentProfile={uid:"local-admin",email:"admin@tophouse.local",name:"Lamine Tall",sellerName:"Lamine Tall",role:"admin",managerUid:null,managerName:"",active:true};
-  userProfiles=[];
+  userProfiles=[currentProfile];
   document.querySelector(".app-shell").style.display="";
   const nav=document.querySelector(".sidebar nav");
   if(nav&&!nav.querySelector("[data-page=users]"))nav.insertAdjacentHTML("beforeend",'<button class="nav-item" data-page="users">⚙ <span>Utenti e ruoli</span></button>');
   document.querySelectorAll(".nav-item").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
-  try{const local=JSON.parse(localStorage.getItem(KEY)||"null");if(local)data={...defaultData,...local}}catch(err){console.warn("Local data unavailable",err)}
-  render();
   try{
-    const ref=doc(db,"crmData","main");
-    const snap=await getDoc(ref);
+    const local=JSON.parse(localStorage.getItem(KEY)||"null");
+    if(local)data={...defaultData,...local};
+  }catch(err){console.warn("Local data unavailable",err)}
+  render();
+
+  // Il cloud viene caricato DOPO che l'interfaccia è già operativa.
+  try{
+    const firebase=await import("./firebase.js?v=20261008g");
+    const fs=await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js");
+    db=firebase.db;
+    firestoreApi=fs;
+    const ref=fs.doc(db,"crmData","main");
+    const snap=await fs.getDoc(ref);
     if(snap.exists()){
       data={...defaultData,...snap.data()};
       localStorage.setItem(KEY,JSON.stringify(data));
@@ -119,7 +129,7 @@ async function startCRM(){
     }
     cloudReady=true;
     cloudUnsubscribe?.();
-    cloudUnsubscribe=onSnapshot(ref,snap=>{
+    cloudUnsubscribe=fs.onSnapshot(ref,snap=>{
       if(!snap.exists()||snap.metadata.hasPendingWrites)return;
       data={...defaultData,...snap.data()};
       localStorage.setItem(KEY,JSON.stringify(data));
@@ -133,5 +143,5 @@ async function startCRM(){
 startCRM().catch(err=>{
   console.error("CRM startup error",err);
   document.querySelector(".app-shell").style.display="";
-  render();
+  try{render()}catch(renderErr){console.error("Render error",renderErr)}
 });
