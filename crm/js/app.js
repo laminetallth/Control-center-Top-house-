@@ -1,4 +1,4 @@
-import {auth,secondaryAuth,db} from "./firebase.js";
+import {auth,secondaryAuth,db} from "./firebase.js?v=20261008d";
 import {doc,getDoc,setDoc,onSnapshot,serverTimestamp,collection,getDocs,deleteDoc} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 import {onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
