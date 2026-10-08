@@ -1,6 +1,6 @@
 import {auth,secondaryAuth,db} from "./firebase.js?v=20261008d";
 import {doc,getDoc,setDoc,onSnapshot,serverTimestamp,collection,getDocs,deleteDoc} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-import {onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
 
 const KEY="topHouseCRM";
 const SERVICES=["Luce","Gas","Luce + Gas","Fibra","Telefonia Mobile","Telefonia Fissa","Luce + Gas + Fibra","Fotovoltaico","Fotovoltaico + Accumulo","Caldaia","Climatizzatore","Pompa di calore","Infissi","Depuratore","Allarme","Wall Box","Altro"];
@@ -21,9 +21,10 @@ async function loadProfiles(){const snap=await getDocs(collection(db,"users"));u
 async function ensureProfile(user){const ref=doc(db,"users",user.uid),snap=await getDoc(ref);if(snap.exists()){currentProfile={uid:user.uid,...snap.data()};return}
 const existing=await getDocs(collection(db,"users"));const role=existing.empty?"admin":"seller";const profile={email:user.email||"",name:user.email?.split("@")[0]||"Venditore",sellerName:user.email?.split("@")[0]||"Venditore",role,managerUid:null,managerName:"",active:true,createdAt:serverTimestamp()};await setDoc(ref,profile);currentProfile={uid:user.uid,...profile};toast(role==="admin"?"Primo account impostato come Admin":"Account creato come Venditore")}
 async function save(){
+  localStorage.setItem(KEY,JSON.stringify(data));
   if(!currentUser)return;
-  try{await setDoc(doc(db,"crmData","main"),{...data,updatedAt:serverTimestamp(),updatedBy:currentUser.uid},{merge:true});localStorage.setItem(KEY,JSON.stringify(data))}
-  catch(err){console.error("Firebase save error",err);toast("Errore salvataggio cloud")}
+  try{await setDoc(doc(db,"crmData","main"),{...data,updatedAt:serverTimestamp(),updatedBy:currentUser.uid},{merge:true})}
+  catch(err){console.error("Firebase save error",err);toast("Salvato localmente · cloud non disponibile")}
 }
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
 function money(n){return new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR"}).format(Number(n)||0)}
@@ -98,97 +99,37 @@ function openLead(existing){const x=existing||{};const m=modal('<div class="moda
 function openEvent(existing){const x=existing||{},today=new Date().toISOString().slice(0,10);const m=modal('<div class="modal-head"><div><div class="eyebrow">TOP HOUSE · AGENDA</div><h2>'+(existing?"Modifica appuntamento":"Nuovo appuntamento")+'</h2></div><button class="close">×</button></div><form><div class="form-grid"><div class="field full"><label>Titolo *</label><input class="input" name="title" value="'+esc(x.title)+'" placeholder="Es. Appuntamento cliente Rossi" required></div><div class="field"><label>Data *</label><input class="input" type="date" name="date" value="'+esc(x.date||today)+'" required></div><div class="field"><label>Ora</label><input class="input" type="time" name="time" value="'+esc(x.time||"09:00")+'"></div><div class="field"><label>Tipo</label><select class="select" name="type">'+options(["Appuntamento","Richiamo","Riunione","Nota","Altro"],x.type||"Appuntamento")+'</select></div><div class="field"><label>Cliente / Lead</label><input class="input" name="client" value="'+esc(x.client)+'" placeholder="Nome cliente"></div><div class="field full"><label>Note</label><textarea class="input textarea" name="notes" placeholder="Cosa devo ricordarmi?">'+esc(x.notes)+'</textarea></div></div><div class="form-actions"><button type="button" class="secondary cancel">Annulla</button><button class="primary">'+(existing?"Salva modifiche":"Salva appuntamento")+'</button></div></form>');m.querySelector(".close").onclick=()=>closeModal(m);m.querySelector(".cancel").onclick=()=>closeModal(m);m.querySelector("form").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),obj={id:x.id||Date.now(),title:f.get("title"),date:f.get("date"),time:f.get("time"),type:f.get("type"),client:f.get("client"),notes:f.get("notes")};if(existing)Object.assign(existing,obj);else data.events.push(obj);save();closeModal(m);render();toast(existing?"Appuntamento aggiornato":"Appuntamento salvato")}}
 
 function openAffiliate(){const m=modal('<div class="modal-head"><h2>Nuovo affiliato</h2><button class="close">×</button></div><form id="affiliate-form"><div class="form-grid"><div class="field"><label>Nome / Ragione sociale *</label><input class="input" name="name" required></div><div class="field"><label>Tipo</label><select class="select" name="type">'+options(["CAF","Agenzia","Venditore","Partner","Altro"])+'</select></div><div class="field"><label>Percentuale</label><input class="input" name="percent" type="number" min="0" max="100" step=".1"></div><div class="field"><label>Telefono</label><input class="input" name="phone" type="tel"></div><div class="field full"><label>Email</label><input class="input" name="email" type="email"></div><div class="field"><label>Stato</label><select class="select" name="status"><option>Attivo</option><option>Inattivo</option></select></div></div><div class="form-actions"><button type="button" class="secondary cancel">Annulla</button><button class="primary">Salva affiliato</button></div></form>');m.querySelector(".close").onclick=()=>closeModal(m);m.querySelector(".cancel").onclick=()=>closeModal(m);m.querySelector("form").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);data.affiliates.push({id:Date.now(),name:f.get("name"),type:f.get("type"),percent:f.get("percent"),phone:f.get("phone"),email:f.get("email"),status:f.get("status")});save();closeModal(m);render();toast("Affiliato aggiunto")}}
-function authErrorMessage(err){
-  const code=err?.code||"";
-  const map={
-    "auth/invalid-credential":"Email o password non corretti.",
-    "auth/user-not-found":"Account non trovato in Firebase Authentication.",
-    "auth/wrong-password":"Password non corretta.",
-    "auth/invalid-email":"Inserisci un indirizzo email valido.",
-    "auth/email-already-in-use":"Questa email è già registrata: usa Accedi.",
-    "auth/weak-password":"La password deve avere almeno 6 caratteri.",
-    "auth/operation-not-allowed":"Accesso Email/Password non attivo nel progetto Firebase.",
-    "auth/user-disabled":"Questo account è stato disattivato.",
-    "auth/network-request-failed":"Problema di connessione. Riprova.",
-    "auth/too-many-requests":"Troppi tentativi. Riprova più tardi.",
-    "auth/invalid-api-key":"Configurazione Firebase non valida.",
-    "auth/app-not-authorized":"Configurazione Firebase non autorizzata.",
-    "auth/unauthorized-domain":"Questo dominio non è autorizzato in Firebase Authentication. Aggiungi laminetallth.github.io tra i domini autorizzati.",
-    "auth/internal-error":"Errore interno Firebase. Controlla che Email/Password sia abilitato in Authentication.",
-    "auth/invalid-api-key":"Chiave API Firebase non valida o non appartenente al progetto CRM Top House."
-  };
-  return map[code]||("Errore Firebase: "+(code||"operazione non riuscita")+".");
-}
-function showAuthScreen(){
-  document.querySelector(".app-shell").style.display="none";
-  let s=document.querySelector("#auth-screen");
-  if(!s){
-    s=document.createElement("div");s.id="auth-screen";s.className="auth-screen";
-    s.innerHTML='<div class="auth-card"><div class="auth-brand"><img src="../logo.png" alt="Top House"><div><b>TOP HOUSE</b><span>CRM</span></div></div><div class="eyebrow">ACCESSO SICURO</div><h1>Accedi al CRM</h1><p class="auth-sub">Entra con il tuo account Top House.</p><form id="auth-form"><input class="input" id="auth-email" type="email" placeholder="Email" autocomplete="email" required><input class="input" id="auth-password" type="password" placeholder="Password" autocomplete="current-password" required><button class="primary" type="submit" id="auth-submit">Accedi</button><div id="auth-error" class="auth-error"></div></form><button class="auth-toggle" id="auth-toggle">Non hai ancora un account? Crea account</button></div>';
-    document.body.appendChild(s);
-  }
-  let signup=false;const form=s.querySelector("#auth-form"),submit=s.querySelector("#auth-submit"),toggle=s.querySelector("#auth-toggle"),error=s.querySelector("#auth-error");
-  toggle.onclick=()=>{signup=!signup;submit.textContent=signup?"Crea account":"Accedi";toggle.textContent=signup?"Hai già un account? Accedi":"Non hai ancora un account? Crea account";error.textContent=""};
-  form.onsubmit=async e=>{
-    e.preventDefault();error.textContent="";submit.disabled=true;submit.textContent=signup?"Creazione...":"Accesso...";
-    try{
-      const email=s.querySelector("#auth-email").value.trim(),password=s.querySelector("#auth-password").value;
-      if(signup) await createUserWithEmailAndPassword(auth,email,password);
-      else await signInWithEmailAndPassword(auth,email,password);
-    }catch(err){
-      console.error("Firebase Auth error",err);
-      error.textContent=authErrorMessage(err);
-      submit.disabled=false;submit.textContent=signup?"Crea account":"Accedi";
-    }
-  };
-}
-function addUserControls(user){
-  const actions=document.querySelector(".top-actions");if(!actions)return;
-  actions.querySelector("#firebase-user")?.remove();actions.querySelector("#logout-btn")?.remove();
-  actions.insertAdjacentHTML("afterbegin",'<span class="role-pill">'+esc(ROLE_NAMES[currentProfile?.role]||"Utente")+'</span><span id="firebase-user" class="firebase-user">'+esc(user.email||"")+'</span><button class="secondary" id="logout-btn">Esci</button>');
-  actions.querySelector("#logout-btn").onclick=()=>signOut(auth);
-}
-async function startCloud(user){
-  currentUser=user;
-  try{
-    await ensureProfile(user);
-    await loadProfiles();
-  }catch(err){
-    console.error("Firebase profile error",err);
-    currentProfile={uid:user.uid,email:user.email||"",name:user.email?.split("@")[0]||"Utente",sellerName:user.email?.split("@")[0]||"Utente",role:"seller",managerUid:null,managerName:"",active:true};
-    userProfiles=[];
-    toast("Accesso riuscito. Profilo CRM non ancora configurato.");
-  }
-  const s=document.querySelector("#auth-screen");if(s)s.remove();
+async function startCRM(){
+  currentUser={uid:"local-admin",email:"admin@tophouse.local"};
+  currentProfile={uid:"local-admin",email:"admin@tophouse.local",name:"Lamine Tall",sellerName:"Lamine Tall",role:"admin",managerUid:null,managerName:"",active:true};
+  userProfiles=[];
   document.querySelector(".app-shell").style.display="";
-  addUserControls(user);
-  const sbn=document.querySelector("#sidebar-user-name"),sbr=document.querySelector("#sidebar-user-role");
-  if(sbn)sbn.textContent=currentProfile?.name||user.email;
-  if(sbr)sbr.textContent=ROLE_LABELS[currentProfile?.role]||"Utente";
   const nav=document.querySelector(".sidebar nav");
-  if(nav&&!nav.querySelector("[data-page=users]")&&(isAdmin()||isManager()))nav.insertAdjacentHTML("beforeend",'<button class="nav-item" data-page="users">⚙ <span>Utenti e ruoli</span></button>');
+  if(nav&&!nav.querySelector("[data-page=users]"))nav.insertAdjacentHTML("beforeend",'<button class="nav-item" data-page="users">⚙ <span>Utenti e ruoli</span></button>');
   document.querySelectorAll(".nav-item").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
+  try{
+    const local=JSON.parse(localStorage.getItem(KEY)||"null");
+    if(local)data={...defaultData,...local};
+  }catch{}
   try{
     const ref=doc(db,"crmData","main"),snap=await getDoc(ref);
     if(snap.exists())data={...defaultData,...snap.data()};
-    else{
-      try{const local=JSON.parse(localStorage.getItem(KEY)||"null");if(local)data={...defaultData,...local}}catch{}
-      await save();
-    }
-    cloudReady=true;render();cloudUnsubscribe?.();
+    cloudReady=true;
+    cloudUnsubscribe?.();
     cloudUnsubscribe=onSnapshot(ref,snap=>{
       if(!snap.exists()||snap.metadata.hasPendingWrites)return;
-      data={...defaultData,...snap.data()};render();
-    },err=>{console.error("Firebase listener error",err);toast("Connessione cloud non disponibile")});
+      data={...defaultData,...snap.data()};
+      localStorage.setItem(KEY,JSON.stringify(data));
+      render();
+    },err=>{console.error("Firebase listener error",err);cloudReady=false});
   }catch(err){
-    console.error("Firebase data error",err);
-    toast("Accesso riuscito, ma dati cloud non disponibili");
-    cloudReady=false;render();
+    console.warn("CRM cloud unavailable; using local storage",err);
+    cloudReady=false;
   }
+  render();
 }
-onAuthStateChanged(auth,user=>{
-  if(user)startCloud(user).catch(err=>{console.error("CRM startup error",err);toast("Errore avvio CRM")});
-  else{
-    currentUser=null;currentProfile=null;userProfiles=[];cloudReady=false;cloudUnsubscribe?.();cloudUnsubscribe=null;showAuthScreen();
-  }
+startCRM().catch(err=>{
+  console.error("CRM startup error",err);
+  document.querySelector(".app-shell").style.display="";
+  render();
 });
