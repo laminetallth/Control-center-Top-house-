@@ -21,3 +21,11 @@ Questa è la **versione UI/prototipo**: i dati vengono salvati nel browser trami
 - Calcolo compensi e maturazione.
 - Filtri per mese, servizio, gestore e città.
 - Area Admin completa per venditori, contratti, affiliati e piani.
+
+
+## CRM v3
+- Cataloghi preimpostati di servizi Top House e gestori energia/telefonia.
+- Campi contratto: prezzo stipulato, durata offerta, scadenza, note, cliente, contatti, venditore, fonte lead, priorità e prossimo contatto.
+- Ricerca e filtri avanzati, modifica/eliminazione, cambio stato rapido, dashboard con valore offerte e scadenze.
+- Branding Top House con logo e interfaccia responsive.
+- I dati restano nel browser tramite localStorage finché non viene collegato un backend condiviso.
