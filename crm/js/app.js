@@ -118,10 +118,12 @@ function authErrorMessage(err){
 }
 function showAuthScreen(){
   document.querySelector(".app-shell").style.display="none";
-  let s=document.querySelector("#auth-screen");if(s)return;
-  s=document.createElement("div");s.id="auth-screen";s.className="auth-screen";
-  s.innerHTML='<div class="auth-card"><div class="auth-brand"><img src="../logo.png" alt="Top House"><div><b>TOP HOUSE</b><span>CRM</span></div></div><div class="eyebrow">ACCESSO SICURO</div><h1>Accedi al CRM</h1><p class="auth-sub">Entra con il tuo account Top House.</p><form id="auth-form"><input class="input" id="auth-email" type="email" placeholder="Email" autocomplete="email" required><input class="input" id="auth-password" type="password" placeholder="Password" autocomplete="current-password" required><button class="primary" type="submit" id="auth-submit">Accedi</button><div id="auth-error" class="auth-error"></div></form><button class="auth-toggle" id="auth-toggle">Non hai ancora un account? Crea account</button></div>';
-  document.body.appendChild(s);
+  let s=document.querySelector("#auth-screen");
+  if(!s){
+    s=document.createElement("div");s.id="auth-screen";s.className="auth-screen";
+    s.innerHTML='<div class="auth-card"><div class="auth-brand"><img src="../logo.png" alt="Top House"><div><b>TOP HOUSE</b><span>CRM</span></div></div><div class="eyebrow">ACCESSO SICURO</div><h1>Accedi al CRM</h1><p class="auth-sub">Entra con il tuo account Top House.</p><form id="auth-form"><input class="input" id="auth-email" type="email" placeholder="Email" autocomplete="email" required><input class="input" id="auth-password" type="password" placeholder="Password" autocomplete="current-password" required><button class="primary" type="submit" id="auth-submit">Accedi</button><div id="auth-error" class="auth-error"></div></form><button class="auth-toggle" id="auth-toggle">Non hai ancora un account? Crea account</button></div>';
+    document.body.appendChild(s);
+  }
   let signup=false;const form=s.querySelector("#auth-form"),submit=s.querySelector("#auth-submit"),toggle=s.querySelector("#auth-toggle"),error=s.querySelector("#auth-error");
   toggle.onclick=()=>{signup=!signup;submit.textContent=signup?"Crea account":"Accedi";toggle.textContent=signup?"Hai già un account? Accedi":"Non hai ancora un account? Crea account";error.textContent=""};
   form.onsubmit=async e=>{
