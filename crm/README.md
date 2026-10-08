@@ -1,21 +1,23 @@
-# TOP HOUSE CRM — Foundation
+# TOP HOUSE CRM
 
-Prima struttura del nuovo CRM venditori Top House.
+CRM venditori Top House, integrato nel Control Center esistente.
 
-## Moduli iniziali
-1. Dashboard — contratti personali, OK, lavorazione, affiliati.
-2. Contratti — inserimento: nome/cognome cliente, data firma, RID/No RID, servizio, gestore, città.
-3. Affiliati — CAF, agenzie, venditori e altri soggetti con percentuale.
-4. Piano compensi — area personale del venditore.
+## Sezioni
+1. Dashboard — riepilogo produzione personale.
+2. Contratti — inserimento e ricerca delle pratiche.
+3. Affiliati — CAF, agenzie, venditori e altri affiliati.
+4. Piano compensi — area personale del piano compensi.
+5. Stato contratti — monitoraggio Inserito, In lavorazione, OK, KO e Storno.
 
-## Architettura
-La prima versione usa localStorage solo come prototipo UI. La struttura è volutamente pronta per il passaggio a Firebase/Auth/Firestore: i dati sono centralizzati nell'oggetto `data` e la UI è separata dalla navigazione.
+## Versione attuale
+Questa è la **versione UI/prototipo**: i dati vengono salvati nel browser tramite localStorage. Non è ancora un database condiviso tra venditori.
 
-## Prossimi step
-- Login e ruoli (admin / venditore).
-- Firestore per dati reali.
-- Venditore associato automaticamente ai contratti.
-- Gestione stati OK/KO/Storno e maturazione compensi.
-- Upload del piano compensi PDF.
+## Evoluzione prevista
+- Login reale con ruoli Admin/Venditore.
+- Firebase Authentication + Firestore.
+- Ogni contratto associato automaticamente al venditore autenticato.
+- Stato e storico delle pratiche gestiti dall'Admin.
+- Piani compensi associati ai singoli venditori.
+- Calcolo compensi e maturazione.
 - Filtri per mese, servizio, gestore e città.
-- Vista admin completa e permessi.
+- Area Admin completa per venditori, contratti, affiliati e piani.
