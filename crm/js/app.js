@@ -187,6 +187,3 @@ onAuthStateChanged(auth,user=>{
     currentUser=null;currentProfile=null;userProfiles=[];cloudReady=false;cloudUnsubscribe?.();cloudUnsubscribe=null;showAuthScreen();
   }
 });
-document.querySelectorAll(".nav-item").forEach(b=>b.onclick=()=>setPage(b.dataset.page));try{const ref=doc(db,"crmData","main"),snap=await getDoc(ref);if(snap.exists()){data={...defaultData,...snap.data()}}else{try{const local=JSON.parse(localStorage.getItem(KEY)||"null");if(local)data={...defaultData,...local}}catch{}await save()}cloudReady=true;render();cloudUnsubscribe?.();cloudUnsubscribe=onSnapshot(ref,snap=>{if(!snap.exists()||snap.metadata.hasPendingWrites)return;data={...defaultData,...snap.data()};render()},err=>{console.error("Firebase listener error",err);toast("Connessione cloud non disponibile")})}catch(err){console.error("Firebase load error",err);toast("Errore collegamento Firebase");render()}}
-onAuthStateChanged(auth,user=>{if(user)startCloud(user);else{currentUser=null;cloudReady=false;cloudUnsubscribe?.();cloudUnsubscribe=null;showAuthScreen()}});
-document.querySelectorAll(".nav-item").forEach(b=>b.onclick=()=>setPage(b.dataset.page));document.querySelector("#new-contract-top").onclick=openContract;
