@@ -1,4 +1,4 @@
-import {auth,secondaryAuth,db} from "./firebase.js?v=20261008d";
+import {db} from "./firebase.js?v=20261008f";
 import {doc,getDoc,setDoc,onSnapshot,serverTimestamp,collection,getDocs,deleteDoc} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 
@@ -107,13 +107,16 @@ async function startCRM(){
   const nav=document.querySelector(".sidebar nav");
   if(nav&&!nav.querySelector("[data-page=users]"))nav.insertAdjacentHTML("beforeend",'<button class="nav-item" data-page="users">⚙ <span>Utenti e ruoli</span></button>');
   document.querySelectorAll(".nav-item").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
+  try{const local=JSON.parse(localStorage.getItem(KEY)||"null");if(local)data={...defaultData,...local}}catch(err){console.warn("Local data unavailable",err)}
+  render();
   try{
-    const local=JSON.parse(localStorage.getItem(KEY)||"null");
-    if(local)data={...defaultData,...local};
-  }catch{}
-  try{
-    const ref=doc(db,"crmData","main"),snap=await getDoc(ref);
-    if(snap.exists())data={...defaultData,...snap.data()};
+    const ref=doc(db,"crmData","main");
+    const snap=await getDoc(ref);
+    if(snap.exists()){
+      data={...defaultData,...snap.data()};
+      localStorage.setItem(KEY,JSON.stringify(data));
+      render();
+    }
     cloudReady=true;
     cloudUnsubscribe?.();
     cloudUnsubscribe=onSnapshot(ref,snap=>{
@@ -121,12 +124,11 @@ async function startCRM(){
       data={...defaultData,...snap.data()};
       localStorage.setItem(KEY,JSON.stringify(data));
       render();
-    },err=>{console.error("Firebase listener error",err);cloudReady=false});
+    },err=>{console.warn("Firebase listener unavailable",err);cloudReady=false});
   }catch(err){
-    console.warn("CRM cloud unavailable; using local storage",err);
+    console.warn("CRM cloud unavailable; local mode active",err);
     cloudReady=false;
   }
-  render();
 }
 startCRM().catch(err=>{
   console.error("CRM startup error",err);
