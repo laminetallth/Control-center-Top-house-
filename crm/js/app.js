@@ -112,7 +112,10 @@ function authErrorMessage(err){
     "auth/network-request-failed":"Problema di connessione. Riprova.",
     "auth/too-many-requests":"Troppi tentativi. Riprova più tardi.",
     "auth/invalid-api-key":"Configurazione Firebase non valida.",
-    "auth/app-not-authorized":"Questo dominio non è autorizzato da Firebase."
+    "auth/app-not-authorized":"Configurazione Firebase non autorizzata.",
+    "auth/unauthorized-domain":"Questo dominio non è autorizzato in Firebase Authentication. Aggiungi laminetallth.github.io tra i domini autorizzati.",
+    "auth/internal-error":"Errore interno Firebase. Controlla che Email/Password sia abilitato in Authentication.",
+    "auth/invalid-api-key":"Chiave API Firebase non valida o non appartenente al progetto CRM Top House."
   };
   return map[code]||("Errore Firebase: "+(code||"operazione non riuscita")+".");
 }
