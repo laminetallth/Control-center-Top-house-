@@ -100,6 +100,25 @@ exports.sendWelcomeEmail = onCall({ secrets: [BREVO_API_KEY, MAIL_FROM, MAIL_FRO
     throw new HttpsError("internal", "Invio non riuscito. Controlla il registro Automazioni.");
   }
 });
+exports.listAutomationLogs = onCall({ region: "europe-west1" }, async request => {
+  await requireProfile(request);
+  const snap = await db.collection("automationLogs").limit(200).get();
+  const logs = snap.docs.map(doc => {
+    const x = doc.data();
+    const iso = value => value && typeof value.toDate === "function" ? value.toDate().toISOString() : (value || null);
+    return {
+      id: doc.id, type: x.type || "", contractId: x.contractId || "",
+      clientName: x.clientName || "", clientEmail: x.clientEmail || "",
+      recipient: x.recipient || "", seller: x.seller || "", service: x.service || "",
+      expiryDate: x.expiryDate || "", scheduledFor: x.scheduledFor || "",
+      status: x.status || "", error: x.error || "",
+      createdAt: iso(x.createdAt), updatedAt: iso(x.updatedAt), sentAt: iso(x.sentAt),
+      failedAt: iso(x.failedAt)
+    };
+  });
+  logs.sort((a,b) => String(b.updatedAt || b.sentAt || b.scheduledFor || "").localeCompare(String(a.updatedAt || a.sentAt || a.scheduledFor || "")));
+  return { logs };
+});
 exports.processCustomerAutomations = onSchedule({ schedule: "every day 08:00", timeZone: "Europe/Rome", region: "europe-west1", secrets: [BREVO_API_KEY, MAIL_FROM, MAIL_FROM_NAME] }, async () => {
   const snap = await db.collection("crmData").doc("main").get();
   if (!snap.exists) return;
