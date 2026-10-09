@@ -12,7 +12,7 @@ const firebaseConfig = {
   measurementId: "G-1VMZK2CJC4"
 };
 
-const app = getApps().some(x => x.name === "[DEFAULT]")
+export const app = getApps().some(x => x.name === "[DEFAULT]")
   ? getApp()
   : initializeApp(firebaseConfig);
 
