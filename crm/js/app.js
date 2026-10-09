@@ -1,6 +1,6 @@
 let db=null;
 let firestoreApi={};
-let firebaseApp=null, authInstance=null, authApi=null, firebaseAuthUser=null;
+let firebaseApp=null, authInstance=null, authApi=null, functionsApi=null, firebaseAuthUser=null;
 let automationLogs=[];
 let statsSelectedSeller="";
 
@@ -61,7 +61,7 @@ function statusPage(){const all=data.contracts.slice().reverse(),counts=Object.f
 function statusTable(list){if(!list.length)return '<div class="empty">Nessun contratto trovato.</div>';return '<div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Servizio</th><th>Gestore</th><th>Venditore</th><th>Scadenza</th><th>Stato</th></tr></thead><tbody>'+list.map(c=>'<tr><td><b>'+esc(c.name)+'</b></td><td>'+esc(c.service)+'</td><td>'+esc(c.manager)+'</td><td>'+esc(c.seller)+'</td><td>'+esc(c.offerExpiry||"—")+'</td><td><select class="status-select" data-id="'+c.id+'">'+options(STATUSES,c.status)+'</select></td></tr>').join("")+'</tbody></table></div>'}
 async function loadAutomationLogs(){
   if(!authInstance||!firebaseAuthUser){automationLogs=[];const target=document.querySelector("#automation-table");if(target)target.innerHTML='<div class="empty">Per consultare il registro, accedi con un account Firebase autorizzato.</div>';return}
-  try{const call=authApi.getFunctions(firebaseApp,"europe-west1");const fn=authApi.httpsCallable(call,"listAutomationLogs");const result=await fn({});automationLogs=result.data.logs||[];const target=document.querySelector("#automation-table");if(target)target.innerHTML=automationTable(automationLogs)}catch(err){console.error(err);const target=document.querySelector("#automation-table");if(target)target.innerHTML='<div class="empty">Registro non disponibile: verifica accesso e configurazione Firebase Functions.</div>'}
+  try{const call=functionsApi.getFunctions(firebaseApp,"europe-west1");const fn=functionsApi.httpsCallable(call,"listAutomationLogs");const result=await fn({});automationLogs=result.data.logs||[];const target=document.querySelector("#automation-table");if(target)target.innerHTML=automationTable(automationLogs)}catch(err){console.error(err);const target=document.querySelector("#automation-table");if(target)target.innerHTML='<div class="empty">Registro non disponibile: verifica accesso e configurazione Firebase Functions.</div>'}
 }
 async function authenticateForAutomations(){
   if(firebaseAuthUser)return true;
@@ -72,7 +72,7 @@ async function authenticateForAutomations(){
 }
 async function sendWelcomeEmail(contractId){
   if(!await authenticateForAutomations())return;
-  try{const call=authApi.getFunctions(firebaseApp,"europe-west1");const fn=authApi.httpsCallable(call,"sendWelcomeEmail");await fn({contractId:String(contractId)});toast("Email di benvenuto inviata");await loadAutomationLogs();if(currentPage==="automations")render()}catch(err){console.error(err);toast(err?.message||"Invio non riuscito")}
+  try{const call=functionsApi.getFunctions(firebaseApp,"europe-west1");const fn=functionsApi.httpsCallable(call,"sendWelcomeEmail");await fn({contractId:String(contractId)});toast("Email di benvenuto inviata");await loadAutomationLogs();if(currentPage==="automations")render()}catch(err){console.error(err);toast(err?.message||"Invio non riuscito")}
 }
 function bindPage(){
 const byId=id=>document.querySelector("#"+id);
@@ -162,6 +162,7 @@ async function startCRM(){
     db=firebase.db;
     firebaseApp=firebase.app;
     authApi=await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js");
+    functionsApi=await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js");
     authInstance=authApi.getAuth(firebaseApp);
     authInstance.onAuthStateChanged(user=>{firebaseAuthUser=user||null});
     firestoreApi=fs;
