@@ -1,53 +1,39 @@
-# TOP HOUSE CRM — configurazione automazioni email
+# TOP HOUSE CRM — automazioni email senza Firebase Blaze
 
-Le funzioni email sono predisposte in `functions/`. La chiave Brevo resta nei Secret Manager di Firebase e non deve essere inserita nel JavaScript del browser o committata nel repository. Il mittente verificato è configurato come `info@tophouseitalia.com` con nome `TOP HOUSE`.
+Questa versione usa GitHub Actions come esecutore programmato, Firebase/Firestore come archivio e Brevo per l'invio. **Non richiede Cloud Functions né l'upgrade Firebase Blaze.** GitHub Actions controlla gli eventi ogni ora; una richiesta di benvenuto viene presa in carico al prossimo controllo.
 
-## Funzioni incluse
-- `sendWelcomeEmail`: invio manuale della mail di benvenuto da I miei clienti.
-- `processCustomerAutomations`: controllo giornaliero alle 08:00 (Europe/Rome) per compleanni e offerte luce/gas nella finestra dei tre mesi precedenti alla scadenza; gli invii di scadenza falliti possono essere riprovati fino alla scadenza.
-- `listAutomationLogs`: registro protetto degli invii e degli errori.
-- Log persistenti nella raccolta Firestore `automationLogs`.
+## Funzioni previste
+- Pulsante CRM **Invia benvenuto**: mette in coda l'invio, senza esporre la chiave Brevo nel browser.
+- Auguri automatici il giorno del compleanno inserito nel campo data di nascita.
+- Promemoria distinti per luce e gas a partire da tre mesi prima della scadenza (scadenza calcolata dalla data contratto e dalla durata, oppure dai campi di scadenza se presenti).
+- Email di scadenza al cliente e al venditore; al venditore vengono inclusi email/telefono cliente e gestore.
+- Registro Firestore `automationLogs`; gli errori sono salvati per diagnosi.
 
-La scadenza viene calcolata dalla data firma e dalla durata selezionata (es. luce 2 anni, gas 1 anno). Per servizi luce+gas il controllo è separato. Se il cliente ha più contratti con la stessa email, gli auguri di compleanno vengono deduplicati per email e anno.
+## Configurazione necessaria una sola volta
 
-## Prerequisiti da completare nel progetto Firebase
-1. Nel progetto Firebase `crm-top-house`, attivare **Authentication → Sign-in method → Email/Password**.
-2. Creare un account Firebase Authentication per ciascun utente autorizzato.
-3. In Firestore, creare `users/{UID}` per ciascun account. Campi minimi:
-   - `name`: nome esatto del venditore mostrato nel CRM
-   - `email`: email aziendale del venditore
-   - `role`: `admin`, `manager` oppure `seller`
-   - `active`: `true`
-4. In Brevo, verificare il dominio mittente e completare i record DNS richiesti (DKIM/SPF e gli eventuali record indicati da Brevo). Usare come mittente un indirizzo appartenente al dominio verificato.
-5. Verificare che il progetto Firebase sia sul piano **Blaze**: Cloud Functions e Cloud Scheduler possono richiedere fatturazione attiva.
+### 1. Crea due Secrets in GitHub
+Apri **Settings → Secrets and variables → Actions → New repository secret** nel repository TOP HOUSE.
 
-## Deploy
-Da una copia locale del repository con Firebase CLI installata e accesso autorizzato:
+**Secret `BREVO_API_KEY`**
+- Inserisci una nuova chiave API transazionale Brevo.
+- La chiave incollata in chat va considerata esposta: revocala da Brevo e non riutilizzarla.
 
-```bash
-firebase login
-firebase use crm-top-house
-cd functions
-npm install
-cd ..
-firebase functions:secrets:set BREVO_API_KEY
-firebase deploy --only functions
-```
+**Secret `FIREBASE_SERVICE_ACCOUNT_JSON`**
+- Firebase Console → Impostazioni progetto → Account di servizio → genera una nuova chiave privata per un account di servizio dedicato.
+- Incolla nel secret l'intero contenuto JSON scaricato. Non caricarlo nel repository, non inviarlo in chat e non inserirlo nel sito.
+- L'account deve avere accesso Firestore al progetto `crm-top-house`. Proteggi questo secret e limita chi può modificare workflow e script.
 
-Quando richiesto, inserire:
-- `BREVO_API_KEY`: chiave API di Brevo (non la chiave SMTP).
-- Mittente configurato nel backend: `info@tophouseitalia.com` (`TOP HOUSE`).
+### 2. Abilita GitHub Actions
+Apri la scheda **Actions** del repository e abilita i workflow se richiesto. Il workflow `TOP HOUSE email automations` può essere lanciato manualmente con **Run workflow** per un test.
 
-Non salvare questi valori in file, screenshot o commit Git.
+### 3. Permessi Firestore
+Il CRM deve permettere agli utenti autenticati autorizzati di creare documenti in `emailQueue` e leggere `automationLogs`. Non rendere pubbliche queste raccolte. Se le regole attuali bloccano queste operazioni, vanno aggiornate con regole che richiedano autenticazione e controllo del profilo in `users/{uid}` (active=true); non usare regole aperte a tutti.
 
-## Prima di usare in produzione
-- Creare e testare un utente autorizzato in Firebase Authentication e il relativo documento `users/{UID}`.
-- Verificare che il CRM punti al documento Firestore `crmData/main` con contratti aggiornati.
-- Inserire una data di nascita solo quando disponibile e appropriato.
-- Provare prima l'invio di benvenuto verso una casella di test.
-- Verificare che le email dei venditori siano valorizzate nei documenti `users`: senza email venditore il promemoria cliente può partire, ma la notifica al venditore viene registrata come errore.
-- Controllare `automationLogs` e i log di Cloud Functions dopo il primo test.
-- Il registro restituisce gli ultimi 200 eventi ordinati per aggiornamento. Gli amministratori vedono tutto; venditori e responsabili vedono solo gli eventi associati al proprio perimetro.
+### 4. Email venditori
+Per ogni venditore, verifica che esista `users/{uid}` con `name` identico al nome nel CRM, `email` aziendale corretta e `active: true`.
 
-## Nota sullo stato attuale
-Il codice del CRM mantiene una modalità locale per la normale navigazione. L'invio email e il registro sono intenzionalmente protetti da Firebase Authentication e non funzionano finché non vengono completati i passaggi sopra e distribuite le Cloud Functions. Nessuna chiave Brevo è esposta al browser.
+## Limiti importanti
+- I workflow programmati GitHub possono essere ritardati; nel repository pubblico possono essere disattivati dopo 60 giorni senza attività. Per questo il registro va controllato regolarmente.
+- Il workflow gira ogni ora, entro i limiti inclusi di GitHub Actions; controlla **Settings → Billing → Actions** per evitare sorprese se il repository è privato e il consumo incluso è diverso.
+- Non eseguire il vecchio deploy di Cloud Functions e non passare a Blaze per questa soluzione.
+- Il worker usa un account di servizio Firestore e una chiave Brevo conservati solo nei GitHub Secrets.
