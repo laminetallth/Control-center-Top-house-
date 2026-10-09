@@ -1,6 +1,6 @@
 let db=null;
 let firestoreApi={};
-let firebaseApp=null, authInstance=null, authApi=null, functionsApi=null, firebaseAuthUser=null;
+let firebaseApp=null, authInstance=null, authApi=null, firebaseAuthUser=null;
 let automationLogs=[];
 let statsSelectedSeller="";
 
@@ -187,7 +187,6 @@ async function startCRM(){
     db=firebase.db;
     firebaseApp=firebase.app;
     authApi=await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js");
-    functionsApi=await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-functions.js");
     authInstance=authApi.getAuth(firebaseApp);
     authInstance.onAuthStateChanged(user=>{firebaseAuthUser=user||null});
     firestoreApi=fs;
