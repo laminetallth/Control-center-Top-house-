@@ -47,7 +47,7 @@ function servicesFor(contract) {
 }
 async function profileForSeller(name) {
   const snap = await db.collection("users").where("name", "==", name).limit(1).get();
-  if (snap.empty) return null;
+  if (snap.empty || snap.docs[0].data().active === false) return null;
   return { id: snap.docs[0].id, ...snap.docs[0].data() };
 }
 async function sendEmail({ to, subject, html, text }) {
@@ -101,7 +101,7 @@ exports.sendWelcomeEmail = onCall({ secrets: [BREVO_API_KEY, MAIL_FROM, MAIL_FRO
   }
 });
 exports.listAutomationLogs = onCall({ region: "europe-west1" }, async request => {
-  await requireProfile(request);
+  const profile = await requireProfile(request);
   const snap = await db.collection("automationLogs").limit(200).get();
   const logs = snap.docs.map(doc => {
     const x = doc.data();
@@ -116,8 +116,9 @@ exports.listAutomationLogs = onCall({ region: "europe-west1" }, async request =>
       failedAt: iso(x.failedAt)
     };
   });
-  logs.sort((a,b) => String(b.updatedAt || b.sentAt || b.scheduledFor || "").localeCompare(String(a.updatedAt || a.sentAt || a.scheduledFor || "")));
-  return { logs };
+  const visibleLogs = profile.role === "admin" || profile.role === "manager" ? logs : logs.filter(x => x.seller === profile.name);
+  visibleLogs.sort((a,b) => String(b.updatedAt || b.sentAt || b.scheduledFor || "").localeCompare(String(a.updatedAt || a.sentAt || a.scheduledFor || "")));
+  return { logs: visibleLogs };
 });
 exports.processCustomerAutomations = onSchedule({ schedule: "every day 08:00", timeZone: "Europe/Rome", region: "europe-west1", secrets: [BREVO_API_KEY, MAIL_FROM, MAIL_FROM_NAME] }, async () => {
   const snap = await db.collection("crmData").doc("main").get();
