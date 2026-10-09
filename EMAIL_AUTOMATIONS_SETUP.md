@@ -4,7 +4,7 @@ Le funzioni email sono predisposte in `functions/`. La chiave Brevo resta nei Se
 
 ## Funzioni incluse
 - `sendWelcomeEmail`: invio manuale della mail di benvenuto da I miei clienti.
-- `processCustomerAutomations`: controllo giornaliero alle 08:00 (Europe/Rome) per compleanni e offerte luce/gas in scadenza fra tre mesi.
+- `processCustomerAutomations`: controllo giornaliero alle 08:00 (Europe/Rome) per compleanni e offerte luce/gas nella finestra dei tre mesi precedenti alla scadenza; gli invii di scadenza falliti possono essere riprovati fino alla scadenza.
 - `listAutomationLogs`: registro protetto degli invii e degli errori.
 - Log persistenti nella raccolta Firestore `automationLogs`.
 
@@ -50,6 +50,7 @@ Non salvare questi valori in file, screenshot o commit Git.
 - Provare prima l'invio di benvenuto verso una casella di test.
 - Verificare che le email dei venditori siano valorizzate nei documenti `users`: senza email venditore il promemoria cliente può partire, ma la notifica al venditore viene registrata come errore.
 - Controllare `automationLogs` e i log di Cloud Functions dopo il primo test.
+- Il registro restituisce gli ultimi 200 eventi ordinati per aggiornamento. Gli amministratori vedono tutto; venditori e responsabili vedono solo gli eventi associati al proprio perimetro.
 
 ## Nota sullo stato attuale
 Il codice del CRM mantiene una modalità locale per la normale navigazione. L'invio email e il registro sono intenzionalmente protetti da Firebase Authentication e non funzionano finché non vengono completati i passaggi sopra e distribuite le Cloud Functions. Nessuna chiave Brevo è esposta al browser.
