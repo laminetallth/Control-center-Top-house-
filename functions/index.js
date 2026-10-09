@@ -82,8 +82,10 @@ exports.sendWelcomeEmail = onCall({ secrets: [BREVO_API_KEY, MAIL_FROM, MAIL_FRO
   const isManager = profile.role === "manager";
   if (!isAdmin && client.seller !== profile.name) {
     if (!isManager) throw new HttpsError("permission-denied", "Non puoi inviare email per questo cliente.");
-    const assigned = await db.collection("users").where("name", "==", client.seller).where("managerUid", "==", profile.uid).limit(1).get();
-    if (assigned.empty) throw new HttpsError("permission-denied", "Puoi inviare email solo ai clienti del tuo gruppo.");
+    const assigned = await db.collection("users").where("name", "==", client.seller).limit(1).get();
+    if (assigned.empty || assigned.docs[0].data().managerUid !== profile.uid) {
+      throw new HttpsError("permission-denied", "Puoi inviare email solo ai clienti del tuo gruppo.");
+    }
   }
   if (!client.email) throw new HttpsError("failed-precondition", "Il cliente non ha un indirizzo email.");
   const logId = "welcome-" + contractId;
