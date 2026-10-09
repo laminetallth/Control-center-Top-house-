@@ -8,8 +8,6 @@ const Brevo = require("@getbrevo/brevo");
 initializeApp();
 const db = getFirestore();
 const BREVO_API_KEY = defineSecret("BREVO_API_KEY");
-const MAIL_FROM = defineSecret("MAIL_FROM");
-const MAIL_FROM_NAME = defineSecret("MAIL_FROM_NAME");
 
 function brevoClient() {
   const api = new Brevo.TransactionalEmailsApi();
@@ -54,7 +52,7 @@ async function sendEmail({ to, subject, html, text }) {
   if (!to) throw new Error("Destinatario email mancante");
   const api = brevoClient();
   return api.sendTransacEmail({
-    sender: { email: MAIL_FROM.value(), name: MAIL_FROM_NAME.value() || "TOP HOUSE" },
+    sender: { email: "info@tophouseitalia.com", name: "TOP HOUSE" },
     to: [{ email: to }],
     subject, htmlContent: html, textContent: text
   });
@@ -70,7 +68,7 @@ async function requireProfile(request) {
   if (!snap.exists || snap.data().active === false) throw new HttpsError("permission-denied", "Profilo CRM non autorizzato.");
   return { uid: request.auth.uid, ...snap.data() };
 }
-exports.sendWelcomeEmail = onCall({ secrets: [BREVO_API_KEY, MAIL_FROM, MAIL_FROM_NAME], region: "europe-west1" }, async request => {
+exports.sendWelcomeEmail = onCall({ secrets: [BREVO_API_KEY], region: "europe-west1" }, async request => {
   const profile = await requireProfile(request);
   const contractId = String(request.data && request.data.contractId || "");
   if (!contractId) throw new HttpsError("invalid-argument", "Cliente non valido.");
@@ -132,7 +130,7 @@ exports.listAutomationLogs = onCall({ region: "europe-west1" }, async request =>
   visibleLogs.sort((a,b) => String(b.updatedAt || b.sentAt || b.scheduledFor || "").localeCompare(String(a.updatedAt || a.sentAt || a.scheduledFor || "")));
   return { logs: visibleLogs };
 });
-exports.processCustomerAutomations = onSchedule({ schedule: "every day 08:00", timeZone: "Europe/Rome", region: "europe-west1", secrets: [BREVO_API_KEY, MAIL_FROM, MAIL_FROM_NAME] }, async () => {
+exports.processCustomerAutomations = onSchedule({ schedule: "every day 08:00", timeZone: "Europe/Rome", region: "europe-west1", secrets: [BREVO_API_KEY] }, async () => {
   const snap = await db.collection("crmData").doc("main").get();
   if (!snap.exists) return;
   const contracts = snap.data().contracts || [];
