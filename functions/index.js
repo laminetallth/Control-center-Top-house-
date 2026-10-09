@@ -166,26 +166,45 @@ exports.processCustomerAutomations = onSchedule({ schedule: "every day 08:00", t
       const logId = "expiry-" + id + "-" + service + "-" + expiryKey;
       const ref = db.collection("automationLogs").doc(logId);
       const old = await ref.get();
-      if (old.exists && old.data().status === "sent") continue;
-      // Se l'invio fallisce, il controllo giornaliero riprova; gli invii riusciti non si duplicano.
       const manager = await profileForSeller(c.seller);
       const serviceLabel = service === "luce" ? "luce" : "gas";
-      try {
-        await writeLog(logId, { type: "expiry", contractId: id, clientName: c.name || "", clientEmail: c.email || "", seller: c.seller || "", service: serviceLabel, expiryDate: expiry.toISOString().slice(0,10), status: "sending", scheduledFor: todayKey });
-        await sendEmail({ to: c.email, subject: "La tua offerta " + serviceLabel + " si avvicina alla scadenza", html: "<div style=\"font-family:Arial,sans-serif;color:#222\"><h2 style=\"color:#f47b20\">La tua offerta sta per scadere</h2><p>Buongiorno " + safe(c.name) + ",</p><p>ti ricordiamo che l'offerta della tua fornitura <b>" + serviceLabel + "</b> risulta in scadenza il <b>" + expiry.toLocaleDateString("it-IT", { timeZone: "UTC" }) + "</b>.</p><p>Per verificare le condizioni e valutare le opzioni disponibili, contatta il tuo Green Family Manager: <b>" + safe(c.seller || "referente TOP HOUSE") + "</b>.</p><p>Un cordiale saluto,<br><b>TOP HOUSE</b></p></div>", text: "Buongiorno " + (c.name || "") + ", l'offerta della tua fornitura " + serviceLabel + " risulta in scadenza il " + expiry.toLocaleDateString("it-IT", { timeZone: "UTC" }) + ". Per verificare le condizioni, contatta il tuo Green Family Manager: " + (c.seller || "referente TOP HOUSE") + ". TOP HOUSE." });
-        await writeLog(logId, { status: "sent", sentAt: FieldValue.serverTimestamp(), error: null });
-      } catch (err) {
-        await writeLog(logId, { status: "failed", error: String(err.message || err), failedAt: FieldValue.serverTimestamp() });
-      }
-      if (manager && manager.email) {
+      const expiryLabel = expiry.toLocaleDateString("it-IT", { timeZone: "UTC" });
+
+      // Cliente e venditore hanno log separati: un errore su un destinatario non blocca i tentativi sull'altro.
+      if (!old.exists || old.data().status !== "sent") {
         try {
-          await sendEmail({ to: manager.email, subject: "Scadenza offerta " + serviceLabel + " · " + (c.name || ""), html: "<div style=\"font-family:Arial,sans-serif;color:#222\"><h2 style=\"color:#f47b20\">Promemoria scadenza offerta</h2><p>La fornitura " + serviceLabel + " del cliente <b>" + safe(c.name) + "</b> scadrà il <b>" + expiry.toLocaleDateString("it-IT", { timeZone: "UTC" }) + "</b>.</p><ul><li>Email cliente: " + safe(c.email) + "</li><li>Telefono: " + safe(c.phone) + "</li><li>Venditore: " + safe(c.seller) + "</li><li>Gestore: " + safe(service === "luce" ? (c.managerLight || c.manager) : (c.managerGas || c.manager)) + "</li></ul><p>Contatta il cliente per tempo.</p></div>", text: "Promemoria: offerta " + serviceLabel + " del cliente " + (c.name || "") + " scade il " + expiry.toLocaleDateString("it-IT", { timeZone: "UTC" }) + ". Email: " + (c.email || "") + "; telefono: " + (c.phone || "") + "; venditore: " + (c.seller || "") + "." });
-          await writeLog(logId + "-seller", { type: "expiry-seller", contractId: id, clientName: c.name || "", seller: c.seller || "", recipient: manager.email, service: serviceLabel, expiryDate: expiry.toISOString().slice(0,10), status: "sent", sentAt: FieldValue.serverTimestamp() });
+          await writeLog(logId, { type: "expiry", contractId: id, clientName: c.name || "", clientEmail: c.email || "", seller: c.seller || "", service: serviceLabel, expiryDate: expiryKey, status: "sending", scheduledFor: todayKey });
+          await sendEmail({
+            to: c.email,
+            subject: "La tua offerta " + serviceLabel + " si avvicina alla scadenza",
+            html: "<div style=\"font-family:Arial,sans-serif;color:#222\"><h2 style=\"color:#f47b20\">La tua offerta sta per scadere</h2><p>Buongiorno " + safe(c.name) + ",</p><p>ti ricordiamo che l'offerta della tua fornitura <b>" + serviceLabel + "</b> risulta in scadenza il <b>" + expiryLabel + "</b>.</p><p>Per verificare le condizioni e valutare le opzioni disponibili, contatta il tuo Green Family Manager: <b>" + safe(c.seller || "referente TOP HOUSE") + "</b>.</p><p>Un cordiale saluto,<br><b>TOP HOUSE</b></p></div>",
+            text: "Buongiorno " + (c.name || "") + ", l'offerta della tua fornitura " + serviceLabel + " risulta in scadenza il " + expiryLabel + ". Per verificare le condizioni, contatta il tuo Green Family Manager: " + (c.seller || "referente TOP HOUSE") + ". TOP HOUSE."
+          });
+          await writeLog(logId, { status: "sent", sentAt: FieldValue.serverTimestamp(), error: null });
         } catch (err) {
-          await writeLog(logId + "-seller", { type: "expiry-seller", contractId: id, clientName: c.name || "", seller: c.seller || "", recipient: manager.email, service: serviceLabel, expiryDate: expiry.toISOString().slice(0,10), status: "failed", error: String(err.message || err), failedAt: FieldValue.serverTimestamp() });
+          await writeLog(logId, { status: "failed", error: String(err.message || err), failedAt: FieldValue.serverTimestamp() });
+        }
+      }
+
+      const sellerLogId = logId + "-seller";
+      const sellerLogRef = db.collection("automationLogs").doc(sellerLogId);
+      const sellerLog = await sellerLogRef.get();
+      if (manager && manager.email) {
+        if (!sellerLog.exists || sellerLog.data().status !== "sent") {
+          try {
+            await sendEmail({
+              to: manager.email,
+              subject: "Scadenza offerta " + serviceLabel + " · " + (c.name || ""),
+              html: "<div style=\"font-family:Arial,sans-serif;color:#222\"><h2 style=\"color:#f47b20\">Promemoria scadenza offerta</h2><p>La fornitura " + serviceLabel + " del cliente <b>" + safe(c.name) + "</b> scadrà il <b>" + expiryLabel + "</b>.</p><ul><li>Email cliente: " + safe(c.email) + "</li><li>Telefono: " + safe(c.phone) + "</li><li>Venditore: " + safe(c.seller) + "</li><li>Gestore: " + safe(service === "luce" ? (c.managerLight || c.manager) : (c.managerGas || c.manager)) + "</li></ul><p>Contatta il cliente per tempo.</p></div>",
+              text: "Promemoria: offerta " + serviceLabel + " del cliente " + (c.name || "") + " scade il " + expiryLabel + ". Email: " + (c.email || "") + "; telefono: " + (c.phone || "") + "; venditore: " + (c.seller || "") + "."
+            });
+            await writeLog(sellerLogId, { type: "expiry-seller", contractId: id, clientName: c.name || "", clientEmail: c.email || "", seller: c.seller || "", recipient: manager.email, service: serviceLabel, expiryDate: expiryKey, status: "sent", sentAt: FieldValue.serverTimestamp(), error: null });
+          } catch (err) {
+            await writeLog(sellerLogId, { type: "expiry-seller", contractId: id, clientName: c.name || "", clientEmail: c.email || "", seller: c.seller || "", recipient: manager.email, service: serviceLabel, expiryDate: expiryKey, status: "failed", error: String(err.message || err), failedAt: FieldValue.serverTimestamp() });
+          }
         }
       } else {
-        await writeLog(logId + "-seller", { type: "expiry-seller", contractId: id, clientName: c.name || "", seller: c.seller || "", service: serviceLabel, expiryDate: expiry.toISOString().slice(0,10), status: "failed", error: "Email venditore non disponibile nel profilo Firebase." });
+        await writeLog(sellerLogId, { type: "expiry-seller", contractId: id, clientName: c.name || "", clientEmail: c.email || "", seller: c.seller || "", service: serviceLabel, expiryDate: expiryKey, status: "failed", error: "Email venditore non disponibile nel profilo Firebase." });
       }
     }
   }
