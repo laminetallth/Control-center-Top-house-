@@ -3,7 +3,7 @@ const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { defineSecret } = require("firebase-functions/params");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore, FieldValue, Timestamp } = require("firebase-admin/firestore");
-const SibApiV3Sdk = require("@sendinblue/client");
+const Brevo = require("@getbrevo/brevo");
 
 initializeApp();
 const db = getFirestore();
@@ -12,8 +12,8 @@ const MAIL_FROM = defineSecret("MAIL_FROM");
 const MAIL_FROM_NAME = defineSecret("MAIL_FROM_NAME");
 
 function brevoClient() {
-  const api = new SibApiV3Sdk.TransactionalEmailsApi();
-  api.setApiKey(SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey, BREVO_API_KEY.value());
+  const api = new Brevo.TransactionalEmailsApi();
+  api.setApiKey(Brevo.TransactionalEmailsApiApiKeys.apiKey, BREVO_API_KEY.value());
   return api;
 }
 function safe(v) { return String(v || "").replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c])); }
@@ -131,7 +131,8 @@ exports.processCustomerAutomations = onSchedule({ schedule: "every day 08:00", t
     if (!id) continue;
     const dob = dateOnly(c.birthday);
     if (dob && dob.getUTCMonth() === today.getUTCMonth() && dob.getUTCDate() === today.getUTCDate()) {
-      const logId = "birthday-" + id + "-" + today.getUTCFullYear();
+      const emailKey = String(c.email || ("no-email-" + id)).trim().toLowerCase();
+      const logId = "birthday-" + encodeURIComponent(emailKey) + "-" + today.getUTCFullYear();
       const ref = db.collection("automationLogs").doc(logId);
       const old = await ref.get();
       if (!old.exists || old.data().status !== "sent") {
