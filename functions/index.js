@@ -80,7 +80,11 @@ exports.sendWelcomeEmail = onCall({ secrets: [BREVO_API_KEY, MAIL_FROM, MAIL_FRO
   if (!client) throw new HttpsError("not-found", "Cliente non trovato nel CRM.");
   const isAdmin = profile.role === "admin";
   const isManager = profile.role === "manager";
-  if (!isAdmin && client.seller !== profile.name && !isManager) throw new HttpsError("permission-denied", "Non puoi inviare email per questo cliente.");
+  if (!isAdmin && client.seller !== profile.name) {
+    if (!isManager) throw new HttpsError("permission-denied", "Non puoi inviare email per questo cliente.");
+    const assigned = await db.collection("users").where("name", "==", client.seller).where("managerUid", "==", profile.uid).limit(1).get();
+    if (assigned.empty) throw new HttpsError("permission-denied", "Puoi inviare email solo ai clienti del tuo gruppo.");
+  }
   if (!client.email) throw new HttpsError("failed-precondition", "Il cliente non ha un indirizzo email.");
   const logId = "welcome-" + contractId;
   const logRef = db.collection("automationLogs").doc(logId);
@@ -102,7 +106,7 @@ exports.sendWelcomeEmail = onCall({ secrets: [BREVO_API_KEY, MAIL_FROM, MAIL_FRO
 });
 exports.listAutomationLogs = onCall({ region: "europe-west1" }, async request => {
   const profile = await requireProfile(request);
-  const snap = await db.collection("automationLogs").limit(200).get();
+  const snap = await db.collection("automationLogs").orderBy("updatedAt", "desc").limit(200).get();
   const logs = snap.docs.map(doc => {
     const x = doc.data();
     const iso = value => value && typeof value.toDate === "function" ? value.toDate().toISOString() : (value || null);
@@ -116,7 +120,13 @@ exports.listAutomationLogs = onCall({ region: "europe-west1" }, async request =>
       failedAt: iso(x.failedAt)
     };
   });
-  const visibleLogs = profile.role === "admin" || profile.role === "manager" ? logs : logs.filter(x => x.seller === profile.name);
+  let visibleLogs = logs;
+  if (profile.role === "seller") visibleLogs = logs.filter(x => x.seller === profile.name);
+  if (profile.role === "manager") {
+    const team = await db.collection("users").where("managerUid", "==", profile.uid).get();
+    const allowedNames = new Set([profile.name, ...team.docs.map(d => d.data().name).filter(Boolean)]);
+    visibleLogs = logs.filter(x => allowedNames.has(x.seller));
+  }
   visibleLogs.sort((a,b) => String(b.updatedAt || b.sentAt || b.scheduledFor || "").localeCompare(String(a.updatedAt || a.sentAt || a.scheduledFor || "")));
   return { logs: visibleLogs };
 });
@@ -131,7 +141,7 @@ exports.processCustomerAutomations = onSchedule({ schedule: "every day 08:00", t
     const id = String(c.id || "");
     if (!id) continue;
     const dob = dateOnly(c.birthday);
-    if (dob && dob.getUTCMonth() === today.getUTCMonth() && dob.getUTCDate() === today.getUTCDate()) {
+    if (dob && dob.getUTCMonth() === today.getUTCMonth() && dob.getUTCDate() === today.getUTCDate() && c.email) {
       const emailKey = String(c.email || ("no-email-" + id)).trim().toLowerCase();
       const logId = "birthday-" + encodeURIComponent(emailKey) + "-" + today.getUTCFullYear();
       const ref = db.collection("automationLogs").doc(logId);
@@ -148,11 +158,14 @@ exports.processCustomerAutomations = onSchedule({ schedule: "every day 08:00", t
       const expiry = expiryFor(c, service);
       if (!expiry) continue;
       const reminder = addMonths(expiry, -3);
-      if (reminder.toISOString().slice(0, 10) !== todayKey) continue;
-      const logId = "expiry-" + id + "-" + service + "-" + expiry.toISOString().slice(0, 10);
+      const reminderKey = reminder.toISOString().slice(0, 10);
+      const expiryKey = expiry.toISOString().slice(0, 10);
+      if (todayKey < reminderKey || todayKey >= expiryKey) continue;
+      const logId = "expiry-" + id + "-" + service + "-" + expiryKey;
       const ref = db.collection("automationLogs").doc(logId);
       const old = await ref.get();
       if (old.exists && old.data().status === "sent") continue;
+      // Se l'invio fallisce, il controllo giornaliero riprova; gli invii riusciti non si duplicano.
       const manager = await profileForSeller(c.seller);
       const serviceLabel = service === "luce" ? "luce" : "gas";
       try {
