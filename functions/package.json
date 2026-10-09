@@ -1,11 +1,15 @@
 {
   "name": "top-house-crm-functions",
   "private": true,
-  "engines": { "node": "20" },
+  "engines": {
+    "node": "20"
+  },
   "main": "index.js",
-  "scripts": { "lint": "node --check index.js" },
+  "scripts": {
+    "lint": "node --check index.js"
+  },
   "dependencies": {
-    "@sendinblue/client": "^3.0.1",
+    "@getbrevo/brevo": "^2.0.0",
     "firebase-admin": "^12.7.0",
     "firebase-functions": "^6.1.1"
   }
