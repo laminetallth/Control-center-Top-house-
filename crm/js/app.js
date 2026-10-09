@@ -60,8 +60,14 @@ function automationTable(list){if(!list.length)return '<div class="empty">Nessun
 function statusPage(){const all=data.contracts.slice().reverse(),counts=Object.fromEntries(STATUSES.map(s=>[s,all.filter(c=>c.status===s).length]));return '<section class="stats"><div class="stat"><div class="stat-label">Totale</div><div class="stat-value">'+all.length+'</div></div><div class="stat"><div class="stat-label">In lavorazione</div><div class="stat-value">'+(counts.Inserito+counts["In lavorazione"])+'</div></div><div class="stat"><div class="stat-label">OK</div><div class="stat-value">'+counts.OK+'</div></div><div class="stat"><div class="stat-label">KO / Storno</div><div class="stat-value">'+(counts.KO+counts.Storno)+'</div></div></section><section class="panel"><div class="panel-head"><div><h2>Stato delle pratiche</h2><div class="panel-sub">Filtra e aggiorna rapidamente le tue pratiche.</div></div><select class="select" id="status-filter">'+options(STATUSES,"","Tutti gli stati")+'</select></div><div id="status-table">'+statusTable(all)+'</div></section>'}
 function statusTable(list){if(!list.length)return '<div class="empty">Nessun contratto trovato.</div>';return '<div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Servizio</th><th>Gestore</th><th>Venditore</th><th>Scadenza</th><th>Stato</th></tr></thead><tbody>'+list.map(c=>'<tr><td><b>'+esc(c.name)+'</b></td><td>'+esc(c.service)+'</td><td>'+esc(c.manager)+'</td><td>'+esc(c.seller)+'</td><td>'+esc(c.offerExpiry||"—")+'</td><td><select class="status-select" data-id="'+c.id+'">'+options(STATUSES,c.status)+'</select></td></tr>').join("")+'</tbody></table></div>'}
 async function loadAutomationLogs(){
-  if(!authInstance||!firebaseAuthUser){automationLogs=[];const target=document.querySelector("#automation-table");if(target)target.innerHTML='<div class="empty">Per consultare il registro, accedi con un account Firebase autorizzato.</div>';return}
-  try{const call=functionsApi.getFunctions(firebaseApp,"europe-west1");const fn=functionsApi.httpsCallable(call,"listAutomationLogs");const result=await fn({});automationLogs=result.data.logs||[];const target=document.querySelector("#automation-table");if(target)target.innerHTML=automationTable(automationLogs)}catch(err){console.error(err);const target=document.querySelector("#automation-table");if(target)target.innerHTML='<div class="empty">Registro non disponibile: verifica accesso e configurazione Firebase Functions.</div>'}
+  if(!db||!firestoreApi.getDocs){automationLogs=[];return}
+  try{
+    const fs=firestoreApi;
+    const snap=await fs.getDocs(fs.query(fs.collection(db,"automationLogs"),fs.orderBy("updatedAt","desc"),fs.limit(200)));
+    const iso=value=>value&&typeof value.toDate==="function"?value.toDate().toISOString():value||"";
+    automationLogs=snap.docs.map(d=>{const x=d.data();return {id:d.id,...x,createdAt:iso(x.createdAt),updatedAt:iso(x.updatedAt),sentAt:iso(x.sentAt),failedAt:iso(x.failedAt)}});
+    const target=document.querySelector("#automation-table");if(target)target.innerHTML=automationTable(automationLogs);
+  }catch(err){console.error(err);const target=document.querySelector("#automation-table");if(target)target.innerHTML='<div class="empty">Registro non disponibile: controlla i permessi Firestore della raccolta automationLogs.</div>'}
 }
 async function authenticateForAutomations(){
   if(firebaseAuthUser)return true;
@@ -72,7 +78,26 @@ async function authenticateForAutomations(){
 }
 async function sendWelcomeEmail(contractId){
   if(!await authenticateForAutomations())return;
-  try{const call=functionsApi.getFunctions(firebaseApp,"europe-west1");const fn=functionsApi.httpsCallable(call,"sendWelcomeEmail");await fn({contractId:String(contractId)});toast("Email di benvenuto inviata");await loadAutomationLogs();if(currentPage==="automations")render()}catch(err){console.error(err);toast(err?.message||"Invio non riuscito")}
+  try{
+    const fs=firestoreApi;
+    const profileSnap=await fs.getDoc(fs.doc(db,"users",firebaseAuthUser.uid));
+    if(!profileSnap.exists()||profileSnap.data().active===false){toast("Profilo CRM non autorizzato");return}
+    const profile=profileSnap.data();
+    const client=data.contracts.find(c=>String(c.id)===String(contractId));
+    if(!client||!client.email){toast("Cliente non trovato o email mancante");return}
+    if(profile.role!=="admin"&&client.seller!==profile.name){
+      if(profile.role!=="manager"){toast("Non puoi inviare email per questo cliente");return}
+      const assigned=await fs.getDocs(fs.query(fs.collection(db,"users"),fs.where("name","==",client.seller),fs.limit(1)));
+      if(assigned.empty||assigned.docs[0].data().managerUid!==firebaseAuthUser.uid){toast("Cliente fuori dal tuo gruppo");return}
+    }
+    const queueRef=fs.doc(db,"emailQueue","welcome-"+String(contractId));
+    const existing=await fs.getDoc(queueRef);
+    if(existing.exists()&&existing.data().status==="sent"){toast("Email di benvenuto già inviata");return}
+    await fs.setDoc(queueRef,{type:"welcome",contractId:String(contractId),requestedBy:firebaseAuthUser.uid,status:"pending",createdAt:fs.serverTimestamp(),error:null},{merge:true});
+    toast("Richiesta accodata: invio entro circa un'ora");
+    await loadAutomationLogs();
+    if(currentPage==="automations")render();
+  }catch(err){console.error(err);toast("Richiesta non accodata: controlla i permessi Firestore")}
 }
 function bindPage(){
 const byId=id=>document.querySelector("#"+id);
