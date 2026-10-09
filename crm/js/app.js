@@ -157,7 +157,7 @@ async function startCRM(){
 
   // Il cloud viene caricato DOPO che l'interfaccia è già operativa.
   try{
-    const firebase=await import("./firebase.js?v=20261008g");
+    const firebase=await import("./firebase.js?v=20261009mail");
     const fs=await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js");
     db=firebase.db;
     firebaseApp=firebase.app;
