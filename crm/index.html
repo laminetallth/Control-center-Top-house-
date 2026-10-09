@@ -24,5 +24,45 @@
 <header class="topbar"><div><div class="eyebrow">TOP HOUSE CRM</div><h1 id="page-title">Dashboard</h1></div><div class="top-actions"><span class="role-pill">Admin</span><a class="secondary" href="https://laminetallth.github.io/TOP-HOUSE/index.html" target="_blank" rel="noopener">↗ Top House Drive</a><button class="primary" id="new-contract-top">+ Nuovo contratto</button></div></header>
 <div id="page-content"></div>
 </main></div><div id="toast" class="toast"></div>
+<script>
+/* Avvio di emergenza: mantiene il CRM utilizzabile se il modulo principale non si carica. */
+window.setTimeout(function(){
+  const root=document.querySelector("#page-content");
+  if(!root || root.children.length) return;
+  const key="topHouseCRM";
+  const read=()=>{try{return JSON.parse(localStorage.getItem(key)||"{}")}catch(e){return {}}};
+  const data=Object.assign({contracts:[],leads:[],affiliates:[],events:[],plans:[{name:"Piano Compensi STD",description:"Piano compensi personale",updated:"Ottobre 2026"}]},read());
+  const sellers=["Lamine Tall","Gabriele Straniero","Francesco Cecchini","Hajar Sadiq","Sarah Cavedo","Dardan Gashi","Andrea Cerminare","Benedetto Cavallo"];
+  const services=["Luce","Gas","Luce + Gas","Fibra","Telefonia Mobile","Telefonia Fissa","Fotovoltaico","Caldaia","Climatizzatore","Infissi","Depuratore","Allarme","Wall Box","Altro"];
+  const esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+  const save=()=>localStorage.setItem(key,JSON.stringify(data));
+  const opts=(arr)=>arr.map(x=>'<option>'+esc(x)+'</option>').join("");
+  const table=()=>data.contracts.length?'<div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Telefono</th><th>Servizio</th><th>Gestore</th><th>Venditore</th><th>Prezzo</th><th>Stato</th><th></th></tr></thead><tbody>'+data.contracts.map((c,i)=>'<tr><td>'+esc(c.name)+'</td><td>'+esc(c.phone)+'</td><td>'+esc(c.service)+'</td><td>'+esc(c.manager)+'</td><td>'+esc(c.seller)+'</td><td>'+esc(c.price)+' €</td><td>'+esc(c.status)+'</td><td><button class="icon-btn" data-del="'+i+'">×</button></td></tr>').join("")+'</tbody></table></div>':'<div class="empty">Nessun contratto ancora. Premi “Nuovo contratto” per inserire la prima pratica.</div>';
+  function page(p){
+    document.querySelectorAll(".nav-item").forEach(b=>b.classList.toggle("active",b.dataset.page===p));
+    document.querySelector("#page-title").textContent=({dashboard:"Dashboard",contracts:"Contratti",clients:"I miei clienti",leads:"Lead",calendar:"Calendario",stats:"Statistiche",affiliates:"Affiliati",plans:"Piano compensi",status:"Stato contratti"}[p]||"Dashboard");
+    if(p==="dashboard")root.innerHTML='<section class="stats"><div class="stat"><div class="stat-label">Contratti</div><div class="stat-value">'+data.contracts.length+'</div><div class="stat-note">Pratiche registrate</div></div><div class="stat"><div class="stat-label">Lead</div><div class="stat-value">'+data.leads.length+'</div><div class="stat-note">Opportunità</div></div><div class="stat"><div class="stat-label">Venditori</div><div class="stat-value">'+sellers.length+'</div><div class="stat-note">Rete Top House</div></div><div class="stat"><div class="stat-label">Modalità</div><div class="stat-value">Locale</div><div class="stat-note">Salvataggio su questo browser</div></div></section><section class="panel"><div class="panel-head"><div><h2>Ultimi contratti</h2><div class="panel-sub">I dati vengono salvati automaticamente in questo browser.</div></div><button class="primary" id="fallback-new">+ Nuovo contratto</button></div>'+table()+'</section>';
+    else if(p==="contracts"||p==="clients"||p==="status")root.innerHTML='<section class="panel"><div class="panel-head"><div><h2>Gestione contratti</h2><div class="panel-sub">Inserisci e consulta le pratiche Top House.</div></div><button class="primary" id="fallback-new">+ Nuovo contratto</button></div>'+table()+'</section>';
+    else if(p==="leads")root.innerHTML='<section class="panel"><div class="panel-head"><div><h2>Lead</h2><div class="panel-sub">Le opportunità vengono conservate in questo browser.</div></div><button class="primary" id="fallback-lead">+ Nuovo lead</button></div>'+(data.leads.map(x=>'<p><b>'+esc(x.name)+'</b> · '+esc(x.service||"")+' · '+esc(x.phone||"")+'</p>').join("")||'<div class="empty">Nessun lead registrato.</div>')+'</section>';
+    else if(p==="calendar")root.innerHTML='<section class="panel"><h2>Calendario</h2><p>Agenda di emergenza attiva. Gli appuntamenti possono essere aggiunti quando il modulo principale sarà ripristinato.</p></section>';
+    else if(p==="stats")root.innerHTML='<section class="panel"><h2>Statistiche</h2><p>Contratti registrati: <b>'+data.contracts.length+'</b></p><p>Lead registrati: <b>'+data.leads.length+'</b></p></section>';
+    else if(p==="affiliates")root.innerHTML='<section class="panel"><h2>Affiliati e partner</h2><p>Sezione disponibile. Il modulo completo è in ripristino.</p></section>';
+    else root.innerHTML='<section class="panel"><h2>Piano compensi</h2><p>Piano attuale: Piano Compensi STD</p></section>';
+    root.querySelector("#fallback-new")?.addEventListener("click",newContract);
+    root.querySelector("#fallback-lead")?.addEventListener("click",newLead);
+    root.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{data.contracts.splice(Number(b.dataset.del),1);save();page(p)});
+  }
+  function newContract(){
+    root.innerHTML='<section class="panel"><div class="panel-head"><h2>Nuovo contratto</h2><button class="secondary" id="fallback-back">← Indietro</button></div><form id="fallback-form"><div class="form-grid"><div class="field"><label>Nome e cognome *</label><input class="input" name="name" required></div><div class="field"><label>Telefono</label><input class="input" name="phone"></div><div class="field"><label>Email</label><input class="input" name="email" type="email"></div><div class="field"><label>Città</label><input class="input" name="city"></div><div class="field"><label>Servizio *</label><select class="select" name="service" required>'+opts(services)+'</select></div><div class="field"><label>Gestore</label><input class="input" name="manager"></div><div class="field"><label>Venditore</label><select class="select" name="seller">'+opts(sellers)+'</select></div><div class="field"><label>Prezzo (€)</label><input class="input" name="price" type="number" min="0" step=".01"></div><div class="field"><label>Data firma</label><input class="input" name="date" type="date" value="'+new Date().toISOString().slice(0,10)+'"></div><div class="field"><label>Stato</label><select class="select" name="status">'+opts(["Inserito","In lavorazione","OK","KO","Storno"])+'</select></div><div class="field full"><label>Note</label><textarea class="input textarea" name="notes"></textarea></div></div><div class="form-actions"><button class="primary">Salva contratto</button></div></form></section>';
+    document.querySelector("#fallback-back").onclick=()=>page("contracts");
+    document.querySelector("#fallback-form").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);data.contracts.push(Object.fromEntries(f.entries()));save();page("contracts")};
+  }
+  function newLead(){const name=prompt("Nome del lead:");if(!name)return;data.leads.push({name,service:prompt("Servizio di interesse:")||"",phone:prompt("Telefono:")||""});save();page("leads")}
+  document.querySelectorAll(".nav-item").forEach(b=>b.addEventListener("click",()=>page(b.dataset.page)));
+  document.querySelector("#new-contract-top")?.addEventListener("click",newContract);
+  page("dashboard");
+  const note=document.createElement("div");note.className="panel";note.style.marginTop="16px";note.innerHTML='<b>Modalità di emergenza</b><p>Il modulo principale non si è avviato. Questa schermata temporanea permette di navigare e registrare contratti in locale; la sincronizzazione cloud non è attiva.</p>';root.prepend(note);
+},1200);
+</script>
 <script type="module" src="./js/app.js?release=3"></script>
 </body></html>
