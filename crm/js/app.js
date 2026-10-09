@@ -112,7 +112,12 @@ async function startCRM(){
     const local=JSON.parse(localStorage.getItem(KEY)||"null");
     if(local)data={...defaultData,...local};
   }catch(err){console.warn("Local data unavailable",err)}
-  render();
+  try { render(); } catch(err) {
+    console.error("CRM render error",err);
+    const target=document.querySelector("#page-content");
+    if(target) target.innerHTML='<section class="panel"><h2>Errore di avvio CRM</h2><p>La schermata ha incontrato un errore JavaScript.</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></section>';
+    const pre=document.querySelector("#page-content pre"); if(pre) pre.textContent=err?.stack||String(err);
+  }
 
   // Il cloud viene caricato DOPO che l'interfaccia è già operativa.
   try{
