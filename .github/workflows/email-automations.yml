@@ -1,0 +1,33 @@
+name: TOP HOUSE email automations
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 * * * *"
+      timezone: "Europe/Rome"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: top-house-email-automations
+  cancel-in-progress: false
+
+jobs:
+  send-emails:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install Firebase Admin SDK
+        run: npm install --no-save firebase-admin
+      - name: Run automations
+        env:
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          BREVO_API_KEY: ${{ secrets.BREVO_API_KEY }}
+        run: node scripts/email-automations.js
