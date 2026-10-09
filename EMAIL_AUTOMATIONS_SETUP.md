@@ -1,6 +1,6 @@
 # TOP HOUSE CRM — configurazione automazioni email
 
-Le funzioni email sono predisposte in `functions/`. La chiave Brevo resta nei Secret Manager di Firebase e non deve essere inserita nel JavaScript del browser o committata nel repository.
+Le funzioni email sono predisposte in `functions/`. La chiave Brevo resta nei Secret Manager di Firebase e non deve essere inserita nel JavaScript del browser o committata nel repository. Il mittente verificato è configurato come `info@tophouseitalia.com` con nome `TOP HOUSE`.
 
 ## Funzioni incluse
 - `sendWelcomeEmail`: invio manuale della mail di benvenuto da I miei clienti.
@@ -31,15 +31,12 @@ cd functions
 npm install
 cd ..
 firebase functions:secrets:set BREVO_API_KEY
-firebase functions:secrets:set MAIL_FROM
-firebase functions:secrets:set MAIL_FROM_NAME
 firebase deploy --only functions
 ```
 
 Quando richiesto, inserire:
 - `BREVO_API_KEY`: chiave API di Brevo (non la chiave SMTP).
-- `MAIL_FROM`: indirizzo mittente già verificato in Brevo, ad esempio un indirizzo reale del dominio aziendale.
-- `MAIL_FROM_NAME`: `TOP HOUSE`.
+- Mittente configurato nel backend: `info@tophouseitalia.com` (`TOP HOUSE`).
 
 Non salvare questi valori in file, screenshot o commit Git.
 
