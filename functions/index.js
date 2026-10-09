@@ -160,7 +160,6 @@ exports.processCustomerAutomations = onSchedule({ schedule: "every day 08:00", t
         await writeLog(logId, { status: "sent", sentAt: FieldValue.serverTimestamp(), error: null });
       } catch (err) {
         await writeLog(logId, { status: "failed", error: String(err.message || err), failedAt: FieldValue.serverTimestamp() });
-        continue;
       }
       if (manager && manager.email) {
         try {
