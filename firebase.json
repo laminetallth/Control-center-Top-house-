@@ -1,4 +1,7 @@
 {
+  "firestore": {
+    "rules": "firebase/regole-crm-top-house.rules"
+  },
   "functions": [
     {
       "source": "functions",

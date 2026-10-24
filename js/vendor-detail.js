@@ -11,7 +11,7 @@ const VENDITORI_REGISTRATI = [
         nome: "Davide Marino",
         zona: "Praia a Mare",
         ruolo: "Venditore",
-        foto: "assets/vendors/davide-marino.png"
+        foto: ""
     },
     {
         nome: "Fabio Magnago",
@@ -41,13 +41,13 @@ const VENDITORI_REGISTRATI = [
         nome: "Morena Caccavo",
         zona: "Lombardia",
         ruolo: "Venditore",
-        foto: "assets/vendors/morena-caccavo.png"
+        foto: ""
     },
     {
         nome: "Studio Cian",
         zona: "Cassano Magnago",
         ruolo: "Venditore",
-        foto: "assets/vendors/studio-cian.png"
+        foto: ""
     }
 ];
 

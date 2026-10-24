@@ -172,7 +172,7 @@
         impostaTesto("dashMargine", formatEuro(metriche.margine));
 
         const label = document.getElementById("dashContrattiOk")?.previousElementSibling;
-        if (label) label.textContent = "Contratti validi";
+        if (label && label.textContent !== "Contratti validi") label.textContent = "Contratti validi";
     }
 
     function aggiornaContratti(metriche) {
@@ -186,7 +186,7 @@
         impostaTesto("margineTopHouse", formatEuro(metriche.margine));
 
         const label = document.getElementById("totaleOk")?.previousElementSibling;
-        if (label) label.textContent = "Contratti validi";
+        if (label && label.textContent !== "Contratti validi") label.textContent = "Contratti validi";
     }
 
     function trovaCardPerEtichetta(etichetta) {
@@ -199,8 +199,8 @@
         if (!card) return;
         const titolo = card.querySelector("h4");
         const valoreEl = card.querySelector("p");
-        if (titolo && nuovaEtichetta) titolo.textContent = nuovaEtichetta;
-        if (valoreEl) valoreEl.textContent = valore;
+        if (titolo && nuovaEtichetta && titolo.textContent !== nuovaEtichetta) titolo.textContent = nuovaEtichetta;
+        if (valoreEl && valoreEl.textContent !== String(valore)) valoreEl.textContent = valore;
     }
 
     function aggiungiCardFatturatoKpi(metriche) {
@@ -214,7 +214,8 @@
             card.innerHTML = `<span class="kpi-corner-delta neutral">Totale</span><h4>Fatturato totale</h4><p>0,00€</p><small>Periodo selezionato</small>`;
             container.insertBefore(card, container.firstChild);
         }
-        card.querySelector("p").textContent = formatEuro(metriche.fatturato);
+        const valoreCard = card.querySelector("p");
+        if (valoreCard.textContent !== formatEuro(metriche.fatturato)) valoreCard.textContent = formatEuro(metriche.fatturato);
     }
 
     function aggregaPerCampo(lista, campoNome, campoImporto) {
@@ -238,21 +239,27 @@
             .replaceAll("'", "&#039;");
     }
 
+    function impostaHtml(container, html) {
+        if (container.dataset.economicOverviewHtml === html) return;
+        container.dataset.economicOverviewHtml = html;
+        container.innerHTML = html;
+    }
+
     function renderRevenueChart(id, dati, messaggioVuoto) {
         const container = document.getElementById(id);
         if (!container) return;
         if (!dati.length) {
-            container.innerHTML = `<p class="empty-note">${messaggioVuoto}</p>`;
+            impostaHtml(container, `<p class="empty-note">${messaggioVuoto}</p>`);
             return;
         }
         const massimo = Math.max(...dati.map((dato) => Math.abs(dato.valore)), 1);
-        container.innerHTML = dati.map((dato) => `
+        impostaHtml(container, dati.map((dato) => `
             <div class="revenue-row" title="${escapeHtml(dato.nome)}: ${formatEuro(dato.valore)}">
                 <span class="revenue-name">${escapeHtml(dato.nome)}</span>
                 <span class="revenue-track"><span class="revenue-fill" style="width:${Math.max(4, (Math.abs(dato.valore) / massimo) * 100)}%"></span></span>
                 <span class="revenue-value">${formatEuro(dato.valore)}</span>
             </div>
-        `).join("");
+        `).join(""));
     }
 
     function aggiornaKpi(lista, metriche) {
@@ -288,7 +295,8 @@
             if (pagina === "contracts.html") aggiornaContratti(metriche);
             if (pagina === "kpi.html") aggiornaKpi(lista, metriche);
         } finally {
-            aggiornamentoInCorso = false;
+            // Le mutazioni generate qui arrivano all'observer in un microtask: il flag resta attivo fino ad allora.
+            queueMicrotask(() => { aggiornamentoInCorso = false; });
         }
     }
 
@@ -305,16 +313,26 @@
         });
     }
 
+    let aggiornamentoProgrammato = null;
+    function programmaAggiornamento() {
+        if (aggiornamentoProgrammato) return;
+        aggiornamentoProgrammato = setTimeout(() => {
+            aggiornamentoProgrammato = null;
+            aggiorna();
+        }, 150);
+    }
+
     function avvia() {
         collegaEventi();
         aggiorna();
         const observer = new MutationObserver(() => {
+            if (aggiornamentoInCorso) return;
             collegaEventi();
-            setTimeout(aggiorna, 0);
+            programmaAggiornamento();
         });
         observer.observe(document.body, { childList: true, subtree: true });
-        window.addEventListener("storage", aggiorna);
-        setInterval(aggiorna, 1500);
+        window.addEventListener("storage", programmaAggiornamento);
+        setInterval(aggiorna, 3000);
     }
 
     if (document.readyState === "loading") {

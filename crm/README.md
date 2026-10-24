@@ -10,7 +10,11 @@ CRM venditori Top House, integrato nel Control Center esistente.
 5. Stato contratti — monitoraggio Inserito, In lavorazione, OK, KO e Storno.
 
 ## Versione attuale
-Questa è la **versione UI/prototipo**: i dati vengono salvati nel browser tramite localStorage. Non è ancora un database condiviso tra venditori.
+- Accesso con email e password (Firebase Authentication, progetto `crm-top-house`).
+- Il primo accesso del titolare crea l'Admin; gli altri accessi si creano da **Utenti e ruoli**.
+- Dati condivisi su Firestore (`crmData/main`), salvati pratica per pratica: due persone che lavorano insieme non si sovrascrivono.
+- Se il cloud non è raggiungibile si può continuare in modalità locale (solo su quel browser).
+- Configurazione Firebase e regole: vedi `firebase/ISTRUZIONI.md`.
 
 ## Evoluzione prevista
 - Login reale con ruoli Admin/Venditore.
@@ -28,4 +32,3 @@ Questa è la **versione UI/prototipo**: i dati vengono salvati nel browser trami
 - Campi contratto: prezzo stipulato, durata offerta, scadenza, note, cliente, contatti, venditore, fonte lead, priorità e prossimo contatto.
 - Ricerca e filtri avanzati, modifica/eliminazione, cambio stato rapido, dashboard con valore offerte e scadenze.
 - Branding Top House con logo e interfaccia responsive.
-- I dati restano nel browser tramite localStorage finché non viene collegato un backend condiviso.

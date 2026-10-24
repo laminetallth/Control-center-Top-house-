@@ -1,5 +1,5 @@
 import { formatEuro } from "./formatters.js";
-import { readCollection } from "./firebase-data.js";
+import { readCollection, readVendorNames } from "./firebase-data.js";
 const VENDITORI_REGISTRATI = [
     "Antonio Attardi",
     "Davide Marino",
@@ -94,13 +94,16 @@ const searchInput = document.getElementById("searchInput");
 const vendorFilter = document.getElementById("vendorFilter");
 const paymentFilter = document.getElementById("paymentFilter");
 
-function popolaVenditori(){
+function popolaVenditori(altri = []){
 
-    vendorFilter.innerHTML = `<option value="">Tutti i venditori</option>`;
+    const selezionato = vendorFilter.value;
+    const daiContratti = caricaContratti().map(c => testo(c.venditore)).filter(Boolean);
+    const venditori = [...new Set([...VENDITORI_REGISTRATI, ...altri, ...daiContratti])].sort((a, b) => a.localeCompare(b, "it"));
 
-    VENDITORI_REGISTRATI.forEach(venditore => {
-        vendorFilter.innerHTML += `<option value="${escapeHtml(venditore)}">${escapeHtml(venditore)}</option>`;
-    });
+    vendorFilter.innerHTML = `<option value="">Tutti i venditori</option>` + venditori
+        .map(venditore => `<option value="${escapeHtml(venditore)}">${escapeHtml(venditore)}</option>`)
+        .join("");
+    vendorFilter.value = selezionato;
 }
 
 function getContrattiProvvigioni(){
@@ -641,5 +644,11 @@ paymentFilter.addEventListener("change", aggiornaPagina);
 
 popolaVenditori();
 
-async function inizializzaFirebase(){ try{ await readCollection("contracts"); }catch(error){ console.error(error); } aggiornaPagina(); }
+async function inizializzaFirebase(){
+    try{ await readCollection("contracts"); }catch(error){ console.error(error); }
+    let registrati = [];
+    try{ registrati = (await readVendorNames(VENDITORI_REGISTRATI)).tutti; }catch(error){ console.error(error); }
+    popolaVenditori(registrati);
+    aggiornaPagina();
+}
 inizializzaFirebase();

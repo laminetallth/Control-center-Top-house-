@@ -10,6 +10,11 @@
         window.XLSX.__topHouseEmptyWorkbookGuard = true;
         return true;
     }
-    if (!patch()) setInterval(() => { if (patch()) clearInterval(timer); }, 200);
-    const timer = setInterval(() => { if (patch()) clearInterval(timer); }, 200);
+    if (!patch()) {
+        let tentativi = 0;
+        const timer = setInterval(() => {
+            tentativi += 1;
+            if (patch() || tentativi > 150) clearInterval(timer);
+        }, 200);
+    }
 })();

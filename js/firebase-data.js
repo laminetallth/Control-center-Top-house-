@@ -7,9 +7,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
-  serverTimestamp,
-  query,
-  orderBy
+  serverTimestamp
 } from "./firebase-config.js";
 
 export const FIREBASE_COLLECTIONS = {
@@ -46,12 +44,22 @@ function docIdFor(data, index = 0){
   return String((data && (data.firestoreId || data.localId || data.id || data.key)) || Date.now() + index).replaceAll("/", "-");
 }
 
+function sortValue(value){
+  if(value && typeof value.toMillis === "function"){ return value.toMillis(); }
+  if(value && typeof value === "object" && "seconds" in value){ return Number(value.seconds) * 1000; }
+  return value ?? "";
+}
+
 export async function readCollection(collectionName, options = {}){
-  const colRef = collection(db, collectionName);
-  let snap;
-  try{ snap = await getDocs(query(colRef, orderBy(options.orderBy || "updatedAt", "desc"))); }
-  catch(e){ snap = await getDocs(colRef); }
-  const data = snap.docs.map((d, index) => normalizeItem({ firestoreId: d.id, ...d.data() }, index));
+  // Nessun orderBy lato Firestore: escluderebbe in silenzio i documenti senza il campo "updatedAt".
+  const snap = await getDocs(collection(db, collectionName));
+  const field = options.orderBy || "updatedAt";
+  const data = snap.docs
+    .map((d, index) => normalizeItem({ firestoreId: d.id, ...d.data() }, index))
+    .sort((x, y) => {
+      const a = sortValue(x[field]), b = sortValue(y[field]);
+      return a < b ? 1 : a > b ? -1 : 0;
+    });
   if(collectionName === "vendorStatuses"){
     const statuses = {};
     data.forEach(item => { const vendor = item.venditore || item.localId || item.id || item.firestoreId; if(vendor){ statuses[vendor] = item.stato || item.status || "Attivo"; } });
@@ -110,4 +118,18 @@ export async function saveVendorStatuses(statuses){
     await setDoc(doc(db, "vendorStatuses", vendor.replaceAll("/", "-")), { id: vendor, localId: vendor, venditore: vendor, stato: status, updatedAt: serverTimestamp() }, { merge: true });
   }
   localStorage.setItem("statiVenditoriTopHouse", JSON.stringify(statuses || {}));
+}
+
+// Elenco venditori: quelli storici passati dalla pagina + quelli aggiunti da "Venditori" (raccolta vendorProfiles).
+export async function readVendorNames(baseNames = []){
+  let profili = [];
+  try{ profili = await readCollection("vendorProfiles"); }
+  catch(e){ profili = readLocal("vendorProfilesTopHouse", []); }
+  const pulisci = v => String(v || "").trim();
+  const inattivi = new Set(profili.filter(v => v.attivo === false).map(v => pulisci(v.nome)));
+  const tutti = [...new Set([...baseNames.map(pulisci), ...profili.map(v => pulisci(v.nome))].filter(Boolean))];
+  return {
+    tutti: tutti.sort((a, b) => a.localeCompare(b, "it")),
+    attivi: tutti.filter(nome => !inattivi.has(nome)).sort((a, b) => a.localeCompare(b, "it"))
+  };
 }

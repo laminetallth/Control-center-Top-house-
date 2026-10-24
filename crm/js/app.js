@@ -1,3 +1,4 @@
+window.__crmBooted=true;
 let db=null;
 let firestoreApi={};
 let firebaseApp=null, authInstance=null, authApi=null, firebaseAuthUser=null;
@@ -14,21 +15,84 @@ const defaultData={contracts:[],affiliates:[],leads:[],events:[],plans:[{id:1,na
 let data=structuredClone(defaultData),currentPage="dashboard",currentUser=null,cloudUnsubscribe=null,cloudReady=false,currentProfile=null,userProfiles=[];
 const ROLE_LABELS={admin:"Amministratore",manager:"Capo venditore",seller:"Venditore"};
 const ROLE_NAMES={admin:"Admin",manager:"Capo venditore",seller:"Venditore"};
+let secondaryAuth=null,configProblem="",localMode=false,baseData=null;
+const fsCall=name=>(...args)=>firestoreApi[name](...args);
+const getDocs=fsCall("getDocs"),getDoc=fsCall("getDoc"),setDoc=fsCall("setDoc"),doc=fsCall("doc"),collection=fsCall("collection"),serverTimestamp=fsCall("serverTimestamp");
+async function createUserWithEmailAndPassword(auth,email,password){
+  if(!auth)throw Object.assign(new Error("Servizio account non pronto"),{code:"crm/auth-not-ready"});
+  const cred=await authApi.createUserWithEmailAndPassword(auth,email,password);
+  try{await authApi.signOut(auth)}catch(e){}
+  return cred;
+}
+function authErrorMessage(err){
+  const code=String(err?.code||err?.message||"");
+  if(code.includes("api-key-not-valid")||code.includes("invalid-api-key"))return "La chiave Firebase del CRM non è valida: va corretta in crm/js/firebase.js.";
+  if(/invalid-credential|wrong-password|user-not-found|invalid-email|invalid-login/.test(code))return "Email o password non corretti.";
+  if(code.includes("too-many-requests"))return "Troppi tentativi: riprova tra qualche minuto.";
+  if(code.includes("network-request-failed"))return "Connessione assente: controlla internet e riprova.";
+  if(code.includes("email-already-in-use"))return "Esiste già un account con questa email.";
+  if(code.includes("weak-password"))return "Password troppo corta: servono almeno 6 caratteri.";
+  if(code.includes("user-disabled"))return "Questo account è stato disattivato.";
+  if(code.includes("crm/no-profile"))return "Questo account non è abilitato al CRM: chiedi all'amministratore di crearti l'accesso.";
+  if(code.includes("permission-denied"))return "Permessi Firebase insufficienti: vanno pubblicate le regole del CRM.";
+  return "Operazione non riuscita"+(code?" ("+code+")":"")+".";
+}
 function isAdmin(){return currentProfile?.role==="admin"}
 function isManager(){return currentProfile?.role==="manager"}
 function visibleSellerNames(){if(isAdmin())return SELLERS;if(isManager())return [currentProfile.name,...userProfiles.filter(u=>u.managerUid===currentUser.uid&&u.active!==false).map(u=>u.name)].filter(Boolean);return [currentProfile?.name||currentProfile?.sellerName||""];}
 function visibleData(){const names=new Set(visibleSellerNames());return {...data,contracts:data.contracts.filter(c=>names.has(c.seller)),leads:data.leads.filter(x=>names.has(x.seller)),events:data.events.filter(x=>!x.seller||names.has(x.seller))}}
 function canManageSeller(name){return isAdmin()||isManager()&&visibleSellerNames().includes(name)}
 async function loadProfiles(){const snap=await getDocs(collection(db,"users"));userProfiles=snap.docs.map(d=>({uid:d.id,...d.data()}));const names=userProfiles.filter(u=>u.active!==false&&u.name).map(u=>u.name);SELLERS=[...new Set([...SELLERS,...names])]}
-async function ensureProfile(user){const ref=doc(db,"users",user.uid),snap=await getDoc(ref);if(snap.exists()){currentProfile={uid:user.uid,...snap.data()};return}
-const existing=await getDocs(collection(db,"users"));const role=existing.empty?"admin":"seller";const profile={email:user.email||"",name:user.email?.split("@")[0]||"Venditore",sellerName:user.email?.split("@")[0]||"Venditore",role,managerUid:null,managerName:"",active:true,createdAt:serverTimestamp()};await setDoc(ref,profile);currentProfile={uid:user.uid,...profile};toast(role==="admin"?"Primo account impostato come Admin":"Account creato come Venditore")}
+async function ensureProfile(user){
+  const ref=doc(db,"users",user.uid),snap=await getDoc(ref);
+  if(snap.exists()){currentProfile={uid:user.uid,...snap.data()};return}
+  // Senza profilo si entra solo al primissimo accesso (diventa Admin). Tutti gli altri li crea l'Admin da "Utenti e ruoli".
+  let empty=true;
+  try{empty=(await getDocs(collection(db,"users"))).empty}catch(e){empty=true}
+  const denied=()=>Object.assign(new Error("Profilo non autorizzato"),{code:"crm/no-profile"});
+  if(!empty)throw denied();
+  const name=user.email?.split("@")[0]||"Amministratore";
+  const profile={email:user.email||"",name,sellerName:name,role:"admin",managerUid:null,managerName:"",active:true,createdAt:serverTimestamp()};
+  try{await setDoc(ref,profile)}catch(e){throw denied()}
+  currentProfile={uid:user.uid,...profile};toast("Primo account impostato come Admin");
+}
+const COLLECTIONS=["contracts","affiliates","leads","events","plans"];
+function itemKey(x,i){return String(x&&x.id!=null?x.id:"idx-"+i)}
+function diffData(base,cur){
+  const ops=[];
+  for(const k of COLLECTIONS){
+    const before=new Map((base?.[k]||[]).map((x,i)=>[itemKey(x,i),JSON.stringify(x)]));
+    const now=new Map((cur[k]||[]).map((x,i)=>[itemKey(x,i),x]));
+    for(const [id,x] of now)if(before.get(id)!==JSON.stringify(x))ops.push({k,id,x});
+    for(const id of before.keys())if(!now.has(id))ops.push({k,id,del:true});
+  }
+  return ops;
+}
+function applyOps(server,ops){
+  const out={...defaultData,...server};
+  for(const k of COLLECTIONS)out[k]=(out[k]||[]).slice();
+  for(const op of ops){const list=out[op.k],i=list.findIndex((x,j)=>itemKey(x,j)===op.id);if(op.del){if(i>=0)list.splice(i,1)}else if(i>=0)list[i]=op.x;else list.push(op.x)}
+  return out;
+}
+function onlyCollections(d){return JSON.parse(JSON.stringify(Object.fromEntries(COLLECTIONS.map(k=>[k,d[k]||[]]))))}
+function upsert(list,obj){const i=list.findIndex(x=>String(x.id)===String(obj.id));if(i>=0)list[i]={...list[i],...obj};else list.push(obj)}
 async function save(){
+  if(!localMode&&!currentUser)return;
   localStorage.setItem(KEY,JSON.stringify(data));
-  if(!db||!firestoreApi.setDoc)return;
+  if(localMode||!cloudReady||!db||!firestoreApi.runTransaction)return;
+  const ops=diffData(baseData,data);
+  if(!ops.length)return;
+  const fs=firestoreApi,ref=fs.doc(db,"crmData","main");
   try{
-    const {doc,setDoc,serverTimestamp}=firestoreApi;
-    await setDoc(doc(db,"crmData","main"),{...data,updatedAt:serverTimestamp(),updatedBy:currentUser?.uid||"local-admin"},{merge:true});
-  }catch(err){console.error("Firebase save error",err);toast("Salvato localmente · cloud non disponibile")}
+    // Si rilegge il documento aggiornato e si applicano solo le pratiche toccate: nessuno sovrascrive il lavoro degli altri.
+    const merged=await fs.runTransaction(db,async tx=>{
+      const snap=await tx.get(ref);
+      const next=onlyCollections(applyOps(snap.exists()?snap.data():{},ops));
+      tx.set(ref,{...next,updatedAt:fs.serverTimestamp(),updatedBy:currentUser?.uid||""},{merge:true});
+      return next;
+    });
+    baseData=merged;
+  }catch(err){console.error("Firebase save error",err);toast(err?.code==="permission-denied"?"Non salvato: permessi Firebase insufficienti":"Non salvato sul cloud: controlla la connessione e riprova")}
 }
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]))}
 function money(n){return new Intl.NumberFormat("it-IT",{style:"currency",currency:"EUR"}).format(Number(n)||0)}
@@ -52,7 +116,7 @@ function usersPage(){
 const manageable=userProfiles.filter(u=>u.active!==false&&((isAdmin())||(isManager()&&(u.uid===currentUser.uid||u.managerUid===currentUser.uid))));
  return '<section class="panel"><div class="panel-head"><div><h2>Utenti e ruoli</h2><div class="panel-sub">Crea credenziali, assegna ruoli e collega i venditori ai loro responsabili.</div></div>'+(isAdmin()?'<button class="primary" id="new-user">+ Crea credenziali</button>':'<span class="role-pill">Gestione sub-venditori</span>')+'</div><div class="role-grid">'+(manageable.map(u=>'<article class="user-card"><div><div class="user-name">'+esc(u.name||u.email)+'</div><div class="user-email">'+esc(u.email)+'</div></div><span class="role-tag role-'+esc(u.role)+'">'+esc(ROLE_LABELS[u.role]||u.role)+'</span><div class="user-meta"><span>Responsabile: <b>'+esc(u.managerName||"Nessuno")+'</b></span><span>'+((data.contracts||[]).filter(c=>c.seller===u.name).length)+' pratiche</span></div>'+(u.uid!==currentUser.uid&&isAdmin()?'<div class="user-actions"><button class="secondary edit-user" data-uid="'+u.uid+'">Modifica</button><button class="icon-btn delete-user" data-uid="'+u.uid+'">×</button></div>':'')+'</article>').join("")||'<div class="empty">Nessun utente configurato.</div>')+'</div></section>';
 }
-function openUser(existing){const u=existing||{},allowedRoles=isAdmin()?["admin","manager","seller"]:["seller"],managers=userProfiles.filter(x=>x.role==="manager"&&x.active!==false&&x.uid!==u.uid);const m=modal('<div class="modal-head"><div><div class="eyebrow">TOP HOUSE · RETE</div><h2>'+(existing?"Modifica utente":"Crea nuove credenziali")+'</h2></div><button class="close">×</button></div><form><div class="form-grid"><div class="field"><label>Nome e cognome *</label><input class="input" name="name" value="'+esc(u.name)+'" required></div><div class="field"><label>Email *</label><input class="input" name="email" type="email" value="'+esc(u.email)+'" '+(existing?'readonly':'required')+'></div>'+(existing?'':'<div class="field"><label>Password temporanea *</label><input class="input" name="password" type="password" minlength="6" required></div>')+'<div class="field"><label>Ruolo *</label><select class="select" name="role">'+options(allowedRoles,u.role||"seller")+'</select></div><div class="field"><label>Responsabile / capo venditore</label><select class="select" name="managerUid"><option value="">Nessuno</option>'+managers.map(x=>'<option value="'+x.uid+'" '+(x.uid===u.managerUid?'selected':'')+'>'+esc(x.name)+'</option>').join("")+'</select></div><div class="field"><label>Stato</label><select class="select" name="active"><option value="true" '+(u.active!==false?'selected':'')+'>Attivo</option><option value="false" '+(u.active===false?'selected':'')+'>Disattivato</option></select></div></div><div class="form-actions"><button type="button" class="secondary cancel">Annulla</button><button class="primary">'+(existing?"Salva modifiche":"Crea account")+'</button></div></form>');m.querySelector(".close").onclick=()=>closeModal(m);m.querySelector(".cancel").onclick=()=>closeModal(m);m.querySelector("form").onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target),manager=userProfiles.find(x=>x.uid===f.get("managerUid"));try{if(existing){await setDoc(doc(db,"users",existing.uid),{name:f.get("name"),role:f.get("role"),managerUid:f.get("managerUid")||null,managerName:manager?.name||"",active:f.get("active")==="true"},{merge:true});toast("Utente aggiornato")}else{const cred=await createUserWithEmailAndPassword(secondaryAuth,f.get("email").trim(),f.get("password"));await setDoc(doc(db,"users",cred.user.uid),{email:f.get("email").trim(),name:f.get("name"),sellerName:f.get("name"),role:f.get("role"),managerUid:f.get("managerUid")||null,managerName:manager?.name||"",active:true,createdAt:serverTimestamp()});toast("Credenziali create")}await loadProfiles();closeModal(m);render()}catch(err){console.error(err);toast(authErrorMessage(err))}}}
+function openUser(existing){const u=existing||{},allowedRoles=isAdmin()?["admin","manager","seller"]:["seller"],managers=userProfiles.filter(x=>x.role==="manager"&&x.active!==false&&x.uid!==u.uid);const m=modal('<div class="modal-head"><div><div class="eyebrow">TOP HOUSE · RETE</div><h2>'+(existing?"Modifica utente":"Crea nuove credenziali")+'</h2></div><button class="close">×</button></div><form><div class="form-grid"><div class="field"><label>Nome e cognome *</label><input class="input" name="name" value="'+esc(u.name)+'" required></div><div class="field"><label>Email *</label><input class="input" name="email" type="email" value="'+esc(u.email)+'" '+(existing?'readonly':'required')+'></div>'+(existing?'':'<div class="field"><label>Password temporanea *</label><input class="input" name="password" type="password" minlength="6" required></div>')+'<div class="field"><label>Ruolo *</label><select class="select" name="role">'+options(allowedRoles,u.role||"seller")+'</select></div><div class="field"><label>Responsabile / capo venditore</label><select class="select" name="managerUid"><option value="">Nessuno</option>'+managers.map(x=>'<option value="'+x.uid+'" '+(x.uid===u.managerUid?'selected':'')+'>'+esc(x.name)+'</option>').join("")+'</select></div><div class="field"><label>Stato</label><select class="select" name="active"><option value="true" '+(u.active!==false?'selected':'')+'>Attivo</option><option value="false" '+(u.active===false?'selected':'')+'>Disattivato</option></select></div></div><div class="form-actions"><button type="button" class="secondary cancel">Annulla</button><button class="primary">'+(existing?"Salva modifiche":"Crea account")+'</button></div></form>');m.querySelector(".close").onclick=()=>closeModal(m);m.querySelector(".cancel").onclick=()=>closeModal(m);m.querySelector("form").onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);if(isManager())f.set("managerUid",currentUser.uid);const manager=userProfiles.find(x=>x.uid===f.get("managerUid"));try{if(existing){await setDoc(doc(db,"users",existing.uid),{name:f.get("name"),role:f.get("role"),managerUid:f.get("managerUid")||null,managerName:manager?.name||"",active:f.get("active")==="true"},{merge:true});toast("Utente aggiornato")}else{const cred=await createUserWithEmailAndPassword(secondaryAuth,f.get("email").trim(),f.get("password"));await setDoc(doc(db,"users",cred.user.uid),{email:f.get("email").trim(),name:f.get("name"),sellerName:f.get("name"),role:f.get("role"),managerUid:f.get("managerUid")||null,managerName:manager?.name||"",active:true,createdAt:serverTimestamp()});toast("Credenziali create")}await loadProfiles();closeModal(m);render()}catch(err){console.error(err);toast(authErrorMessage(err))}}}
 function affiliates(){return '<section class="panel"><div class="panel-head"><div><h2>Affiliati e partner</h2><div class="panel-sub">CAF, agenzie, venditori e partner che generano produzione.</div></div><button class="primary" id="new-affiliate">+ Nuovo affiliato</button></div><div class="section-grid">'+(data.affiliates.map(a=>'<article class="affiliate-card"><div class="affiliate-top"><div><div class="affiliate-name">'+esc(a.name)+'</div><div class="affiliate-type">'+esc(a.type)+' · '+esc(a.status)+'</div></div><div class="percent">'+esc(a.percent)+'%</div></div><div class="panel-sub affiliate-note">'+esc(a.phone||"")+' '+esc(a.email||"")+'</div></article>').join("")||'<div class="empty">Nessun affiliato.</div>')+'</div></section>'}
 function plans(){return '<section class="panel"><div class="panel-head"><div><h2>Piani compensi</h2><div class="panel-sub">Area dedicata ai piani della rete vendita.</div></div></div><div class="section-grid">'+data.plans.map(p=>'<article class="affiliate-card"><div class="affiliate-name">'+esc(p.name)+'</div><div class="affiliate-type">'+esc(p.description)+'</div><div class="plan-date">Ultimo aggiornamento: <b>'+esc(p.updated)+'</b></div><button class="secondary">Apri piano</button></article>').join("")+'</div></section>'}
 function automationsPage(){return '<section class="panel"><div class="panel-head"><div><h2>Registro automazioni email</h2><div class="panel-sub">Invii di benvenuto, auguri e promemoria scadenza.</div></div><button class="secondary" id="refresh-automations">↻ Aggiorna registro</button></div><div class="filters"><select class="select" id="automation-type"><option value="">Tutte le automazioni</option><option value="welcome">Benvenuto</option><option value="birthday">Compleanno</option><option value="expiry">Scadenza offerta · cliente</option><option value="expiry-seller">Scadenza offerta · venditore</option></select><select class="select" id="automation-status"><option value="">Tutti gli stati</option><option value="sent">Inviata</option><option value="sending">In corso</option><option value="failed">Errore</option></select></div><div id="automation-table">'+automationTable(automationLogs)+'</div></section>'}
@@ -152,66 +216,132 @@ m.querySelector("form").onsubmit=e=>{
 e.preventDefault();const f=new FormData(e.target),v=f.get("service");
 const price=v==="Luce + Gas"?Number(f.get("priceLight")||0)+Number(f.get("priceGas")||0):(["Luce","Gas"].includes(v)?Number(f.get("priceLight")||f.get("priceGas")||0):Number(f.get("priceService")||0));
 const obj={id:c.id||Date.now(),name:f.get("name"),phone:f.get("phone"),email:f.get("email"),city:f.get("city"),birthday:f.get("birthday")||"",date:f.get("date"),nextContact:f.get("nextContact"),service:v,segment:f.get("segment"),managerLight:f.get("managerLight"),managerGas:f.get("managerGas"),manager:f.get("managerLight")||f.get("managerGas"),offerTypeLight:f.get("offerTypeLight"),offerTypeGas:f.get("offerTypeGas"),offerType:v==="Luce + Gas"?"Fisso/Variabile":(f.get("offerTypeLight")||f.get("offerTypeGas")||""),priceLight:f.get("priceLight"),priceGas:f.get("priceGas"),price,priceService:f.get("priceService")||"",additionalServices:[],additionalPrices:{},durationLight:f.get("durationLight"),durationGas:f.get("durationGas"),duration:f.get("durationLight")||f.get("durationGas"),rid:f.get("rid"),status:f.get("status"),seller:f.get("seller")||currentProfile?.name,source:f.get("source"),affiliateComp:f.get("affiliateComp"),notes:f.get("notes")};
-if(existing)Object.assign(existing,obj);else data.contracts.push(obj);save();closeModal(m);render();toast(existing?"Contratto aggiornato":"Contratto inserito correttamente")
+upsert(data.contracts,obj);save();closeModal(m);render();toast(existing?"Contratto aggiornato":"Contratto inserito correttamente")
 }}
 
 function bindLeadActions(){document.querySelectorAll(".edit-lead").forEach(b=>b.onclick=()=>{const x=data.leads.find(x=>x.id==b.dataset.id);if(x&&!canManageSeller(x.seller))return toast("Non hai i permessi per questo lead");openLead(x)});document.querySelectorAll(".delete-lead").forEach(b=>b.onclick=()=>{const x=data.leads.find(x=>x.id==b.dataset.id);if(x&&!canManageSeller(x.seller))return toast("Non hai i permessi per questo lead");if(confirm("Eliminare questo lead?")){data.leads=data.leads.filter(x=>x.id!=b.dataset.id);save();render();toast("Lead eliminato")}});const q=document.querySelector("#lead-search");if(q){const f=()=>{let l=data.leads.slice(),qv=q.value.toLowerCase(),st=document.querySelector("#lead-stage").value,sv=document.querySelector("#lead-service").value,se=document.querySelector("#lead-seller").value;if(qv)l=l.filter(x=>(x.name+" "+x.phone+" "+x.email+" "+x.city).toLowerCase().includes(qv));if(st)l=l.filter(x=>x.stage===st);if(sv)l=l.filter(x=>x.service===sv);if(se)l=l.filter(x=>x.seller===se);document.querySelector("#leads-table").innerHTML=leadTable(l);bindLeadActions()};["lead-search","lead-stage","lead-service","lead-seller"].forEach(id=>document.querySelector("#"+id)?.addEventListener("input",f))}}
 function bindEventActions(){document.querySelectorAll(".edit-event").forEach(b=>b.onclick=()=>openEvent(data.events.find(x=>x.id==b.dataset.id)));document.querySelectorAll(".delete-event").forEach(b=>b.onclick=()=>{if(confirm("Eliminare appuntamento?")){data.events=data.events.filter(x=>x.id!=b.dataset.id);save();render();toast("Appuntamento eliminato")}})}
-function openLead(existing){const x=existing||{};const m=modal('<div class="modal-head"><div><div class="eyebrow">TOP HOUSE · OPPORTUNITÀ</div><h2>'+(existing?"Modifica lead":"Nuovo lead")+'</h2></div><button class="close">×</button></div><form><div class="form-section"><h3>Cliente potenziale</h3><div class="form-grid"><div class="field"><label>Nome e cognome *</label><input class="input" name="name" value="'+esc(x.name)+'" required></div><div class="field"><label>Telefono</label><input class="input" name="phone" value="'+esc(x.phone)+'" type="tel"></div><div class="field"><label>Email</label><input class="input" name="email" value="'+esc(x.email)+'" type="email"></div><div class="field"><label>Città</label><input class="input" name="city" value="'+esc(x.city)+'"></div></div></div><div class="form-section"><h3>Possibile vendita</h3><div class="form-grid"><div class="field"><label>Servizio *</label><select class="select" name="service" required>'+options(SERVICES,x.service)+'</select></div><div class="field"><label>Gestore</label><select class="select" name="manager">'+options(MANAGERS,x.manager,"Nessun gestore")+'</select></div><div class="field"><label>Valore stimato (€)</label><input class="input" name="value" type="number" min="0" step=".01" value="'+esc(x.value)+'"></div><div class="field"><label>Stato</label><select class="select" name="stage">'+options(["Nuovo","Contattato","Interessato","Caldo","Chiuso","Perso"],x.stage||"Nuovo")+'</select></div><div class="field"><label>Venditore</label><select class="select" name="seller">'+options(visibleSellerNames(),canManageSeller(x.seller)?x.seller:(x.seller||visibleSellerNames()[0]))+'</select></div><div class="field"><label>Prossimo contatto</label><input class="input" type="date" name="nextContact" value="'+esc(x.nextContact)+'"></div><div class="field full"><label>Note</label><textarea class="input textarea" name="notes" placeholder="Esigenze, offerta da proporre, obiezioni...">'+esc(x.notes)+'</textarea></div></div></div><div class="form-actions"><button type="button" class="secondary cancel">Annulla</button><button class="primary">'+(existing?"Salva modifiche":"Salva lead")+'</button></div></form>');m.querySelector(".close").onclick=()=>closeModal(m);m.querySelector(".cancel").onclick=()=>closeModal(m);m.querySelector("form").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),obj={id:x.id||Date.now(),created:x.created||new Date().toISOString(),name:f.get("name"),phone:f.get("phone"),email:f.get("email"),city:f.get("city"),service:f.get("service"),manager:f.get("manager"),value:f.get("value"),stage:f.get("stage"),seller:f.get("seller"),nextContact:f.get("nextContact"),notes:f.get("notes")};if(existing)Object.assign(existing,obj);else data.leads.push(obj);save();closeModal(m);render();toast(existing?"Lead aggiornato":"Lead inserito")}}
-function openEvent(existing){const x=existing||{},today=new Date().toISOString().slice(0,10);const m=modal('<div class="modal-head"><div><div class="eyebrow">TOP HOUSE · AGENDA</div><h2>'+(existing?"Modifica appuntamento":"Nuovo appuntamento")+'</h2></div><button class="close">×</button></div><form><div class="form-grid"><div class="field full"><label>Titolo *</label><input class="input" name="title" value="'+esc(x.title)+'" placeholder="Es. Appuntamento cliente Rossi" required></div><div class="field"><label>Data *</label><input class="input" type="date" name="date" value="'+esc(x.date||today)+'" required></div><div class="field"><label>Ora</label><input class="input" type="time" name="time" value="'+esc(x.time||"09:00")+'"></div><div class="field"><label>Tipo</label><select class="select" name="type">'+options(["Appuntamento","Richiamo","Riunione","Nota","Altro"],x.type||"Appuntamento")+'</select></div><div class="field"><label>Cliente / Lead</label><input class="input" name="client" value="'+esc(x.client)+'" placeholder="Nome cliente"></div><div class="field full"><label>Note</label><textarea class="input textarea" name="notes" placeholder="Cosa devo ricordarmi?">'+esc(x.notes)+'</textarea></div></div><div class="form-actions"><button type="button" class="secondary cancel">Annulla</button><button class="primary">'+(existing?"Salva modifiche":"Salva appuntamento")+'</button></div></form>');m.querySelector(".close").onclick=()=>closeModal(m);m.querySelector(".cancel").onclick=()=>closeModal(m);m.querySelector("form").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),obj={id:x.id||Date.now(),title:f.get("title"),date:f.get("date"),time:f.get("time"),type:f.get("type"),client:f.get("client"),notes:f.get("notes")};if(existing)Object.assign(existing,obj);else data.events.push(obj);save();closeModal(m);render();toast(existing?"Appuntamento aggiornato":"Appuntamento salvato")}}
+function openLead(existing){const x=existing||{};const m=modal('<div class="modal-head"><div><div class="eyebrow">TOP HOUSE · OPPORTUNITÀ</div><h2>'+(existing?"Modifica lead":"Nuovo lead")+'</h2></div><button class="close">×</button></div><form><div class="form-section"><h3>Cliente potenziale</h3><div class="form-grid"><div class="field"><label>Nome e cognome *</label><input class="input" name="name" value="'+esc(x.name)+'" required></div><div class="field"><label>Telefono</label><input class="input" name="phone" value="'+esc(x.phone)+'" type="tel"></div><div class="field"><label>Email</label><input class="input" name="email" value="'+esc(x.email)+'" type="email"></div><div class="field"><label>Città</label><input class="input" name="city" value="'+esc(x.city)+'"></div></div></div><div class="form-section"><h3>Possibile vendita</h3><div class="form-grid"><div class="field"><label>Servizio *</label><select class="select" name="service" required>'+options(SERVICES,x.service)+'</select></div><div class="field"><label>Gestore</label><select class="select" name="manager">'+options(MANAGERS,x.manager,"Nessun gestore")+'</select></div><div class="field"><label>Valore stimato (€)</label><input class="input" name="value" type="number" min="0" step=".01" value="'+esc(x.value)+'"></div><div class="field"><label>Stato</label><select class="select" name="stage">'+options(["Nuovo","Contattato","Interessato","Caldo","Chiuso","Perso"],x.stage||"Nuovo")+'</select></div><div class="field"><label>Venditore</label><select class="select" name="seller">'+options(visibleSellerNames(),canManageSeller(x.seller)?x.seller:(x.seller||visibleSellerNames()[0]))+'</select></div><div class="field"><label>Prossimo contatto</label><input class="input" type="date" name="nextContact" value="'+esc(x.nextContact)+'"></div><div class="field full"><label>Note</label><textarea class="input textarea" name="notes" placeholder="Esigenze, offerta da proporre, obiezioni...">'+esc(x.notes)+'</textarea></div></div></div><div class="form-actions"><button type="button" class="secondary cancel">Annulla</button><button class="primary">'+(existing?"Salva modifiche":"Salva lead")+'</button></div></form>');m.querySelector(".close").onclick=()=>closeModal(m);m.querySelector(".cancel").onclick=()=>closeModal(m);m.querySelector("form").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),obj={id:x.id||Date.now(),created:x.created||new Date().toISOString(),name:f.get("name"),phone:f.get("phone"),email:f.get("email"),city:f.get("city"),service:f.get("service"),manager:f.get("manager"),value:f.get("value"),stage:f.get("stage"),seller:f.get("seller"),nextContact:f.get("nextContact"),notes:f.get("notes")};upsert(data.leads,obj);save();closeModal(m);render();toast(existing?"Lead aggiornato":"Lead inserito")}}
+function openEvent(existing){const x=existing||{},today=new Date().toISOString().slice(0,10);const m=modal('<div class="modal-head"><div><div class="eyebrow">TOP HOUSE · AGENDA</div><h2>'+(existing?"Modifica appuntamento":"Nuovo appuntamento")+'</h2></div><button class="close">×</button></div><form><div class="form-grid"><div class="field full"><label>Titolo *</label><input class="input" name="title" value="'+esc(x.title)+'" placeholder="Es. Appuntamento cliente Rossi" required></div><div class="field"><label>Data *</label><input class="input" type="date" name="date" value="'+esc(x.date||today)+'" required></div><div class="field"><label>Ora</label><input class="input" type="time" name="time" value="'+esc(x.time||"09:00")+'"></div><div class="field"><label>Tipo</label><select class="select" name="type">'+options(["Appuntamento","Richiamo","Riunione","Nota","Altro"],x.type||"Appuntamento")+'</select></div><div class="field"><label>Cliente / Lead</label><input class="input" name="client" value="'+esc(x.client)+'" placeholder="Nome cliente"></div><div class="field full"><label>Note</label><textarea class="input textarea" name="notes" placeholder="Cosa devo ricordarmi?">'+esc(x.notes)+'</textarea></div></div><div class="form-actions"><button type="button" class="secondary cancel">Annulla</button><button class="primary">'+(existing?"Salva modifiche":"Salva appuntamento")+'</button></div></form>');m.querySelector(".close").onclick=()=>closeModal(m);m.querySelector(".cancel").onclick=()=>closeModal(m);m.querySelector("form").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),obj={id:x.id||Date.now(),title:f.get("title"),date:f.get("date"),time:f.get("time"),type:f.get("type"),client:f.get("client"),notes:f.get("notes")};upsert(data.events,obj);save();closeModal(m);render();toast(existing?"Appuntamento aggiornato":"Appuntamento salvato")}}
 
 function openAffiliate(){const m=modal('<div class="modal-head"><h2>Nuovo affiliato</h2><button class="close">×</button></div><form id="affiliate-form"><div class="form-grid"><div class="field"><label>Nome / Ragione sociale *</label><input class="input" name="name" required></div><div class="field"><label>Tipo</label><select class="select" name="type">'+options(["CAF","Agenzia","Venditore","Partner","Altro"])+'</select></div><div class="field"><label>Percentuale</label><input class="input" name="percent" type="number" min="0" max="100" step=".1"></div><div class="field"><label>Telefono</label><input class="input" name="phone" type="tel"></div><div class="field full"><label>Email</label><input class="input" name="email" type="email"></div><div class="field"><label>Stato</label><select class="select" name="status"><option>Attivo</option><option>Inattivo</option></select></div></div><div class="form-actions"><button type="button" class="secondary cancel">Annulla</button><button class="primary">Salva affiliato</button></div></form>');m.querySelector(".close").onclick=()=>closeModal(m);m.querySelector(".cancel").onclick=()=>closeModal(m);m.querySelector("form").onsubmit=e=>{e.preventDefault();const f=new FormData(e.target);data.affiliates.push({id:Date.now(),name:f.get("name"),type:f.get("type"),percent:f.get("percent"),phone:f.get("phone"),email:f.get("email"),status:f.get("status")});save();closeModal(m);render();toast("Affiliato aggiunto")}}
-async function startCRM(){
-  currentUser={uid:"local-admin",email:"admin@tophouse.local"};
-  currentProfile={uid:"local-admin",email:"admin@tophouse.local",name:"Lamine Tall",sellerName:"Lamine Tall",role:"admin",managerUid:null,managerName:"",active:true};
-  userProfiles=[currentProfile];
-  document.querySelector(".app-shell").style.display="";
-  const nav=document.querySelector(".sidebar nav");
-  if(nav&&!nav.querySelector("[data-page=users]"))nav.insertAdjacentHTML("beforeend",'<button class="nav-item" data-page="users">⚙ <span>Utenti e ruoli</span></button>');
+function initials(name){return String(name||"").trim().split(/\s+/).map(x=>x[0]||"").join("").slice(0,2).toUpperCase()||"TH"}
+function updateUserBox(){
+  const p=currentProfile||{},box=document.querySelector(".user-mini");
+  if(box)box.innerHTML='<div class="avatar">'+esc(initials(p.name))+'</div><div><b>'+esc(p.name||p.email||"")+'</b><span>'+esc(localMode?"Solo questo dispositivo":(ROLE_LABELS[p.role]||p.role||""))+'</span></div>';
+  const pill=document.querySelector(".role-pill");if(pill)pill.textContent=localMode?"Locale":(ROLE_NAMES[p.role]||"");
+  const bottom=document.querySelector(".sidebar-bottom");
+  if(bottom&&!bottom.querySelector("#logout-btn"))bottom.insertAdjacentHTML("beforeend",'<button class="secondary logout-btn" id="logout-btn" type="button">Esci</button>');
+  const out=document.querySelector("#logout-btn");if(out)out.onclick=logout;
+  const nav=document.querySelector(".sidebar nav"),usersBtn=nav?.querySelector("[data-page=users]");
+  if(nav&&!usersBtn&&(isAdmin()||isManager()))nav.insertAdjacentHTML("beforeend",'<button class="nav-item" data-page="users">⚙ <span>Utenti e ruoli</span></button>');
+  if(usersBtn&&!isAdmin()&&!isManager())usersBtn.remove();
   document.querySelectorAll(".nav-item").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
+}
+function authScreen(){
+  let el=document.querySelector("#auth-screen");
+  if(el)return el;
+  document.body.insertAdjacentHTML("beforeend",'<div class="auth-screen" id="auth-screen"><div class="auth-card"><img src="../assets/logo-casa.png" alt="Top House"><div class="eyebrow">TOP HOUSE</div><h1>Accedi al CRM</h1><p class="panel-sub">Usa le credenziali che ti ha dato l\'amministratore.</p><form id="login-form"><div class="field"><label>Email</label><input class="input" type="email" name="email" required autocomplete="username"></div><div class="field"><label>Password</label><input class="input" type="password" name="password" required autocomplete="current-password"></div><div class="auth-error" id="auth-error" role="alert"></div><button class="primary" type="submit">Accedi</button><button class="link-btn" type="button" id="forgot-btn">Password dimenticata?</button></form><div class="auth-local" id="auth-local" hidden><p></p><button class="secondary" type="button" id="local-mode-btn">Continua solo su questo dispositivo</button></div></div></div>');
+  el=document.querySelector("#auth-screen");
+  const form=el.querySelector("#login-form"),err=el.querySelector("#auth-error");
+  form.onsubmit=async e=>{
+    e.preventDefault();err.textContent="";
+    if(!authApi||!authInstance){err.textContent=configProblem||"Servizio di accesso non raggiungibile.";return}
+    const f=new FormData(form),btn=form.querySelector("[type=submit]");btn.disabled=true;btn.textContent="Accesso in corso...";
+    try{await authApi.signInWithEmailAndPassword(authInstance,String(f.get("email")).trim(),f.get("password"))}
+    catch(error){console.error(error);err.textContent=authErrorMessage(error);if(String(error?.code).includes("api-key"))showLocalOption(authErrorMessage(error))}
+    finally{btn.disabled=false;btn.textContent="Accedi"}
+  };
+  el.querySelector("#forgot-btn").onclick=async()=>{
+    const email=String(new FormData(form).get("email")||"").trim();
+    if(!email){err.textContent="Scrivi la tua email e poi tocca di nuovo «Password dimenticata?».";return}
+    try{await authApi.sendPasswordResetEmail(authInstance,email);err.textContent="Ti abbiamo inviato un'email per reimpostare la password."}catch(error){err.textContent=authErrorMessage(error)}
+  };
+  el.querySelector("#local-mode-btn").onclick=startLocalMode;
+  return el;
+}
+function showLogin(message){
+  const el=authScreen();el.hidden=false;
+  document.querySelector("#page-content").innerHTML="";
+  if(message)el.querySelector("#auth-error").textContent=message;
+}
+function showLocalOption(reason){
+  const el=authScreen(),box=el.querySelector("#auth-local");
+  box.hidden=false;box.querySelector("p").textContent=reason+" Puoi continuare a lavorare: i dati restano solo in questo browser finché il cloud non torna attivo.";
+}
+function startLocalMode(){
+  localMode=true;cloudReady=false;
+  currentUser={uid:"local-admin",email:""};
+  currentProfile={uid:"local-admin",email:"",name:"Lamine Tall",sellerName:"Lamine Tall",role:"admin",managerUid:null,managerName:"",active:true};
+  userProfiles=[currentProfile];
+  try{const local=JSON.parse(localStorage.getItem(KEY)||"null");if(local)data={...defaultData,...local}}catch(err){console.warn("Local data unavailable",err)}
+  const el=document.querySelector("#auth-screen");if(el)el.hidden=true;
+  updateUserBox();render();toast("Modalità locale: i dati non vengono sincronizzati");
+}
+async function logout(){
+  try{cloudUnsubscribe?.()}catch(e){}
+  cloudUnsubscribe=null;
+  localStorage.removeItem(KEY);
+  if(authInstance&&authApi&&!localMode)await authApi.signOut(authInstance);
+  location.reload();
+}
+async function connectCloud(){
+  const fs=firestoreApi,ref=fs.doc(db,"crmData","main");
+  const apply=snap=>{
+    const server=snap.exists()?snap.data():{};
+    baseData=onlyCollections({...defaultData,...server});
+    data={...defaultData,...server};
+    localStorage.setItem(KEY,JSON.stringify(data));
+    if(!document.querySelector(".modal-backdrop"))render();
+  };
+  apply(await fs.getDoc(ref));
+  cloudReady=true;
+  cloudUnsubscribe?.();
+  cloudUnsubscribe=fs.onSnapshot(ref,snap=>{if(snap.metadata.hasPendingWrites)return;apply(snap)},err=>{console.warn("Firebase listener unavailable",err);cloudReady=false;toast("Sincronizzazione interrotta: ricarica la pagina")});
+}
+async function onSignedIn(user){
+  currentUser=user;firebaseAuthUser=user;
   try{
-    const local=JSON.parse(localStorage.getItem(KEY)||"null");
-    if(local)data={...defaultData,...local};
-  }catch(err){console.warn("Local data unavailable",err)}
-  try { render(); } catch(err) {
-    console.error("CRM render error",err);
-    const target=document.querySelector("#page-content");
-    if(target) target.innerHTML='<section class="panel"><h2>Errore di avvio CRM</h2><p>La schermata ha incontrato un errore JavaScript.</p><pre style="white-space:pre-wrap;overflow-wrap:anywhere"></pre></section>';
-    const pre=document.querySelector("#page-content pre"); if(pre) pre.textContent=err?.stack||String(err);
-  }
-
-  // Il cloud viene caricato DOPO che l'interfaccia è già operativa.
-  try{
-    const firebase=await import("./firebase.js?v=20261009mail");
-    const fs=await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js");
-    db=firebase.db;
-    firebaseApp=firebase.app;
-    authApi=await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js");
-    authInstance=authApi.getAuth(firebaseApp);
-    authInstance.onAuthStateChanged(user=>{firebaseAuthUser=user||null});
-    firestoreApi=fs;
-    const ref=fs.doc(db,"crmData","main");
-    const snap=await fs.getDoc(ref);
-    if(snap.exists()){
-      data={...defaultData,...snap.data()};
-      localStorage.setItem(KEY,JSON.stringify(data));
-      render();
-    }
-    cloudReady=true;
-    cloudUnsubscribe?.();
-    cloudUnsubscribe=fs.onSnapshot(ref,snap=>{
-      if(!snap.exists()||snap.metadata.hasPendingWrites)return;
-      data={...defaultData,...snap.data()};
-      localStorage.setItem(KEY,JSON.stringify(data));
-      render();
-    },err=>{console.warn("Firebase listener unavailable",err);cloudReady=false});
+    await ensureProfile(user);
+    if(currentProfile.active===false)throw Object.assign(new Error("disattivato"),{code:"auth/user-disabled"});
+    await loadProfiles().catch(err=>console.warn("Profili non caricati",err));
+    document.querySelector("#auth-screen")?.setAttribute("hidden","");
+    updateUserBox();
+    render();
+    await connectCloud();
   }catch(err){
-    console.warn("CRM cloud unavailable; local mode active",err);
-    cloudReady=false;
+    console.error("CRM login error",err);
+    currentUser=null;currentProfile=null;
+    await authApi.signOut(authInstance).catch(()=>{});
+    showLogin(authErrorMessage(err));
   }
+}
+async function startCRM(){
+  document.querySelector(".app-shell").style.display="";
+  document.querySelectorAll(".nav-item").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
+  authScreen();
+  try{
+    const firebase=await import("./firebase.js?v=20261025");
+    configProblem=firebase.configProblem||"";
+    const appApi=await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js");
+    firestoreApi=await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js");
+    authApi=await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js");
+    db=firebase.db;firebaseApp=firebase.app;
+    authInstance=authApi.getAuth(firebaseApp);
+    const secondary=appApi.getApps().find(a=>a.name==="crm-secondary")||appApi.initializeApp(firebaseApp.options,"crm-secondary");
+    secondaryAuth=authApi.getAuth(secondary);
+  }catch(err){
+    console.warn("CRM cloud unavailable",err);
+    showLogin();showLocalOption("Il servizio cloud non si è caricato.");
+    return;
+  }
+  if(configProblem)showLocalOption(configProblem);
+  authInstance.onAuthStateChanged(user=>{
+    if(user){if(!currentUser||currentUser.uid!==user.uid)onSignedIn(user)}
+    else if(!localMode){currentUser=null;currentProfile=null;showLogin()}
+  });
 }
 startCRM().catch(err=>{
   console.error("CRM startup error",err);
-  document.querySelector(".app-shell").style.display="";
-  try{render()}catch(renderErr){console.error("Render error",renderErr)}
+  showLogin();showLocalOption("Errore di avvio del CRM.");
 });

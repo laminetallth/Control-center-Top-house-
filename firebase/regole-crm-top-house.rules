@@ -1,0 +1,60 @@
+rules_version = '2';
+
+// Regole Firestore del progetto "crm-top-house" (CRM venditori).
+// Pubblicale da Firebase Console → Firestore Database → Regole → incolla tutto → Pubblica.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Email del titolare: è l'unico account che può diventare Admin al primo accesso.
+    // Se entri nel CRM con un'altra email, cambiala qui prima di pubblicare.
+    function ownerEmail() { return 'laminetall.th@gmail.com'; }
+
+    function signedIn() { return request.auth != null; }
+    function profilePath() { return /databases/$(database)/documents/users/$(request.auth.uid); }
+    function hasProfile() { return signedIn() && exists(profilePath()); }
+    function profile() { return get(profilePath()).data; }
+    function active() { return hasProfile() && profile().active != false; }
+    function isAdmin() { return active() && profile().role == 'admin'; }
+    function isManager() { return active() && profile().role == 'manager'; }
+
+    // Profili utente: li crea l'Admin (o il capo venditore per i suoi venditori).
+    match /users/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow read: if active();
+      allow create: if isAdmin()
+        || (isManager()
+            && request.resource.data.role == 'seller'
+            && request.resource.data.managerUid == request.auth.uid)
+        || (signedIn()
+            && request.auth.uid == uid
+            && request.auth.token.email == ownerEmail()
+            && request.resource.data.role == 'admin');
+      allow update: if isAdmin()
+        || (isManager()
+            && resource.data.managerUid == request.auth.uid
+            && request.resource.data.role == 'seller'
+            && request.resource.data.managerUid == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // Dati del CRM (contratti, lead, agenda, affiliati, piani): solo utenti attivi.
+    match /crmData/{docId} {
+      allow read, write: if active();
+    }
+
+    // Richieste di invio email (benvenuto): le prende in carico l'automazione su GitHub.
+    match /emailQueue/{docId} {
+      allow read, create, update: if active();
+    }
+
+    // Registro invii: lo scrive solo l'automazione (che usa un account di servizio).
+    match /automationLogs/{docId} {
+      allow read: if active();
+    }
+
+    // Tutto il resto è chiuso.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

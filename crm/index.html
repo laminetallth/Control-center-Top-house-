@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#f47b20"><title>TOP HOUSE CRM v2</title>
-<link rel="stylesheet" href="./css/style.css">
+<link rel="stylesheet" href="./css/style.css?v=6">
 </head>
 <body>
 <div class="app-shell">
 <aside class="sidebar">
-  <div class="brand"><img src="../logo.png" alt="Top House"><div><strong>TOP HOUSE</strong><span>CRM</span></div></div>
+  <div class="brand"><img src="../assets/logo-casa.png" alt="Top House"><div><strong>TOP HOUSE</strong><span>CRM</span></div></div>
   <nav><button class="nav-item active" data-page="dashboard">⌂ <span>Dashboard</span></button>
     <button class="nav-item" data-page="contracts">▣ <span>Contratti</span></button>
     <button class="nav-item" data-page="clients">👥 <span>I miei clienti</span></button>
@@ -28,6 +28,8 @@
 <script>
 /* Avvio di emergenza: mantiene il CRM utilizzabile se il modulo principale non si carica. */
 window.setTimeout(function(){
+  // Se il modulo principale è partito (anche solo per mostrare il login) questa schermata non serve.
+  if(window.__crmBooted) return;
   const root=document.querySelector("#page-content");
   if(!root || root.children.length) return;
   const key="topHouseCRM";
@@ -65,5 +67,5 @@ window.setTimeout(function(){
   const note=document.createElement("div");note.className="panel";note.style.marginTop="16px";note.innerHTML='<b>Modalità di emergenza</b><p>Il modulo principale non si è avviato. Questa schermata temporanea permette di navigare e registrare contratti in locale; la sincronizzazione cloud non è attiva.</p>';root.prepend(note);
 },1200);
 </script>
-<script type="module" src="./js/app.js?release=5"></script>
+<script type="module" src="./js/app.js?release=6"></script>
 </body></html>

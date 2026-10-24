@@ -7,7 +7,7 @@ import { readCollection, addDocument, updateDocument, deleteDocument } from "./f
   const LOCAL_KEY = "vendorProfilesTopHouse";
   const SEED = [
     { nome: "Antonio Attardi", zona: "Lombardia", ruolo: "Venditore", foto: "assets/vendors/antonio-attardi.png" },
-    { nome: "Davide Marino", zona: "Praia a Mare", ruolo: "Venditore", foto: "assets/vendors/davide-marino.png" },
+    { nome: "Davide Marino", zona: "Praia a Mare", ruolo: "Venditore", foto: "" },
     { nome: "Fabio Magnago", zona: "Empoli", ruolo: "Venditore", foto: "assets/vendors/fabio-magnago.png" },
     { nome: "Gabriele Straniero", zona: "Italia", ruolo: "Direttore zona Italia", foto: "assets/vendors/gabriele-straniero.png" },
     { nome: "Giuseppe Maresca", zona: "Empoli", ruolo: "Venditore", foto: "assets/vendors/giuseppe-maresca.png" },
@@ -18,8 +18,8 @@ import { readCollection, addDocument, updateDocument, deleteDocument } from "./f
     { nome: "Dardan Gashi", zona: "Italia", ruolo: "Venditore", foto: "" },
     { nome: "Andrea Cerminare", zona: "Italia", ruolo: "Venditore", foto: "" },
     { nome: "Benedetto Cavallo", zona: "Italia", ruolo: "Venditore", foto: "" },
-    { nome: "Morena Caccavo", zona: "Lombardia", ruolo: "Venditore", foto: "assets/vendors/morena-caccavo.png" },
-    { nome: "Studio Cian", zona: "Cassano Magnago", ruolo: "Venditore", foto: "assets/vendors/studio-cian.png" }
+    { nome: "Morena Caccavo", zona: "Lombardia", ruolo: "Venditore", foto: "" },
+    { nome: "Studio Cian", zona: "Cassano Magnago", ruolo: "Venditore", foto: "" }
   ];
 
   const esc = v => String(v ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");

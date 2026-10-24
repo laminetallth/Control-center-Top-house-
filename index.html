@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Top House Gestion</title>
 
-    <link rel="stylesheet" href="css/style.css?v=3100">
+    <link rel="stylesheet" href="css/style.css?v=3600">
 </head>
 
 <body>
@@ -169,13 +169,17 @@
 
     </main>
 
-    <script src="js/menu.js?v=3100"></script>
-    <script type="module" src="js/auth-guard.js?v=3100"></script>
+    <script src="js/menu.js?v=3600"></script>
+    <script type="module" src="js/auth-guard.js?v=3600"></script>
     <script type="module">
         import { formatEuro } from "./js/formatters.js";
         import { readCollection } from "./js/firebase-data.js";
         function testo(valore){
             return String(valore || "").trim();
+        }
+
+        function esc(valore){
+            return String(valore ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;" }[c]));
         }
 
         function numero(valore){
@@ -309,7 +313,7 @@
                 return '<span class="badge storno">Storno</span>';
             }
 
-            return '<span class="badge pending">' + stato + '</span>';
+            return '<span class="badge pending">' + esc(stato) + '</span>';
         }
 
         function renderPromemoria(){
@@ -323,7 +327,7 @@
             }
 
             lista.forEach(a => {
-                box.innerHTML += `<li><strong>${a.titolo || "Attività"}</strong><br><small>${a.stato || "Da fare"} · ${a.priorita || "Media"} · ${a.scadenza || "Senza scadenza"}</small></li>`;
+                box.innerHTML += `<li><strong>${esc(a.titolo || "Attività")}</strong><br><small>${esc(a.stato || "Da fare")} · ${esc(a.priorita || "Media")} · ${esc(a.scadenza || "Senza scadenza")}</small></li>`;
             });
         }
 
@@ -355,12 +359,12 @@
                 const row = document.createElement("tr");
 
                 row.innerHTML = `
-                    <td>${c.id || ""}</td>
-                    <td>${c.nome || ""} ${c.cognome || ""}</td>
-                    <td>${c.venditore || ""}</td>
-                    <td>${c.partner || ""}</td>
-                    <td>${c.gestore || ""}</td>
-                    <td>${c.servizio || ""}</td>
+                    <td>${esc(c.id || "")}</td>
+                    <td>${esc(c.nome || "")} ${esc(c.cognome || "")}</td>
+                    <td>${esc(c.venditore || "")}</td>
+                    <td>${esc(c.partner || "")}</td>
+                    <td>${esc(c.gestore || "")}</td>
+                    <td>${esc(c.servizio || "")}</td>
                     <td>${badge(c.stato || "Inserito")}</td>
                     <td>${formatEuro(margine(c))}</td>
                 `;
@@ -373,7 +377,11 @@
 
         document.getElementById("monthFilter").addEventListener("change", aggiornaDashboard);
 
-        try{ await readCollection("contracts"); }catch(error){ console.error(error); }
+        // Mostra subito i dati già presenti, poi aggiorna con quelli del cloud (contratti, affiliati e attività).
+        aggiornaDashboard();
+        await Promise.all(["contracts", "affiliates", "activities"].map(nome =>
+            readCollection(nome).catch(error => console.error("Sincronizzazione " + nome + " non riuscita", error))
+        ));
         aggiornaDashboard();
     </script>
 

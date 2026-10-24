@@ -1,4 +1,5 @@
 import { formatEuro } from "./formatters.js";
+import { readVendorNames } from "./firebase-data.js";
 import {
     db,
     collection,
@@ -7,8 +8,7 @@ import {
     setDoc,
     deleteDoc,
     serverTimestamp,
-    query,
-    orderBy
+    runTransaction
 } from "./firebase-config.js";
 
 const VENDITORI_REGISTRATI = [
@@ -224,6 +224,8 @@ function normalizzaContratto(c, index){
 
 const contrattiLocaliIniziali = getContrattiLocali();
 let contratti = [];
+let contrattiCaricati = false;
+let salvataggioInCorso = false;
 
 const form = document.getElementById("contractForm");
 const tbody = document.getElementById("contractsBody");
@@ -594,13 +596,50 @@ function aggiornaGestoriCollegati(gestoreDaPreservare = ""){
     }
 }
 
+let venditoriAttivi = [...VENDITORI_REGISTRATI];
+let venditoriTutti = [...VENDITORI_REGISTRATI];
+
+function opzioniVenditori(lista, primaVoce){
+    return `<option value="">${primaVoce}</option>` + lista
+        .map(venditore => `<option value="${escapeHtml(venditore)}">${escapeHtml(venditore)}</option>`)
+        .join("");
+}
+
+function popolaVenditori(){
+    const venditoreSelect = document.getElementById("venditore");
+    const filtroCorrente = vendorFilter.value;
+    const formCorrente = venditoreSelect.value;
+    const daiContratti = contratti.map(c => testo(c.venditore)).filter(Boolean);
+    const perFiltro = [...new Set([...venditoriTutti, ...daiContratti])].sort((a, b) => a.localeCompare(b, "it"));
+
+    vendorFilter.innerHTML = opzioniVenditori(perFiltro, "Tutti i venditori");
+    vendorFilter.value = filtroCorrente;
+    venditoreSelect.innerHTML = opzioniVenditori(venditoriAttivi, "Seleziona venditore");
+    assicuraOpzione(venditoreSelect, formCorrente);
+}
+
+function assicuraOpzione(select, valore){
+    const pulito = testo(valore);
+    if(pulito && ![...select.options].some(o => o.value === pulito)){
+        select.insertAdjacentHTML("beforeend", `<option value="${escapeHtml(pulito)}">${escapeHtml(pulito)}</option>`);
+    }
+    select.value = pulito;
+}
+
+async function caricaVenditori(){
+    try{
+        const nomi = await readVendorNames(VENDITORI_REGISTRATI);
+        venditoriAttivi = nomi.attivi;
+        venditoriTutti = nomi.tutti;
+    }catch(error){
+        console.warn("Elenco venditori non aggiornato", error);
+    }
+    popolaVenditori();
+}
+
 function popolaFiltriFissi(){
 
-    vendorFilter.innerHTML = `<option value="">Tutti i venditori</option>`;
-
-    VENDITORI_REGISTRATI.forEach(venditore => {
-        vendorFilter.innerHTML += `<option value="${escapeHtml(venditore)}">${escapeHtml(venditore)}</option>`;
-    });
+    popolaVenditori();
 
     partnerFilter.innerHTML = `<option value="">Tutti i partner</option>`;
 
@@ -619,10 +658,18 @@ form.addEventListener("submit", async function(e){
 
     e.preventDefault();
 
+    if(!contrattiCaricati){
+        setFirebaseStatus("Attendi il caricamento dei contratti prima di salvare", "error");
+        return;
+    }
+    if(salvataggioInCorso){
+        return;
+    }
+
     const editId = document.getElementById("editId").value;
 
     const datiContratto = {
-        id: editId ? Number(editId) : generaNuovoId(),
+        id: editId ? Number(editId) : 0,
         dataInserimento: document.getElementById("dataInserimento").value,
         dataEsito: document.getElementById("dataEsito").value,
         nome: document.getElementById("nome").value,
@@ -639,27 +686,55 @@ form.addEventListener("submit", async function(e){
         note: document.getElementById("note").value
     };
 
+    salvataggioInCorso = true;
+    saveButton.disabled = true;
+
     try{
-        const normalizzato = normalizzaContratto(datiContratto, contratti.length);
-        const firestoreId = editId ? getFirestoreId(contratti.find(c => c.id === Number(editId)) || normalizzato) : String(normalizzato.id);
-        const payload = contrattoPerFirestore({ ...normalizzato, firestoreId, localId: firestoreId });
-        if(!editId){ payload.createdAt = serverTimestamp(); }
-        await setDoc(doc(db, "contracts", firestoreId), payload, { merge: true });
+        if(editId){
+            const normalizzato = normalizzaContratto(datiContratto, contratti.length);
+            const firestoreId = getFirestoreId(contratti.find(c => c.id === Number(editId)) || normalizzato);
+            const payload = contrattoPerFirestore({ ...normalizzato, firestoreId, localId: firestoreId });
+            await setDoc(doc(db, "contracts", firestoreId), payload, { merge: true });
+        }else{
+            const nuovoId = await creaContrattoConNuovoId(datiContratto);
+            setFirebaseStatus(`Contratto ${nuovoId} salvato`, "online");
+        }
         await caricaContrattiDaFirestore();
         resetForm();
     }catch(error){
         console.error(error);
         setFirebaseStatus("Errore Firebase: contratto non salvato", "error");
+    }finally{
+        salvataggioInCorso = false;
+        saveButton.disabled = false;
     }
 });
 
-function generaNuovoId(){
+// Il nuovo ID viene calcolato sui dati aggiornati del cloud e prenotato in una transazione:
+// due persone che salvano insieme non possono sovrascriversi a vicenda.
+async function creaContrattoConNuovoId(datiContratto){
+    const snapshot = await getDocs(contractsCollection);
+    const idEsistenti = [
+        ...snapshot.docs.map(documento => Number(documento.data().id || documento.id) || 0),
+        ...contratti.map(c => Number(c.id) || 0)
+    ];
+    let candidato = Math.max(0, ...idEsistenti) + 1;
 
-    if(contratti.length === 0){
-        return 1;
-    }
-
-    return Math.max(...contratti.map(c => Number(c.id || 0))) + 1;
+    return runTransaction(db, async (transazione) => {
+        for(let tentativo = 0; tentativo < 25; tentativo += 1){
+            const riferimento = doc(db, "contracts", String(candidato));
+            const esistente = await transazione.get(riferimento);
+            if(!esistente.exists()){
+                const normalizzato = normalizzaContratto({ ...datiContratto, id: candidato }, 0);
+                const payload = contrattoPerFirestore({ ...normalizzato, firestoreId: String(candidato), localId: String(candidato) });
+                payload.createdAt = serverTimestamp();
+                transazione.set(riferimento, payload);
+                return candidato;
+            }
+            candidato += 1;
+        }
+        throw new Error("Nessun ID contratto libero trovato");
+    });
 }
 
 function modificaContratto(id){
@@ -675,7 +750,7 @@ function modificaContratto(id){
     document.getElementById("dataEsito").value = contratto.dataEsito;
     document.getElementById("nome").value = contratto.nome;
     document.getElementById("cognome").value = contratto.cognome;
-    document.getElementById("venditore").value = contratto.venditore;
+    assicuraOpzione(document.getElementById("venditore"), contratto.venditore);
     partnerSelect.value = contratto.partner;
     aggiornaGestoriCollegati(contratto.gestore);
     document.getElementById("servizio").value = contratto.servizio;
@@ -809,12 +884,14 @@ async function resetContratti(){
 
 async function caricaContrattiDaFirestore(){
     try{
-        const snapshot = await getDocs(query(contractsCollection, orderBy("id")));
+        const snapshot = await getDocs(contractsCollection);
         contratti = snapshot.docs.map((documento, index) => normalizzaContratto({
             ...documento.data(),
             firestoreId: documento.id,
             localId: documento.data().localId || documento.id
-        }, index));
+        }, index)).sort((a, b) => a.id - b.id);
+        contrattiCaricati = true;
+        popolaVenditori();
         if(contratti.length || !contrattiLocaliIniziali.length){
             salvaStorage();
         }
@@ -883,4 +960,6 @@ popolaFiltriFissi();
 renderContratti();
 resetForm();
 aggiornaAzioniMigrazione();
+setFirebaseStatus("Caricamento contratti...", "");
 caricaContrattiDaFirestore();
+caricaVenditori();

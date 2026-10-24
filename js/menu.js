@@ -18,6 +18,34 @@
         { label: "⚙️ Impostazioni", href: "settings.html", matches: ["settings.html"] }
     ];
 
+    const NOMI_MESI = ["Gennaio", "Febbraio", "Marzo", "Aprile", "Maggio", "Giugno", "Luglio", "Agosto", "Settembre", "Ottobre", "Novembre", "Dicembre"];
+
+    // Mesi da gennaio 2026 fino a dicembre dell'anno in corso (da novembre si aggiunge anche l'anno successivo).
+    function elencoMesi() {
+        const oggi = new Date();
+        const ultimoAnno = oggi.getMonth() >= 10 ? oggi.getFullYear() + 1 : oggi.getFullYear();
+        const mesi = [];
+        for (let anno = 2026; anno <= Math.max(2026, ultimoAnno); anno += 1) {
+            NOMI_MESI.forEach((nome, indice) => {
+                mesi.push([`${anno}-${String(indice + 1).padStart(2, "0")}`, `${nome} ${anno}`]);
+            });
+        }
+        return mesi;
+    }
+    window.TopHouseMesi = elencoMesi;
+
+    function aggiornaFiltroMesi() {
+        const select = document.getElementById("monthFilter");
+        if (!select || !select.querySelector('option[value="2026-01"]')) return;
+        const selezionato = select.value;
+        const primaVoce = select.querySelector('option[value=""]');
+        const etichetta = primaVoce ? primaVoce.textContent : "Tutte le mensilità";
+        select.innerHTML = "";
+        select.appendChild(new Option(etichetta, ""));
+        elencoMesi().forEach(([valore, testo]) => select.appendChild(new Option(testo, valore)));
+        select.value = selezionato;
+    }
+
     function getCurrentPage() {
         const path = window.location.pathname || "";
         return decodeURIComponent(path.substring(path.lastIndexOf("/") + 1));
@@ -46,7 +74,7 @@
             return;
         }
         const script = document.createElement("script");
-        script.src = "js/economic-overview.js?v=3200";
+        script.src = "js/economic-overview.js?v=3600";
         script.defer = true;
         script.dataset.economicOverview = "true";
         document.head.appendChild(script);
@@ -61,7 +89,7 @@
         }
         const script = document.createElement("script");
         script.type = "module";
-        script.src = "js/contract-quick-update.js?v=3400";
+        script.src = "js/contract-quick-update.js?v=3600";
         script.dataset.contractQuickUpdate = "true";
         document.head.appendChild(script);
     }
@@ -72,6 +100,7 @@
     }
 
     function renderSidebar() {
+        aggiornaFiltroMesi();
         const container = document.getElementById("sidebarContainer");
         if (!container) {
             loadPageEnhancements();
@@ -114,6 +143,10 @@
             logoutButton.addEventListener("click", async () => {
                 const { auth, signOut } = await import("./firebase-config.js");
                 await signOut(auth);
+                // Rimuove la copia locale dei dati: su un computer condiviso non resta nulla dopo l'uscita.
+                Object.keys(localStorage)
+                    .filter((chiave) => !chiave.includes("_archivio_") && /TopHouse|^vendorProfiles$|^contracts$|^affiliates$|^activities$|^documents$|^investments$/.test(chiave))
+                    .forEach((chiave) => localStorage.removeItem(chiave));
                 window.location.href = "login.html";
             });
         }

@@ -12,6 +12,13 @@ const firebaseConfig = {
   measurementId: "G-1VMZK2CJC4"
 };
 
+// Una chiave API Firebase valida ha sempre 39 caratteri e inizia con "AIza".
+// Quella qui sopra ne ha 38 (un carattere è andato perso copiandola): copia quella esatta da
+// Firebase Console → ⚙ Impostazioni progetto → Generali → Le tue app → Configurazione SDK.
+export const configProblem = /^AIza[0-9A-Za-z_-]{35}$/.test(firebaseConfig.apiKey)
+  ? ""
+  : "La chiave API Firebase del CRM è incompleta: va ricopiata da Firebase Console.";
+
 export const app = getApps().some(x => x.name === "[DEFAULT]")
   ? getApp()
   : initializeApp(firebaseConfig);
