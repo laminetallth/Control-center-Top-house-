@@ -56,6 +56,12 @@ const VENDITORI_REGISTRATI = [
         foto: ""
     },
     {
+        nome: "Massimiliano Massironi",
+        zona: "Italia",
+        ruolo: "Venditore",
+        foto: ""
+    },
+    {
         nome: "Dardan Gashi",
         zona: "Italia",
         ruolo: "Venditore",
